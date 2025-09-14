@@ -229,8 +229,10 @@ const SingleListing = () => {
 
   return (
     <div className="bg-white min-h-screen">
-      <div className="w-full flex justify-center px-4 sm:px-6 lg:px-8 py-8">
-        <div className="w-full max-w-5xl xl:max-w-6xl">
+      {/* Outer wrapper adjusted: add mx-auto and narrower base width for better centering on very small screens */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        {/* Constrain content width and center on all breakpoints */}
+        <div className="w-full max-w-5xl xl:max-w-6xl mx-auto">
   {/* Full Width Image Gallery with added top padding for consistent spacing */}
   <div className="mb-8 pt-4 sm:pt-6 lg:pt-8">
           {/* Desktop Layout */}
