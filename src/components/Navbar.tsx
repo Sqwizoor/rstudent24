@@ -108,15 +108,50 @@ const Navbar = () => {
     }
   }
 
-  // Helper: derive initial strictly from identity fields (avoid role letter like 'M')
+  // Helper: derive initial(s) strictly from identity fields (never role)
   const getUserInitial = () => {
-    const name = authUser?.name || (authUser as any)?.userInfo?.name;
-    if (typeof name === 'string' && name.trim()) return name.trim()[0].toUpperCase();
-    const username = (authUser as any)?.userInfo?.username;
-    if (typeof username === 'string' && username.trim()) return username.trim()[0].toUpperCase();
-    const email = authUser?.email || (authUser as any)?.userInfo?.email;
-    if (typeof email === 'string' && email.trim()) return email.trim()[0].toUpperCase();
-    return '?';
+    try {
+      // Collect possible sources in priority order
+      const userInfo: any = (authUser as any)?.userInfo || {};
+      const cognitoInfo: any = (authUser as any)?.cognitoInfo || {};
+      const candidates: string[] = [];
+
+      if (typeof authUser?.name === 'string') candidates.push(authUser.name);
+      if (typeof userInfo.name === 'string') candidates.push(userInfo.name);
+      if (typeof userInfo.given_name === 'string' && typeof userInfo.family_name === 'string') {
+        candidates.push(`${userInfo.given_name} ${userInfo.family_name}`);
+      }
+      if (typeof userInfo.given_name === 'string') candidates.push(userInfo.given_name);
+  if (typeof userInfo.username === 'string') candidates.push(userInfo.username);
+      if (typeof authUser?.email === 'string') candidates.push(authUser.email);
+      if (typeof userInfo.email === 'string') candidates.push(userInfo.email);
+      if (typeof cognitoInfo.email === 'string') candidates.push(cognitoInfo.email);
+      if (typeof cognitoInfo.username === 'string') candidates.push(cognitoInfo.username);
+
+      // Find first non-empty meaningful candidate
+      for (const raw of candidates) {
+        if (!raw || typeof raw !== 'string') continue;
+        const value = raw.trim();
+        if (!value) continue;
+        // If looks like an email, use the first character of local-part
+        if (value.includes('@')) {
+          const local = value.split('@')[0];
+          if (local) return local[0].toUpperCase();
+        }
+        // If contains spaces, derive two-letter initials (First + Last) if both words start with letters
+        if (value.includes(' ')) {
+          const parts = value.split(/\s+/).filter(Boolean);
+            if (parts.length >= 2 && /[a-z]/i.test(parts[0][0]) && /[a-z]/i.test(parts[parts.length - 1][0])) {
+              return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            }
+        }
+        // Otherwise first letter
+        if (/[a-z]/i.test(value[0])) return value[0].toUpperCase();
+      }
+    } catch (e) {
+      // Silent fallback
+    }
+    return 'U'; // Generic user initial
   };
 
   return (

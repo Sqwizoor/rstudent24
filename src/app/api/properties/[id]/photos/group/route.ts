@@ -38,14 +38,15 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
 export const runtime = 'nodejs';
 export const preferredRegion = ['fra1', 'arn1'];
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+// Adjusted signature: loosen context typing to satisfy Next.js route validation
+export async function POST(request: NextRequest, context: any) {
   try {
     const contentLength = request.headers.get('content-length');
     if (contentLength && parseInt(contentLength) > MAX_TOTAL_BYTES) {
       return NextResponse.json({ message: 'Grouped payload too large', maxTotalBytes: MAX_TOTAL_BYTES }, { status: 413 });
     }
 
-  const { id } = params;
+  const { id } = context?.params || {};
     const propertyId = parseInt(id);
     if (isNaN(propertyId)) {
       return NextResponse.json({ message: 'Invalid property id' }, { status: 400 });
