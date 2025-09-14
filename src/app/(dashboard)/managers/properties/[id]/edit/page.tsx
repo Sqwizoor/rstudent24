@@ -314,7 +314,7 @@ export default function EditPropertyPage() {
         isNsfassAccredited: fetchedPropertyData.isNsfassAccredited || false,
         amenities: fetchedPropertyData.amenities || [],
         highlights: fetchedPropertyData.highlights || [],
-        closestUniversities: [],
+        closestUniversities: (fetchedPropertyData as any).closestUniversities || [],
         propertyType: fetchedPropertyData.propertyType ? (fetchedPropertyData.propertyType as PropertyTypeEnum) : PropertyTypeEnum.Apartment,
         beds: fetchedPropertyData.beds || 0,
         baths: fetchedPropertyData.baths || 0,
@@ -578,7 +578,15 @@ export default function EditPropertyPage() {
 
         {/* Main Property Form */}
         <PropertyFormUI {...propertyForm}>
-          <form onSubmit={propertyForm.handleSubmit(onSubmitPropertyHandler)} className="space-y-8">
+          <form onSubmit={propertyForm.handleSubmit(onSubmitPropertyHandler, (errors) => {
+            console.error('Validation errors:', errors);
+            const first = Object.values(errors)[0];
+            if (first && 'message' in first) {
+              toast.error((first as any).message || 'Fix validation errors before saving');
+            } else {
+              toast.error('Please fix the highlighted form errors.');
+            }
+          })} className="space-y-8">
             {/* Basic Information */}
             <FormSection title="Basic Information" icon={<Building size={20} />} defaultOpen={true}>
               <div className="space-y-6">
