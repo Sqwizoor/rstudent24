@@ -631,14 +631,14 @@ const NewProperty = () => {
   };
 
   // Style for form field labels
-  const labelStyle = "text-sm font-medium text-gray-200";
+  const labelStyle = "text-sm font-medium text-slate-700 dark:text-gray-200";
 
   // Style for form field inputs
   const inputStyle =
-    "bg-[#0B1120] text-white border-[#1E2A45] focus:border-[#4F9CF9] focus:ring-[#4F9CF9] rounded-md";
+    "bg-white dark:bg-[#0B1120] text-slate-900 dark:text-white border border-slate-300 dark:border-[#1E2A45] focus:border-blue-500 focus:ring-blue-500 dark:focus:border-[#4F9CF9] dark:focus:ring-[#4F9CF9] rounded-md";
 
   return (
-    <div className="min-h-screen text-white ">
+  <div className="min-h-screen bg-slate-50 dark:bg-[#070C17] text-slate-900 dark:text-white">
       <Toaster richColors position="top-center" />
       <div className="relative max-w-5xl mx-auto px-4 py-6">
         {/* Decorative elements */}
@@ -651,14 +651,14 @@ const NewProperty = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-400 hover:text-white bg-[#0B1120]/80 hover:bg-[#1E2A45] rounded-full"
+              className="text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-white bg-white dark:bg-[#0B1120]/80 hover:bg-slate-100 dark:hover:bg-[#1E2A45] border border-slate-200 dark:border-transparent rounded-full"
               onClick={() => router.back()}
             >
               <ArrowLeft size={20} />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-white bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Add New Property</h1>
-              <p className="text-gray-400 mt-1">Create a new property listing with our step-by-step form</p>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Add New Property</h1>
+              <p className="text-slate-600 dark:text-gray-400 mt-1">Create a new property listing with our step-by-step form</p>
             </div>
           </div>
         </div>
@@ -680,11 +680,11 @@ const NewProperty = () => {
                 aria-label={`Go to step ${stepNum}`}
               >
                 <div 
-                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-colors ${isActive ? 'bg-blue-500 text-white' : isCompleted ? 'bg-green-500 text-white' : 'bg-[#1E2A45] text-gray-400'}`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-colors border ${isActive ? 'bg-blue-600 text-white border-blue-600' : isCompleted ? 'bg-green-600 text-white border-green-600' : 'bg-white dark:bg-[#1E2A45] text-slate-500 dark:text-gray-400 border-slate-300 dark:border-[#1E2A45]'}`}
                 >
                   {isCompleted ? <CheckCircle2 size={16} /> : stepNum}
                 </div>
-                <div className={`text-xs ${isActive ? 'text-blue-400' : isCompleted ? 'text-green-400' : 'text-gray-500'}`}>
+                <div className={`text-xs ${isActive ? 'text-blue-600 dark:text-blue-400' : isCompleted ? 'text-green-600 dark:text-green-400' : 'text-slate-500 dark:text-gray-500'}`}>
                   {stepNum === 1 && 'Basic Info'}
                   {stepNum === 2 && 'Pricing'}
                   {stepNum === 3 && 'Details'}
@@ -698,7 +698,7 @@ const NewProperty = () => {
         </div>
 
         {/* Main Form */}
-        <div className=" rounded-xl p-6 shadow-xl border border-[#1E2A45]">
+  <div className="rounded-xl p-6 shadow-xl border border-slate-200 dark:border-[#1E2A45] bg-white dark:bg-[#0B1120]/60">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {/* Step 1: Basic Information */}
@@ -742,14 +742,14 @@ const NewProperty = () => {
                   />
 
                   {/* NSFAS Accreditation - Making it prominent */}
-                  <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-lg p-4">
+                  <div className="bg-green-50 dark:bg-gradient-to-r dark:from-green-500/10 dark:to-blue-500/10 border border-green-200 dark:border-green-500/20 rounded-lg p-4">
                     <CreateFormField
                       name="isNsfassAccredited"
                       label="NSFAS Accredited Property"
                       type="switch"
                       labelClassName={`${labelStyle} text-green-400 font-semibold`}
                     />
-                    <p className="text-xs text-green-300/70 mt-1">
+                    <p className="text-xs text-green-700 dark:text-green-300/70 mt-1">
                       Mark if this property accepts NSFAS funding. NSFAS accredited properties are prioritized for students with government funding.
                     </p>
                   </div>
@@ -809,8 +809,8 @@ const NewProperty = () => {
                   />
 
                   {/* Property Specifications */}
-                  <div className="border-t border-gray-700 pt-6">
-                    <h4 className="text-lg font-medium text-white mb-4">Property Specifications</h4>
+                  <div className="border-t border-slate-200 dark:border-gray-700 pt-6">
+                    <h4 className="text-lg font-medium text-slate-800 dark:text-white mb-4">Property Specifications</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <CreateFormField
                         name="beds"
@@ -911,7 +911,7 @@ const NewProperty = () => {
                         label: amenity,
                       }))}
                       labelClassName={labelStyle}
-                      inputClassName={`${inputStyle} bg-[#0B1120] !text-white`}
+                      inputClassName={`${inputStyle}`}
                     />
                     <div className="mt-2 flex flex-wrap gap-2">
                       {form.watch("amenities")?.map((amenity, idx) => (
@@ -943,7 +943,7 @@ const NewProperty = () => {
                         label: highlight,
                       }))}
                       labelClassName={labelStyle}
-                      inputClassName={`${inputStyle} bg-[#0B1120] !text-white`}
+                      inputClassName={`${inputStyle}`}
                     />
                     <div className="mt-2 flex flex-wrap gap-2">
                       {form.watch("highlights")?.map((highlight, idx) => (
@@ -1000,14 +1000,14 @@ const NewProperty = () => {
                       <div className="mt-2">
                         <label
                           htmlFor={field.name}
-                          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[#1E2A45] rounded-lg cursor-pointer bg-[#0B1120]/50 hover:bg-[#0B1120] transition-colors"
+                          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-[#1E2A45] rounded-lg cursor-pointer bg-white dark:bg-[#0B1120]/50 hover:bg-slate-50 dark:hover:bg-[#0B1120] transition-colors"
                         >
                           <div className="flex flex-col items-center justify-center pt-5 pb-6">
                             <Upload className="w-8 h-8 mb-3 text-[#4F9CF9]" />
-                            <p className="mb-2 text-sm text-gray-400">
+                            <p className="mb-2 text-sm text-slate-600 dark:text-gray-400">
                               <span className="font-semibold">Click to upload</span> or drag and drop
                             </p>
-                            <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                            <p className="text-xs text-slate-500 dark:text-gray-500">PNG, JPG, GIF up to 10MB</p>
                           </div>
                           <input
                             id={field.name}
@@ -1028,14 +1028,14 @@ const NewProperty = () => {
                   {/* File preview for property photos */}
                   {uploadedFiles.length > 0 && (
                     <div className="mt-4">
-                      <p className="text-sm text-gray-400 mb-2">Selected property files ({uploadedFiles.length}):</p>
+                      <p className="text-sm text-slate-700 dark:text-gray-400 mb-2">Selected property files ({uploadedFiles.length}):</p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                         {uploadedFiles.map((file, index) => {
                           const isFeatured = index === featuredImageIndex;
                           return (
                             <div
                               key={index}
-                              className={`relative group bg-[#0B1120] rounded-md p-1 h-24 flex items-center justify-center overflow-hidden ring-2 ${isFeatured ? 'ring-blue-500' : 'ring-transparent'}`}
+                              className={`relative group bg-white dark:bg-[#0B1120] rounded-md p-1 h-24 flex items-center justify-center overflow-hidden ring-2 ${isFeatured ? 'ring-blue-500' : 'ring-transparent'} border border-slate-200 dark:border-transparent`}
                             >
                               <Image
                                 src={URL.createObjectURL(file)}
@@ -1047,7 +1047,7 @@ const NewProperty = () => {
                               <button
                                 type="button"
                                 onClick={() => setFeaturedImageIndex(index)}
-                                className={`absolute top-1 left-1 text-[10px] px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-sm border border-white/20 transition ${isFeatured ? 'text-white font-semibold' : 'text-gray-300 group-hover:bg-black/70'}`}
+                                className={`absolute top-1 left-1 text-[10px] px-1.5 py-0.5 rounded bg-white/70 dark:bg-black/60 backdrop-blur-sm border border-slate-300 dark:border-white/20 transition ${isFeatured ? 'text-blue-700 dark:text-white font-semibold' : 'text-slate-700 dark:text-gray-300 group-hover:bg-white/80 dark:group-hover:bg-black/70'}`}
                                 title={isFeatured ? 'Featured image' : 'Set as featured'}
                               >
                                 {isFeatured ? 'Featured' : 'Set'}
@@ -1056,7 +1056,7 @@ const NewProperty = () => {
                           );
                         })}
                       </div>
-                      <p className="mt-2 text-xs text-gray-500">The featured image appears first in listings. Click a thumbnail label to change.</p>
+                      <p className="mt-2 text-xs text-slate-600 dark:text-gray-500">The featured image appears first in listings. Click a thumbnail label to change.</p>
                     </div>
                   )}
                 </div>
@@ -1133,9 +1133,9 @@ const NewProperty = () => {
                     type="multi-select"
                     options={UNIVERSITY_OPTIONS}
                     labelClassName={labelStyle}
-                    inputClassName={`${inputStyle} bg-[#0B1120] !text-white`}
+                    inputClassName={`${inputStyle}`}
                   />
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-slate-600 dark:text-gray-400 mt-1">
                     Select the universities that are closest to this property. This helps students find accommodation near their campus.
                   </p>
                 </div>

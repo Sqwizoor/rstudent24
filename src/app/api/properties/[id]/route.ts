@@ -91,6 +91,9 @@ async function deleteFileFromS3(fileUrl: string): Promise<void> {
   }
 }
 
+// Ensure this route uses the Node.js runtime (Edge has smaller limits)
+export const runtime = 'nodejs';
+
 // GET handler for a specific property
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
