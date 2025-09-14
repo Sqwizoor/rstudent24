@@ -236,20 +236,101 @@ export function PropertyEditPageRoomFormModal({
               <ModalCreateFormField name="roomType" label="Room Type" type="select" options={Object.values(ModalRoomTypeEnum).map(rt => ({ value: rt, label: rt }))} />
               <ModalCreateFormField name="capacity" label="Capacity (Persons)" type="number" min={1} placeholder="e.g., 2" />
             </div>
-            <ModalCreateFormField 
-              name="amenities" 
-              label="Room-Specific Amenities" 
-              type="multi-select" 
-              options={Object.values(ModalAmenityEnum).map(a => ({ value: a, label: a }))} 
-              className={multiSelectStyles}
-            />
-            <ModalCreateFormField 
-              name="features" 
-              label="Room-Specific Features" 
-              type="multi-select" 
-              options={["Private Balcony", "Walk-in Closet", "Corner Room", "Good View", "Spacious", "Bright", "Recently Renovated"].map(f => ({ value: f, label: f }))} 
-              className={multiSelectStyles}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-white">
+              <ModalCreateFormField name="pricePerMonth" label="Price / Month (R)" type="number" min={1} placeholder="e.g., 4500" />
+              <ModalCreateFormField name="securityDeposit" label="Security Deposit (R)" type="number" min={0} placeholder="e.g., 2000" />
+              <ModalCreateFormField name="squareFeet" label="Square Feet (Optional)" type="number" min={0} placeholder="e.g., 120" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+              {/* Availability Switch */}
+              <div className="space-y-2">
+                <UILabel className="text-sm font-medium text-slate-800 dark:text-white">Availability</UILabel>
+                <ControllerModal
+                  control={roomControl}
+                  name="isAvailable"
+                  render={({ field }) => (
+                    <div className="flex items-center gap-3">
+                      <UISwitch checked={Boolean(field.value)} onCheckedChange={field.onChange} />
+                      <span className="text-xs text-gray-300">{field.value ? 'Available' : 'Unavailable'}</span>
+                    </div>
+                  )}
+                />
+              </div>
+              {/* Available From Date Picker */}
+              <div className="space-y-2">
+                <UILabel className="text-sm font-medium text-slate-800 dark:text-white">Available From (Optional)</UILabel>
+                <ControllerModal
+                  control={roomControl}
+                  name="availableFrom"
+                  render={({ field }) => (
+                    <UIDatePicker value={field.value instanceof Date ? field.value : (field.value ? new Date(field.value as any) : null)} onSelect={(date) => field.onChange(date)} />
+                  )}
+                />
+                <p className="text-[10px] text-gray-400">Leave empty if immediately available.</p>
+              </div>
+            </div>
+            {/* Custom Amenity Chips */}
+            <div className="space-y-2">
+              <UILabel className="text-sm font-medium text-slate-800 dark:text-white">Room-Specific Amenities</UILabel>
+              <div className="flex flex-wrap gap-2">
+                {Object.values(ModalAmenityEnum).map(am => {
+                  const selected = (watchRoomForm('amenities') || []).includes(am as any);
+                  return (
+                    <button
+                      type="button"
+                      key={am}
+                      onClick={() => {
+                        const current = (watchRoomForm('amenities') || []) as string[];
+                        if (current.includes(am)) {
+                          setRoomFormValue('amenities', current.filter(a => a !== am) as any, { shouldDirty: true });
+                        } else {
+                          setRoomFormValue('amenities', [...current, am] as any, { shouldDirty: true });
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500
+                        ${selected 
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
+                          : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-600'}
+                      `}
+                    >
+                      {selected && <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-white" />}
+                      {am}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {/* Custom Feature Chips */}
+            <div className="space-y-2">
+              <UILabel className="text-sm font-medium text-slate-800 dark:text-white">Room-Specific Features</UILabel>
+              <div className="flex flex-wrap gap-2">
+                {["Private Balcony", "Walk-in Closet", "Corner Room", "Good View", "Spacious", "Bright", "Recently Renovated"].map(feat => {
+                  const selected = (watchRoomForm('features') || []).includes(feat as any);
+                  return (
+                    <button
+                      type="button"
+                      key={feat}
+                      onClick={() => {
+                        const current = (watchRoomForm('features') || []) as string[];
+                        if (current.includes(feat)) {
+                          setRoomFormValue('features', current.filter(f => f !== feat) as any, { shouldDirty: true });
+                        } else {
+                          setRoomFormValue('features', [...current, feat] as any, { shouldDirty: true });
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500
+                        ${selected 
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' 
+                          : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-600'}
+                      `}
+                    >
+                      {selected && <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-white" />}
+                      {feat}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* Photo Management for Room */}
             <div className="space-y-3 border-t border-border dark:border-gray-700 pt-4 mt-4">
