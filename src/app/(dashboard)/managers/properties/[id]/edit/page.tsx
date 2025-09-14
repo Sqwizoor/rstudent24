@@ -335,7 +335,7 @@ export default function EditPropertyPage() {
       setReplacePropertyPhotosFlag(false);
       setIsOverallPageLoading(false);
     }
-  }, [fetchedPropertyData, propertyForm, setCurrentPropertyPhotos, setNewPropertyPhotoFiles, setPropertyPhotosMarkedForDelete, setReplacePropertyPhotosFlag, setIsOverallPageLoading]);
+  }, [fetchedPropertyData, propertyForm, setCurrentPropertyPhotos, setNewPropertyPhotoFiles, setPropertyPhotosMarkedForDelete, setReplacePropertyPhotosFlag, setIsOverallPageLoading, setFeaturedPhotoIndex]);
 
   useEffect(() => {
     if (isPropertyError && !isLoadingProperty) {
@@ -677,7 +677,7 @@ export default function EditPropertyPage() {
 
                     {currentPropertyPhotos.length > 0 && (
                         <div className="mt-4">
-                            <p className="text-sm font-medium text-muted-foreground dark:text-gray-400 mb-2">Current Photos ({currentPropertyPhotos.length}): Click "Feature" to set default image.</p>
+                            <p className="text-sm font-medium text-muted-foreground dark:text-gray-400 mb-2">Current Photos ({currentPropertyPhotos.length}): Click &quot;Feature&quot; to set default image.</p>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                                 {currentPropertyPhotos.map((url, index) => {
                                   const isFeatured = index === featuredPhotoIndex;
