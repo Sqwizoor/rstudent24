@@ -418,6 +418,15 @@ const NewProperty = () => {
         if (!idToken) {
           console.warn('Missing idToken; cannot upload photos.');
         } else {
+          // Compress / process main property images (reuse room processing constraints but slightly larger total)
+          try {
+            const processed = await processImageFiles(photoFiles, 2 * 1024 * 1024, 12 * 1024 * 1024);
+            console.log(`Processed main property images: original=${photoFiles.length}, processed=${processed.length}`);
+            photoFiles = processed;
+          } catch (procErr) {
+            console.error('Failed processing main property images, proceeding with originals:', procErr);
+          }
+
           console.log(`Grouped uploading ${photoFiles.length} photos for property ID ${propertyResponse.id}`);
           const GROUP_SIZE = 3;
           let uploadedCount = 0;
@@ -455,9 +464,13 @@ const NewProperty = () => {
           }
           if (failedCount > 0) {
             toast.error(`${failedCount} photo(s) failed to upload`, { position: 'top-center' });
+          } else if (uploadedCount > 0) {
+            console.log('All property photos uploaded successfully. Total:', uploadedCount);
           }
           console.log(`Grouped upload complete. Success: ${uploadedCount}, Failed: ${failedCount}. Latest photoUrls length: ${latestPhotoUrls.length}`);
         }
+      } else {
+        console.log('No property photos selected; skipping grouped upload.');
       }
       
       // If we have rooms to add, create them for this property
