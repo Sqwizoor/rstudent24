@@ -109,49 +109,44 @@ const Navbar = () => {
   }
 
   // Helper: derive initial(s) strictly from identity fields (never role)
-  const getUserInitial = () => {
-    try {
-      // Collect possible sources in priority order
-      const userInfo: any = (authUser as any)?.userInfo || {};
-      const cognitoInfo: any = (authUser as any)?.cognitoInfo || {};
-      const candidates: string[] = [];
+  const getDisplayName = () => {
+    if (!authUser) return 'User';
+    const role = authUser.role?.toLowerCase();
+    const userInfo: any = (authUser as any)?.userInfo || {};
+    const cognitoInfo: any = (authUser as any)?.cognitoInfo || {};
 
-      if (typeof authUser?.name === 'string') candidates.push(authUser.name);
-      if (typeof userInfo.name === 'string') candidates.push(userInfo.name);
-      if (typeof userInfo.given_name === 'string' && typeof userInfo.family_name === 'string') {
-        candidates.push(`${userInfo.given_name} ${userInfo.family_name}`);
-      }
-      if (typeof userInfo.given_name === 'string') candidates.push(userInfo.given_name);
-  if (typeof userInfo.username === 'string') candidates.push(userInfo.username);
-      if (typeof authUser?.email === 'string') candidates.push(authUser.email);
-      if (typeof userInfo.email === 'string') candidates.push(userInfo.email);
-      if (typeof cognitoInfo.email === 'string') candidates.push(cognitoInfo.email);
-      if (typeof cognitoInfo.username === 'string') candidates.push(cognitoInfo.username);
+    const isGeneric = (val?: string) => {
+      if (!val) return true;
+      const trimmed = val.trim().toLowerCase();
+      return trimmed === 'manager' || trimmed === 'admin' || trimmed === 'tenant';
+    };
 
-      // Find first non-empty meaningful candidate
-      for (const raw of candidates) {
-        if (!raw || typeof raw !== 'string') continue;
-        const value = raw.trim();
-        if (!value) continue;
-        // If looks like an email, use the first character of local-part
-        if (value.includes('@')) {
-          const local = value.split('@')[0];
-          if (local) return local[0].toUpperCase();
-        }
-        // If contains spaces, derive two-letter initials (First + Last) if both words start with letters
-        if (value.includes(' ')) {
-          const parts = value.split(/\s+/).filter(Boolean);
-            if (parts.length >= 2 && /[a-z]/i.test(parts[0][0]) && /[a-z]/i.test(parts[parts.length - 1][0])) {
-              return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-            }
-        }
-        // Otherwise first letter
-        if (/[a-z]/i.test(value[0])) return value[0].toUpperCase();
-      }
-    } catch (e) {
-      // Silent fallback
+    const rawName = authUser.name || userInfo.name;
+    if (rawName && !isGeneric(rawName)) return rawName.trim();
+
+    const username = userInfo.username || cognitoInfo.username;
+    if (username && !isGeneric(username)) return String(username).trim();
+
+    const email = authUser.email || userInfo.email || cognitoInfo.email;
+    if (email && typeof email === 'string') {
+      const local = email.split('@')[0];
+      if (local) return local;
+      return email;
     }
-    return 'U'; // Generic user initial
+    return 'User';
+  };
+
+  const getUserInitial = () => {
+    const display = getDisplayName();
+    if (!display || display === 'User') return 'U';
+    // If multi-word, take first + last initials
+    const parts = display.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2 && /[a-z]/i.test(parts[0][0]) && /[a-z]/i.test(parts[parts.length - 1][0])) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    const firstChar = display[0];
+    if (firstChar && /[a-z]/i.test(firstChar)) return firstChar.toUpperCase();
+    return 'U';
   };
 
   return (
@@ -268,7 +263,7 @@ const Navbar = () => {
                       <div className="flex items-center gap-2">
                         <User className={`h-4 w-4 text-blue-600 ${isDashboardPage ? 'dark:text-blue-400' : ''}`} />
                         <p className={`font-medium text-slate-900 ${isDashboardPage ? 'dark:text-white' : ''}`}>
-                          {authUser.name || "User"}
+                          {getDisplayName()}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 mt-2">
