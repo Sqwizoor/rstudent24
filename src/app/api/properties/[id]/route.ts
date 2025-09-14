@@ -146,6 +146,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 // PUT handler for updating a property
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Quick size header check before parsing
+    const contentLengthHeader = request.headers.get('content-length');
+    if (contentLengthHeader) {
+      const contentLength = parseInt(contentLengthHeader, 10);
+      const HARD_LIMIT = 25 * 1024 * 1024; // 25MB aligned with config
+      if (contentLength > HARD_LIMIT) {
+        return NextResponse.json({
+          message: 'Payload too large. Upload images separately via /photos or /photos/batch endpoints.',
+          maxBytes: HARD_LIMIT,
+          receivedBytes: contentLength,
+          guidance: 'Send only textual fields to PUT. Use batch photo endpoint for images.'
+        }, { status: 413 });
+      }
+    }
+
     // Verify authentication and role
     const authResult = await verifyAuth(request, ['manager']);
     if (!authResult.isAuthenticated) {
@@ -172,82 +187,24 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     // Parse the form data with enhanced error handling
     let formData: FormData;
     try {
-      console.log('=== FORMDATA PARSING ATTEMPT ===');
-      console.log('Request content-type:', request.headers.get('content-type'));
-      console.log('Request method:', request.method);
-      console.log('Request URL:', request.url);
-      
-      // Check for critical headers
-      const contentType = request.headers.get('content-type');
-      const contentLength = request.headers.get('content-length');
-      console.log('Content-Length:', contentLength);
-      console.log('Content-Type full value:', contentType);
-      
-      // Check if the body is available
-      const body = request.body;
-      console.log('Request body available:', !!body);
-      console.log('Request body type:', body ? body.constructor.name : 'null');
-      
-      if (!body) {
-        console.error('Request body is null');
-        return NextResponse.json({ 
-          message: 'Error updating property: Request body is empty' 
-        }, { status: 400 });
-      }
-      
-      // Try to parse FormData - this is where the error is occurring
-      console.log('Attempting to parse FormData...');
       formData = await request.formData();
-      console.log(`✅ Successfully parsed FormData for property ${id}`);
-      console.log('FormData entry count:', Array.from(formData.entries()).length);
-      
-      // Log first few entries for debugging
-      let entryCount = 0;
-      for (const [key, value] of formData.entries()) {
-        if (entryCount < 5) { // Only log first 5 entries to avoid spam
-          if (value instanceof File) {
-            console.log(`  ${key}: [File] ${value.name} (${value.size} bytes)`);
-          } else {
-            console.log(`  ${key}: ${value}`);
-          }
-          entryCount++;
-        }
-      }
-      console.log('=== END FORMDATA PARSING ===');
-    } catch (parseError) {
-      console.error('=== FORMDATA PARSE ERROR ===');
-      console.error('Error details:', parseError);
-      console.error('Error message:', parseError instanceof Error ? parseError.message : String(parseError));
-      console.error('Error name:', parseError instanceof Error ? parseError.name : 'Unknown');
-      console.error('Error stack:', parseError instanceof Error ? parseError.stack : 'No stack trace');
-      
-      // Check if this is a specific FormData parsing error
-      const errorMessage = parseError instanceof Error ? parseError.message : String(parseError);
-      
-      if (errorMessage.includes('Failed to parse body as FormData')) {
-        console.error('❌ This is a FormData parsing error - likely due to malformed multipart data');
-        
-        // Try to get raw request info for debugging
-        try {
-          // Create a new request to read the body as text (for debugging)
-          const bodyText = await request.text();
-          console.error('Request body first 500 chars:', bodyText.substring(0, 500));
-          console.error('Request body length:', bodyText.length);
-        } catch (textError) {
-          console.error('Could not read request body as text:', textError);
-        }
-        
-        return NextResponse.json({ 
-          message: `Error updating property: Failed to parse request body as FormData. This indicates the request was malformed or not sent as proper multipart/form-data. Original error: ${errorMessage}` 
-        }, { status: 400 });
-      }
-      
-      // For other parsing errors
-      return NextResponse.json({ 
-        message: `Error updating property: Request parsing failed. Error: ${errorMessage}` 
-      }, { status: 500 });
+    } catch (e) {
+      return NextResponse.json({ message: 'Failed to parse form data', error: e instanceof Error ? e.message : String(e) }, { status: 400 });
     }
-    
+
+    // Detect any File entries and reject to enforce new flow
+    let containsFiles = false;
+    for (const [, value] of formData.entries()) {
+      if (value instanceof File) { containsFiles = true; break; }
+    }
+    if (containsFiles) {
+      return NextResponse.json({
+        message: 'File uploads are no longer accepted in PUT /properties/:id.',
+        guidance: 'First update metadata via PUT without images. Then upload images using POST /api/properties/{id}/photos or /photos/batch.',
+        endpoints: ['/api/properties/{id}/photos', '/api/properties/{id}/photos/batch']
+      }, { status: 400 });
+    }
+
     // Handle authorization check - ensure user can edit this property
     const managerCognitoId = formData.get('managerCognitoId') as string;
     if (managerCognitoId && managerCognitoId !== existingProperty.managerCognitoId) {
