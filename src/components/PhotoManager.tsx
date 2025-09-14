@@ -128,29 +128,33 @@ export const PhotoManager: React.FC<PhotoManagerProps> = ({
   const uploadNewPhotos = async (files: FileList) => {
     if (files.length === 0) return;
 
-    const formData = new FormData();
-    Array.from(files).forEach(file => {
-      formData.append('photos', file);
-    });
+    // Convert to array and decide chunk size
+    const fileArray = Array.from(files);
+    const LARGE_THRESHOLD = 4 * 1024 * 1024; // 4MB
+    const hasLarge = fileArray.some(f => f.size >= LARGE_THRESHOLD);
+    const CHUNK = hasLarge ? 2 : 6;
 
     try {
       setIsUploading(true);
-      const response = await fetch(`/api/properties/${propertyId}/photos/batch`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload photos');
+      let accumulated: string[] = [...photos];
+      for (let i = 0; i < fileArray.length; i += CHUNK) {
+        const slice = fileArray.slice(i, i + CHUNK);
+        const formData = new FormData();
+        slice.forEach(file => formData.append('photos', file));
+        const response = await fetch(`/api/properties/${propertyId}/photos/batch`, { method: 'POST', body: formData });
+        if (!response.ok) {
+          const txt = await response.text();
+          throw new Error(`Failed batch ${Math.floor(i/CHUNK)+1}: ${txt}`);
+        }
+        const result = await response.json();
+        accumulated = result.allPhotoUrls || accumulated;
+        setPhotos(accumulated);
+        onPhotosUpdated?.(accumulated);
       }
-
-      const result = await response.json();
-      setPhotos(result.allPhotoUrls || [...photos, ...result.photoUrls]);
-      onPhotosUpdated?.(result.allPhotoUrls || [...photos, ...result.photoUrls]);
       toast.success(`${files.length} photo(s) uploaded successfully!`);
     } catch (error) {
       console.error('Error uploading photos:', error);
-      toast.error('Failed to upload photos');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload photos');
     } finally {
       setIsUploading(false);
     }

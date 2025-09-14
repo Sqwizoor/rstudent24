@@ -382,7 +382,26 @@ export default function EditPropertyPage() {
       try {
         const files = Array.from(newPropertyPhotoFiles);
         const processed = await processImageFiles(files, 3 * 1024 * 1024, 15 * 1024 * 1024); // 3MB per file, 15MB total
-        processed.forEach(f => formData.append('photos', f));
+        
+        // Adaptive chunk sizing: if any file > 4MB use chunk=2 else 6
+        const LARGE_THRESHOLD = 4 * 1024 * 1024; // 4MB
+        const hasLarge = processed.some(f => f.size >= LARGE_THRESHOLD);
+        const CHUNK = hasLarge ? 2 : 6;
+        let batchNumber = 0;
+        for (let i = 0; i < processed.length; i += CHUNK) {
+          const slice = processed.slice(i, i + CHUNK);
+          const form = new FormData();
+          slice.forEach(f => form.append('photos', f));
+          if (replacePropertyPhotosFlag && featuredPhotoIndex >= 0 && batchNumber === 0) {
+            form.append('featuredImageIndex', '0');
+          }
+          const resp = await fetch(`/api/properties/${propertyIdString}/photos/batch`, { method: 'POST', body: form });
+          if (!resp.ok) {
+            const txt = await resp.text();
+            throw new Error(`Photo batch upload failed at batch ${batchNumber + 1}: ${txt}`);
+          }
+          batchNumber++;
+        }
       } catch (e:any) {
         toast.dismiss();
         toast.error(e?.message || 'Image processing failed');
