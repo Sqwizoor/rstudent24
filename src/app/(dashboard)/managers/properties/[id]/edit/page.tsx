@@ -383,24 +383,69 @@ export default function EditPropertyPage() {
         const files = Array.from(newPropertyPhotoFiles);
         const processed = await processImageFiles(files, 3 * 1024 * 1024, 15 * 1024 * 1024); // 3MB per file, 15MB total
         
-        // Adaptive chunk sizing: if any file > 4MB use chunk=2 else 6
-        const LARGE_THRESHOLD = 4 * 1024 * 1024; // 4MB
-        const hasLarge = processed.some(f => f.size >= LARGE_THRESHOLD);
-        const CHUNK = hasLarge ? 2 : 6;
-        let batchNumber = 0;
-        for (let i = 0; i < processed.length; i += CHUNK) {
-          const slice = processed.slice(i, i + CHUNK);
-          const form = new FormData();
-          slice.forEach(f => form.append('photos', f));
-          if (replacePropertyPhotosFlag && featuredPhotoIndex >= 0 && batchNumber === 0) {
-            form.append('featuredImageIndex', '0');
-          }
-          const resp = await fetch(`/api/properties/${propertyIdString}/photos/batch`, { method: 'POST', body: form });
-          if (!resp.ok) {
+        // Sequential single-file uploads with retry on 413
+        const compressOnce = async (file: File): Promise<File> => {
+          const MAX_TARGET = 2.5 * 1024 * 1024;
+          if (file.size <= MAX_TARGET) return file;
+          return new Promise<File>((resolve) => {
+            const img = document.createElement('img');
+            const reader = new FileReader();
+            reader.onload = e => { img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const scale = Math.min(1, Math.sqrt(MAX_TARGET / file.size));
+              canvas.width = img.width * scale;
+              canvas.height = img.height * scale;
+              const ctx = canvas.getContext('2d');
+              if (!ctx) { resolve(file); return; }
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              canvas.toBlob(blob => {
+                if (blob && blob.size < file.size) {
+                  resolve(new File([blob], file.name.replace(/\.(png|jpg|jpeg|webp)$/i, '.jpg'), { type: 'image/jpeg' }));
+                } else resolve(file);
+              }, 'image/jpeg', 0.75);
+            }; img.src = e.target?.result as string; };
+            reader.readAsDataURL(file);
+          });
+        };
+        const aggressive = async (file: File): Promise<File> => {
+          const TARGET = 1 * 1024 * 1024;
+          if (file.size <= TARGET) return file;
+          return new Promise<File>((resolve) => {
+            const img = document.createElement('img');
+            const reader = new FileReader();
+            reader.onload = e => { img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const scale = Math.min(1, Math.sqrt(TARGET / file.size));
+              canvas.width = Math.max(320, img.width * scale);
+              canvas.height = Math.max(320, img.height * scale);
+              const ctx = canvas.getContext('2d');
+              if (!ctx) { resolve(file); return; }
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              canvas.toBlob(blob => {
+                if (blob && blob.size < file.size) {
+                  resolve(new File([blob], file.name.replace(/\.(png|jpg|jpeg|webp)$/i, '.jpg'), { type: 'image/jpeg' }));
+                } else resolve(file);
+              }, 'image/jpeg', 0.65);
+            }; img.src = e.target?.result as string; };
+            reader.readAsDataURL(file);
+          });
+        };
+        const compressed: File[] = [];
+        for (const f of processed) compressed.push(await compressOnce(f));
+        for (let i=0;i<compressed.length;i++) {
+          let attemptFile = compressed[i];
+          for (let attempt=0; attempt<2; attempt++) {
+            const form = new FormData();
+            form.append('photo', attemptFile);
+            if (replacePropertyPhotosFlag && featuredPhotoIndex >=0 && i===0) {
+              form.append('featuredImageIndex','0');
+            }
+            const resp = await fetch(`/api/properties/${propertyIdString}/photos`, { method:'POST', body: form });
+            if (resp.ok) break;
+            if (resp.status === 413 && attempt===0) { attemptFile = await aggressive(compressed[i]); continue; }
             const txt = await resp.text();
-            throw new Error(`Photo batch upload failed at batch ${batchNumber + 1}: ${txt}`);
+            throw new Error(`Photo ${i+1}/${compressed.length} failed: ${txt}`);
           }
-          batchNumber++;
         }
       } catch (e:any) {
         toast.dismiss();

@@ -72,7 +72,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           message: 'Request Entity Too Large: raw multipart exceeds 30MB limit before parsing.',
           receivedBytes: len,
           maxBytes: HARD_LIMIT,
-          guidance: 'Reduce number of images or let client auto-chunk (<=7.5MB per batch).'
+          guidance: 'Use sequential single-file uploads. Large images will auto-compress and retry. '
         }, { status: 413 });
       }
     }
