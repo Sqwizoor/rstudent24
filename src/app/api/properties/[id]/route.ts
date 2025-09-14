@@ -356,16 +356,25 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
-    // Extract and parse property data from form
+    // Extract and parse property data from form (support repeated keys for arrays)
+    const arrayFieldNames = new Set(['amenities','highlights','closestUniversities']);
     const propertyData: any = {};
     for (const [key, value] of formData.entries()) {
-      if (key !== 'address' && key !== 'city' && key !== 'state' && 
-          key !== 'country' && key !== 'postalCode' && 
-          key !== 'managerCognitoId' && key !== 'replacePhotos' && 
-          key !== 'locationId' && // Exclude locationId - location is updated separately above
-          key !== 'photoUrls' && // Exclude photoUrls - handled separately
-          !key.startsWith('photos')) {
-        propertyData[key] = value;
+      if (
+        key === 'address' || key === 'city' || key === 'state' ||
+        key === 'country' || key === 'postalCode' ||
+        key === 'managerCognitoId' || key === 'replacePhotos' ||
+        key === 'locationId' || key === 'photoUrls' ||
+        key === 'finalPhotoUrlsToKeep' || // helper field
+        key === 'finalPhotoUrlsToKeep[]' ||
+        key.startsWith('photos')
+      ) continue;
+      if (arrayFieldNames.has(key)) {
+        if (!propertyData[key]) propertyData[key] = [];
+        propertyData[key].push(String(value));
+      } else {
+        // Only set if not already set (first wins) to avoid overwriting with duplicates
+        if (propertyData[key] === undefined) propertyData[key] = value;
       }
     }
 
@@ -390,6 +399,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
               ? propertyData.highlights
               : typeof propertyData.highlights === "string"
                 ? propertyData.highlights.split(",")
+                : undefined
+          }),
+          // Parse array fields (closestUniversities) if present
+          ...(propertyData.closestUniversities && {
+            closestUniversities: Array.isArray(propertyData.closestUniversities)
+              ? propertyData.closestUniversities
+              : typeof propertyData.closestUniversities === 'string'
+                ? propertyData.closestUniversities.split(',')
                 : undefined
           }),
           // Parse boolean fields if present
@@ -452,6 +469,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                 ? propertyData.highlights
                 : typeof propertyData.highlights === "string"
                   ? propertyData.highlights.split(",")
+                  : undefined
+            }),
+            // Parse array fields if present (retry path)
+            ...(propertyData.closestUniversities && {
+              closestUniversities: Array.isArray(propertyData.closestUniversities)
+                ? propertyData.closestUniversities
+                : typeof propertyData.closestUniversities === 'string'
+                  ? propertyData.closestUniversities.split(',')
                   : undefined
             }),
             // Parse boolean fields if present
