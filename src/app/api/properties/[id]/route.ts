@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { wktToGeoJSON } from '@terraformer/wkt';
-import { S3Client, DeleteObjectCommand, ObjectCannedACL } from '@aws-sdk/client-s3';
+import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { verifyAuth } from '@/lib/auth';
 
@@ -38,7 +38,7 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
     Key: key,
     Body: file,
     ContentType: mimeType,
-    ACL: ObjectCannedACL.public_read,
+    // No ACL: Bucket Owner Enforced. Public access handled via bucket policy or CDN.
     CacheControl: 'public, max-age=86400',
   };
 
@@ -273,8 +273,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     let photoUrls = existingProperty.photoUrls || [];
     
     // Check if we have a photoUrls field in the form data (for selective deletion)
-    const photoUrlsFromForm = formData.get('photoUrls');
-    if (photoUrlsFromForm && typeof photoUrlsFromForm === 'string') {
+  // Support both legacy photoUrls and new finalPhotoUrlsToKeep field
+  const photoUrlsFromForm = formData.get('photoUrls') || formData.get('finalPhotoUrlsToKeep');
+  if (photoUrlsFromForm && typeof photoUrlsFromForm === 'string') {
       try {
         // Parse the kept photo URLs from the form data
         const keptPhotoUrls = JSON.parse(photoUrlsFromForm);

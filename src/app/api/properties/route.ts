@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
-import { S3Client, ObjectCannedACL, DeleteObjectCommand, PutObjectAclCommand } from '@aws-sdk/client-s3';
+import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import axios from 'axios';
 import { verifyAuth } from '@/lib/auth';
@@ -44,8 +44,8 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
     Key: key,
     Body: file,
     ContentType: mimeType,
-    ACL: 'public-read' as ObjectCannedACL,
-    CacheControl: 'public, max-age=86400',
+  // ACL removed (Bucket Owner Enforced). Use bucket policy/CloudFront for access control.
+  CacheControl: 'public, max-age=86400',
   };
 
   try {
@@ -60,17 +60,7 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
     const result = await upload.done();
     console.log(`Successfully uploaded file: ${params.Key}`);
     
-    // Explicitly set ACL again to ensure it's public-read
-    try {
-      await s3Client.send(new PutObjectAclCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: key,
-        ACL: 'public-read'
-      }));
-      console.log(`Successfully set ACL to public-read for ${key}`);
-    } catch (aclError) {
-      console.warn(`Warning: Could not set ACL. This might affect public access:`, aclError);
-    }
+    // ACL setting skipped: bucket uses Object Ownership (Bucket owner enforced)
 
     // Construct URL in a consistent way
     const fileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
