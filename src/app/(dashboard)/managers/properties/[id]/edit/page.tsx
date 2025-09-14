@@ -378,6 +378,7 @@ export default function EditPropertyPage() {
         }
     });
 
+    let latestPhotoUrls: string[] = currentPropertyPhotos.slice();
     if (newPropertyPhotoFiles) {
       try {
         const files = Array.from(newPropertyPhotoFiles);
@@ -447,6 +448,19 @@ export default function EditPropertyPage() {
             throw new Error(`Photo ${i+1}/${compressed.length} failed: ${txt}`);
           }
         }
+        // After uploads, refresh property photos from API so we include new ones in kept list
+        try {
+          const refreshed = await fetch(`/api/properties/${propertyIdString}`);
+          if (refreshed.ok) {
+            const refreshedData = await refreshed.json();
+            if (Array.isArray(refreshedData.photoUrls)) {
+              latestPhotoUrls = refreshedData.photoUrls;
+              setCurrentPropertyPhotos(refreshedData.photoUrls);
+            }
+          }
+        } catch (refreshErr) {
+          console.warn('Failed to refresh property photos after upload; continuing with local state', refreshErr);
+        }
       } catch (e:any) {
         toast.dismiss();
         toast.error(e?.message || 'Image processing failed');
@@ -457,8 +471,9 @@ export default function EditPropertyPage() {
 
     // Handle image deletion - send the list of photos to keep
     if (!replacePropertyPhotosFlag) {
-      // Build kept list preserving current order
-      const keptPhotoUrls = currentPropertyPhotos.filter(url => !propertyPhotosMarkedForDelete.includes(url));
+      // Build kept list from latestPhotoUrls (ensures newly uploaded ones are preserved)
+      const baseList = latestPhotoUrls.length ? latestPhotoUrls : currentPropertyPhotos;
+      const keptPhotoUrls = baseList.filter(url => !propertyPhotosMarkedForDelete.includes(url));
       // Reorder so featured comes first
       if (keptPhotoUrls.length > 1 && featuredPhotoIndex >= 0 && featuredPhotoIndex < keptPhotoUrls.length) {
         const [featured] = keptPhotoUrls.splice(featuredPhotoIndex, 1);
