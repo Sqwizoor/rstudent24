@@ -1,0 +1,344 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useGetAuthUserQuery, useGetAllTenantsQuery, useGetTenantDetailsQuery } from "@/state/api";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Search, Eye, Mail, Phone } from "lucide-react";
+import { Pagination } from "@/components/ui/pagination";
+
+// Define Tenant type for TypeScript
+type Tenant = {
+  id: number;
+  cognitoId: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  favoriteCount?: number;
+  applicationCount?: number;
+  leaseCount?: number;
+};
+
+// Define TenantDetails type for the detailed view
+type TenantDetails = {
+  tenantInfo: Tenant;
+  favorites: {
+    id: number;
+    name: string;
+    address: string;
+    landlord: string;
+    propertyId: number;
+  }[];
+  applications: {
+    id: number;
+    propertyName: string;
+    propertyId: number;
+    status: string;
+    date: string;
+  }[];
+  leases: {
+    id: number;
+    propertyName: string;
+    propertyId: number;
+    startDate: string;
+    endDate: string;
+    rent: string;
+  }[];
+};
+
+export default function StudentsPage() {
+  const searchParams = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [tenantDetails, setTenantDetails] = useState<TenantDetails | null>(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const { data: authUser } = useGetAuthUserQuery();
+  const { data: tenants, isLoading: isLoadingTenants } = useGetAllTenantsQuery();
+  const router = useRouter();
+
+  const filteredTenants = tenants ? tenants.filter(tenant => {
+    const matchesSearch = tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         tenant.email.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  }) : [];
+
+  // Pagination logic
+  const totalPages = Math.ceil((filteredTenants?.length || 0) / itemsPerPage);
+  const paginatedTenants = filteredTenants?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const viewTenantDetails = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    setIsDialogOpen(true);
+    
+    // Clear previous tenant details while loading
+    setTenantDetails(null);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold tracking-tight">Student Management</h1>
+        <Button 
+          variant="outline" 
+          onClick={() => router.push('/admin')}
+        >
+          Back to Dashboard
+        </Button>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <Input
+            type="search"
+            placeholder="Search students..."
+            className="w-full bg-white dark:bg-slate-950 pl-8"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {isLoadingTenants ? (
+        <div className="flex justify-center items-center p-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      ) : tenants && tenants.length === 0 ? (
+        <div className="text-center p-8 text-slate-500 dark:text-slate-400">
+          No students found in the database
+        </div>
+      ) : filteredTenants.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-slate-600 dark:text-slate-400 text-sm">No matching students found</p>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {paginatedTenants.map((tenant) => (
+            <Card key={tenant.id} className="p-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-medium">{tenant.name}</h3>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1 mt-1">
+                    <div className="flex items-center gap-1">
+                      <Mail className="h-3.5 w-3.5" />
+                      <span>{tenant.email}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Phone className="h-3.5 w-3.5" />
+                      <span>{tenant.phoneNumber}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-2 md:gap-3">
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+                    {tenant.favoriteCount ?? 0} Favorites
+                  </Badge>
+                  <Badge variant="outline" className="bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300">
+                    {tenant.applicationCount ?? 0} Applications
+                  </Badge>
+                  <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300">
+                    {tenant.leaseCount ?? 0} Leases
+                  </Badge>
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-100"
+                    onClick={() => viewTenantDetails(tenant)}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    View Details
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Pagination controls */}
+      {tenants && tenants.length > 0 && (
+        <div className="mt-4 flex justify-center">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredTenants.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      )}
+
+      {/* Student Details Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Student Details: {selectedTenant?.name}</DialogTitle>
+            <DialogDescription>
+              View detailed information about this student.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedTenant && (
+            <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto">
+              {/* Fetch tenant details when dialog is opened */}
+              {(() => {
+                const { data: tenantDetailsData, isLoading, error } = useGetTenantDetailsQuery(
+                  selectedTenant ? selectedTenant.id.toString() : 'skip',
+                  { skip: !selectedTenant }
+                );
+                
+                // Update state when data is loaded
+                if (tenantDetailsData && !tenantDetails) {
+                  setTenantDetails(tenantDetailsData);
+                }
+                
+                if (isLoading) {
+                  return (
+                    <div className="flex justify-center items-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                    </div>
+                  );
+                }
+                
+                if (error) {
+                  return (
+                    <div className="py-4 text-center text-red-500">
+                      Failed to load student details. Please try again.
+                    </div>
+                  );
+                }
+                
+                return null;
+              })()}
+              
+              {/* Contact Information */}
+              <div>
+                <h3 className="text-lg font-medium mb-2">Contact Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-gray-500" />
+                    <span>{selectedTenant?.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-gray-500" />
+                    <span>{selectedTenant?.phoneNumber}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Favorites */}
+              <div>
+                <h3 className="text-lg font-medium mb-2">Favorited Properties</h3>
+                {tenantDetails?.favorites && tenantDetails.favorites.length > 0 ? (
+                  <div className="space-y-2">
+                    {tenantDetails.favorites.map((favorite) => (
+                      <Card key={favorite.id} className="p-3">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h4 className="font-medium">{favorite.name}</h4>
+                            <p className="text-sm text-gray-500">{favorite.address}</p>
+                            <p className="text-xs text-gray-400">Landlord: {favorite.landlord}</p>
+                          </div>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-3.5 w-3.5 mr-1" />
+                            View Property
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">No favorited properties.</p>
+                )}
+              </div>
+              
+              {/* Applications */}
+              <div>
+                <h3 className="text-lg font-medium mb-2">Applications</h3>
+                {tenantDetails?.applications && tenantDetails.applications.length > 0 ? (
+                  <div className="space-y-2">
+                    {tenantDetails.applications.map((application) => (
+                      <Card key={application.id} className="p-3">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h4 className="font-medium">{application.propertyName}</h4>
+                            <p className="text-sm text-gray-500">Applied: {application.date}</p>
+                            <Badge variant={application.status === "Approved" ? "default" : "outline"}>
+                              {application.status}
+                            </Badge>
+                          </div>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-3.5 w-3.5 mr-1" />
+                            View Application
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">No applications submitted.</p>
+                )}
+              </div>
+              
+              {/* Leases */}
+              <div>
+                <h3 className="text-lg font-medium mb-2">Active Leases</h3>
+                {tenantDetails?.leases && tenantDetails.leases.length > 0 ? (
+                  <div className="space-y-2">
+                    {tenantDetails.leases.map((lease) => (
+                      <Card key={lease.id} className="p-3">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h4 className="font-medium">{lease.propertyName}</h4>
+                            <p className="text-sm text-gray-500">
+                              {lease.startDate} to {lease.endDate}
+                            </p>
+                            <p className="text-sm font-medium text-green-600">
+                              {lease.rent} per month
+                            </p>
+                          </div>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-3.5 w-3.5 mr-1" />
+                            View Lease
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">No active leases.</p>
+                )}
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
