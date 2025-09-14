@@ -468,6 +468,18 @@ const NewProperty = () => {
             console.log('All property photos uploaded successfully. Total:', uploadedCount);
           }
           console.log(`Grouped upload complete. Success: ${uploadedCount}, Failed: ${failedCount}. Latest photoUrls length: ${latestPhotoUrls.length}`);
+          // Refetch property to confirm persisted photoUrls
+          try {
+            const confirmRes = await fetch(`/api/properties/${propertyResponse.id}`);
+            if (confirmRes.ok) {
+              const confirmed = await confirmRes.json();
+              console.log('Post-upload property refetch photoUrls length:', confirmed.photoUrls?.length, confirmed.photoUrls);
+            } else {
+              console.warn('Property refetch after uploads failed with status', confirmRes.status);
+            }
+          } catch (confirmErr) {
+            console.warn('Failed to refetch property after uploads:', confirmErr);
+          }
         }
       } else {
         console.log('No property photos selected; skipping grouped upload.');
