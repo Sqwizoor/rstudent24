@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Star, Upload, X, ArrowUp, ArrowDown } from 'lucide-react';
+// Presigned upload removed; using grouped server-side uploads
 
 interface PhotoManagerProps {
   propertyId: number;
@@ -184,50 +185,73 @@ export const PhotoManager: React.FC<PhotoManagerProps> = ({
     });
   };
 
-  const uploadSingle = async (file: File, index: number, total: number) => {
-    // First pass compression already done earlier
-    let attemptFile = file;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const formData = new FormData();
-      formData.append('photo', attemptFile);
-      const response = await fetch(`/api/properties/${propertyId}/photos`, { method: 'POST', body: formData });
-      if (response.ok) {
-        const result = await response.json();
-        setPhotos(prev => {
-          const merged = [...prev, result.photoUrl];
-          onPhotosUpdated?.(merged);
-          return merged;
-        });
-        return;
-      }
-      if (response.status === 413 && attempt === 0) {
-        // Retry after aggressive compression
-        attemptFile = await aggressiveCompress(file);
-        continue;
-      }
-      const errorTxt = await response.text();
-      throw new Error(`Photo ${index + 1}/${total} failed: ${errorTxt}`);
-    }
-  };
-
   const uploadNewPhotos = async (files: FileList) => {
     if (files.length === 0) return;
     const originalFiles = Array.from(files);
     try {
       setIsUploading(true);
-      // First pass compression sequentially
+      // First pass compression
       const processed: File[] = [];
-      for (const f of originalFiles) {
-        const compressed = await compressImageIfNeeded(f); // existing helper
-        processed.push(compressed);
+      for (const f of originalFiles) processed.push(await compressImageIfNeeded(f));
+
+      const GROUP_SIZE = 3;
+      let successCount = 0;
+      let failedCount = 0;
+      let updatedPhotoState: string[] = photos.slice();
+
+      for (let start = 0; start < processed.length; start += GROUP_SIZE) {
+        const slice = processed.slice(start, start + GROUP_SIZE);
+        // Second pass aggressive compression if initial size still large (>4MB)
+        const finalSlice: File[] = [];
+        for (const file of slice) {
+          if (file.size > 4 * 1024 * 1024) {
+            finalSlice.push(await aggressiveCompress(file));
+          } else {
+            finalSlice.push(file);
+          }
+        }
+
+        const formData = new FormData();
+        finalSlice.forEach(f => formData.append('photos', f));
+        if (start === 0) formData.append('featuredIndex', '0'); // ensure first group sets featured ordering
+
+        try {
+          const res = await fetch(`/api/properties/${propertyId}/photos/group`, {
+            method: 'POST',
+            body: formData
+          });
+          if (!res.ok) {
+            console.error('Group upload failed with status', res.status);
+            failedCount += finalSlice.length;
+          } else {
+            const json = await res.json();
+            // server returns full updated array (totalPhotos etc.)
+            if (json && json.uploaded) {
+              successCount += json.uploaded.length;
+              // We do not have photoUrls array in this response; fetch property photos or reconstruct
+              // Simpler: after each group, fetch property to get latest photos
+              const propRes = await fetch(`/api/properties/${propertyId}`);
+              if (propRes.ok) {
+                const propData = await propRes.json();
+                if (propData.photoUrls) {
+                  updatedPhotoState = propData.photoUrls;
+                  setPhotos(updatedPhotoState);
+                  onPhotosUpdated?.(updatedPhotoState);
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error uploading group slice:', err);
+          failedCount += finalSlice.length;
+        }
       }
-      for (let i = 0; i < processed.length; i++) {
-        await uploadSingle(processed[i], i, processed.length);
-      }
-      toast.success(`${processed.length} photo(s) uploaded successfully!`);
-    } catch (e:any) {
-      console.error('Sequential upload error:', e);
-      toast.error(e?.message || 'Failed uploading photos');
+
+      if (successCount > 0) toast.success(`${successCount} photo(s) uploaded`);
+      if (failedCount > 0) toast.error(`${failedCount} failed to upload`);
+    } catch (error:any) {
+      console.error('Grouped upload error:', error);
+      toast.error(error.message || 'Failed to upload photos');
     } finally {
       setIsUploading(false);
     }

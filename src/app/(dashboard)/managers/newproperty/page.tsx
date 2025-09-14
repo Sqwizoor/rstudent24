@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { RoomsSection } from "@/components/RoomsSection"; // Assuming this component handles its own file states for rooms
 import type { RoomFormData } from "@/components/RoomFormField"; // Assuming this type includes how room photos are handled
 import { Progress } from "@/components/ui/progress";
+// Removed presigned helper import for grouped upload approach
 
 // Icons
 import {
@@ -412,51 +413,42 @@ const NewProperty = () => {
       const propertyResponse = await createResponse.json();
       console.log("Property created successfully:", propertyResponse);
 
-      // Room counter already initialized above
-
-      // Upload photos if we have any
+      // Upload photos in groups (server handles S3). Max 3 per request.
       if (photoFiles.length > 0) {
-        console.log(`Uploading ${photoFiles.length} photos for property ID ${propertyResponse.id}`);
-        const uploadedPhotos = [];
-        let failedUploads = 0;
-        
-        for (const file of photoFiles) {
+        console.log(`Grouped uploading ${photoFiles.length} photos for property ID ${propertyResponse.id}`);
+        const GROUP_SIZE = 3;
+        let uploadedCount = 0;
+        let failedCount = 0;
+        for (let start = 0; start < photoFiles.length; start += GROUP_SIZE) {
+          const slice = photoFiles.slice(start, start + GROUP_SIZE);
+          const formData = new FormData();
+          slice.forEach((f) => formData.append('photos', f));
+          // For first group pass featured index (0 because we reordered already)
+          if (start === 0) formData.append('featuredIndex', '0');
           try {
-            // Create FormData for the photo
-            const photoFormData = new FormData();
-            photoFormData.append('photo', file);
-            photoFormData.append('propertyId', propertyResponse.id.toString());
-            
-            // Upload the photo
-            const uploadResponse = await fetch(`/api/properties/${propertyResponse.id}/photos`, {
+            const res = await fetch(`/api/properties/${propertyResponse.id}/photos/group`, {
               method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${idToken}`,
-                // Don't set Content-Type, let the browser handle it for FormData
-              },
-              body: photoFormData,
+              headers: { 'Authorization': `Bearer ${idToken}` },
+              body: formData
             });
-            
-            if (!uploadResponse.ok) {
-              const errorData = await uploadResponse.json();
-              console.error(`Error uploading photo ${file.name}:`, errorData);
-              failedUploads++;
-              continue;
+            if (!res.ok) {
+              const err = await res.json().catch(()=>({}));
+              console.error('Group upload failed', err);
+              failedCount += slice.length;
+            } else {
+              const json = await res.json();
+              console.log(`Uploaded group starting at ${start}:`, json.uploaded?.length || slice.length);
+              uploadedCount += slice.length;
             }
-            
-            const photoData = await uploadResponse.json();
-            console.log(`Successfully uploaded photo ${file.name}:`, photoData);
-            uploadedPhotos.push(photoData.photoUrl);
-          } catch (error) {
-            console.error(`Error uploading photo ${file.name}:`, error);
-            failedUploads++;
+          } catch (e) {
+            console.error('Error during group upload', e);
+            failedCount += slice.length;
           }
         }
-        
-        console.log(`Uploaded ${uploadedPhotos.length} photos. Failed: ${failedUploads}`);
-        if (failedUploads > 0) {
-          toast.error(`Failed to upload ${failedUploads} photo(s)`);
+        if (failedCount > 0) {
+          toast.error(`${failedCount} photo(s) failed to upload`, { position: 'top-center' });
         }
+        console.log(`Grouped upload complete. Success: ${uploadedCount}, Failed: ${failedCount}`);
       }
       
       // If we have rooms to add, create them for this property
