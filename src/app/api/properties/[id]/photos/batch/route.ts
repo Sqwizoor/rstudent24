@@ -63,6 +63,20 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
 // POST handler for batch uploading photos to a property with featured image support
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const contentLengthHeader = request.headers.get('content-length');
+    const HARD_LIMIT = 30 * 1024 * 1024; // sync with config
+    if (contentLengthHeader) {
+      const len = parseInt(contentLengthHeader, 10);
+      if (len > HARD_LIMIT) {
+        return NextResponse.json({
+          message: 'Request Entity Too Large: raw multipart exceeds 30MB limit before parsing.',
+          receivedBytes: len,
+          maxBytes: HARD_LIMIT,
+          guidance: 'Reduce number of images or let client auto-chunk (<=7.5MB per batch).'
+        }, { status: 413 });
+      }
+    }
+
     // Get property ID from params
     const { id } = await params;
     const propertyId = parseInt(id);
@@ -104,10 +118,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ message: `Too many files in one batch. Max ${MAX_FILES_PER_BATCH}.` }, { status: 400 });
     }
     const MAX_SINGLE_FILE_BYTES = 15 * 1024 * 1024; // 15MB
+    let totalBytes = 0;
     for (const f of photoFiles) {
       if (f.size > MAX_SINGLE_FILE_BYTES) {
         return NextResponse.json({ message: `File ${f.name} exceeds 15MB limit.` }, { status: 400 });
       }
+      totalBytes += f.size;
+    }
+
+    // Check cumulative size against hard limit
+    if (totalBytes > HARD_LIMIT) {
+      return NextResponse.json({
+        message: 'Request Entity Too Large: total file size exceeds 30MB limit.',
+        receivedBytes: totalBytes,
+        maxBytes: HARD_LIMIT,
+        guidance: 'Reduce number of images or let client auto-chunk (<=7.5MB per batch).'
+      }, { status: 413 });
     }
 
     // Get featured image index (default to 0)

@@ -125,33 +125,91 @@ export const PhotoManager: React.FC<PhotoManagerProps> = ({
     }
   };
 
+  const compressImageIfNeeded = async (file: File): Promise<File> => {
+    const MAX_TARGET = 2.5 * 1024 * 1024; // 2.5MB target per image after compression
+    if (file.size <= MAX_TARGET) return file;
+    // Simple browser canvas compression (JPEG/WebP) placeholder
+    return new Promise<File>((resolve) => {
+      const img = document.createElement('img');
+      const reader = new FileReader();
+      reader.onload = e => {
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const scale = Math.min(1, Math.sqrt((MAX_TARGET / file.size))); // crude scaling factor
+          canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) { resolve(file); return; }
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(blob => {
+            if (blob && blob.size < file.size) {
+              resolve(new File([blob], file.name.replace(/\.(png|jpg|jpeg|webp)$/i, '.jpg'), { type: 'image/jpeg' }));
+            } else {
+              resolve(file);
+            }
+          }, 'image/jpeg', 0.75);
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const uploadNewPhotos = async (files: FileList) => {
     if (files.length === 0) return;
 
-    // Convert to array and decide chunk size
-    const fileArray = Array.from(files);
-    const LARGE_THRESHOLD = 4 * 1024 * 1024; // 4MB
-    const hasLarge = fileArray.some(f => f.size >= LARGE_THRESHOLD);
-    const CHUNK = hasLarge ? 2 : 6;
-
+    const originalFiles = Array.from(files);
     try {
       setIsUploading(true);
+      // Compress large images sequentially (avoid memory spikes)
+      const processed: File[] = [];
+      for (const f of originalFiles) {
+        const compressed = await compressImageIfNeeded(f);
+        processed.push(compressed);
+      }
+
+      const MAX_BATCH_BYTES = 7.5 * 1024 * 1024; // 7.5MB per batch
+      let batch: File[] = [];
+      let batchBytes = 0;
+      let batchIndex = 0;
       let accumulated: string[] = [...photos];
-      for (let i = 0; i < fileArray.length; i += CHUNK) {
-        const slice = fileArray.slice(i, i + CHUNK);
+
+      const flushBatch = async () => {
+        if (batch.length === 0) return;
         const formData = new FormData();
-        slice.forEach(file => formData.append('photos', file));
+        batch.forEach(file => formData.append('photos', file));
         const response = await fetch(`/api/properties/${propertyId}/photos/batch`, { method: 'POST', body: formData });
         if (!response.ok) {
           const txt = await response.text();
-          throw new Error(`Failed batch ${Math.floor(i/CHUNK)+1}: ${txt}`);
+          throw new Error(`Failed batch ${batchIndex + 1}: ${txt}`);
         }
         const result = await response.json();
         accumulated = result.allPhotoUrls || accumulated;
         setPhotos(accumulated);
         onPhotosUpdated?.(accumulated);
+        batchIndex++;
+        batch = [];
+        batchBytes = 0;
+      };
+
+      for (const file of processed) {
+        if (file.size > MAX_BATCH_BYTES) {
+          // Single oversized file: upload alone
+          await flushBatch();
+          batch = [file];
+          batchBytes = file.size;
+          await flushBatch();
+          continue;
+        }
+        if (batchBytes + file.size > MAX_BATCH_BYTES) {
+          await flushBatch();
+        }
+        batch.push(file);
+        batchBytes += file.size;
       }
-      toast.success(`${files.length} photo(s) uploaded successfully!`);
+      await flushBatch();
+
+      toast.success(`${processed.length} photo(s) uploaded successfully in ${batchIndex} batch(es)!`);
     } catch (error) {
       console.error('Error uploading photos:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to upload photos');
