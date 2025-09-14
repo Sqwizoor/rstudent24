@@ -415,40 +415,49 @@ const NewProperty = () => {
 
       // Upload photos in groups (server handles S3). Max 3 per request.
       if (photoFiles.length > 0) {
-        console.log(`Grouped uploading ${photoFiles.length} photos for property ID ${propertyResponse.id}`);
-        const GROUP_SIZE = 3;
-        let uploadedCount = 0;
-        let failedCount = 0;
-        for (let start = 0; start < photoFiles.length; start += GROUP_SIZE) {
-          const slice = photoFiles.slice(start, start + GROUP_SIZE);
-          const formData = new FormData();
-          slice.forEach((f) => formData.append('photos', f));
-          // For first group pass featured index (0 because we reordered already)
-          if (start === 0) formData.append('featuredIndex', '0');
-          try {
-            const res = await fetch(`/api/properties/${propertyResponse.id}/photos/group`, {
-              method: 'POST',
-              headers: { 'Authorization': `Bearer ${idToken}` },
-              body: formData
-            });
-            if (!res.ok) {
-              const err = await res.json().catch(()=>({}));
-              console.error('Group upload failed', err);
+        if (!idToken) {
+          console.warn('Missing idToken; cannot upload photos.');
+        } else {
+          console.log(`Grouped uploading ${photoFiles.length} photos for property ID ${propertyResponse.id}`);
+          const GROUP_SIZE = 3;
+          let uploadedCount = 0;
+          let failedCount = 0;
+          let latestPhotoUrls: string[] = [];
+          for (let start = 0; start < photoFiles.length; start += GROUP_SIZE) {
+            const slice = photoFiles.slice(start, start + GROUP_SIZE);
+            const formData = new FormData();
+            slice.forEach((f) => formData.append('photos', f));
+            if (start === 0) formData.append('featuredIndex', '0');
+            console.log(`Uploading photo group ${start / GROUP_SIZE + 1} containing ${slice.length} file(s)`);
+            try {
+              const res = await fetch(`/api/properties/${propertyResponse.id}/photos/group`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${idToken}` },
+                body: formData
+              });
+              if (!res.ok) {
+                let err: any = {};
+                try { err = await res.json(); } catch {}
+                console.error('Group upload failed', { status: res.status, err });
+                failedCount += slice.length;
+              } else {
+                const json = await res.json();
+                console.log(`Uploaded group starting at ${start}:`, json);
+                uploadedCount += slice.length;
+                if (Array.isArray(json.photoUrls)) {
+                  latestPhotoUrls = json.photoUrls;
+                }
+              }
+            } catch (e) {
+              console.error('Error during group upload', e);
               failedCount += slice.length;
-            } else {
-              const json = await res.json();
-              console.log(`Uploaded group starting at ${start}:`, json.uploaded?.length || slice.length);
-              uploadedCount += slice.length;
             }
-          } catch (e) {
-            console.error('Error during group upload', e);
-            failedCount += slice.length;
           }
+          if (failedCount > 0) {
+            toast.error(`${failedCount} photo(s) failed to upload`, { position: 'top-center' });
+          }
+          console.log(`Grouped upload complete. Success: ${uploadedCount}, Failed: ${failedCount}. Latest photoUrls length: ${latestPhotoUrls.length}`);
         }
-        if (failedCount > 0) {
-          toast.error(`${failedCount} photo(s) failed to upload`, { position: 'top-center' });
-        }
-        console.log(`Grouped upload complete. Success: ${uploadedCount}, Failed: ${failedCount}`);
       }
       
       // If we have rooms to add, create them for this property
@@ -733,16 +742,25 @@ const NewProperty = () => {
                     inputClassName={`${inputStyle} h-10`}
                   />
 
-                  {/* NSFAS Accreditation - Making it prominent */}
-                  <div className="bg-green-50 dark:bg-gradient-to-r dark:from-green-500/10 dark:to-blue-500/10 border border-green-200 dark:border-green-500/20 rounded-lg p-4">
-                    <CreateFormField
-                      name="isNsfassAccredited"
-                      label="NSFAS Accredited Property"
-                      type="switch"
-                      labelClassName={`${labelStyle} text-green-400 font-semibold`}
-                    />
-                    <p className="text-xs text-green-700 dark:text-green-300/70 mt-1">
-                      Mark if this property accepts NSFAS funding. NSFAS accredited properties are prioritized for students with government funding.
+                  {/* NSFAS Accreditation - Accessible + Dark Mode Optimized */}
+                  <div
+                    className="relative group rounded-lg p-4 border
+                    bg-green-50/70 dark:bg-slate-800/70
+                    border-green-200 dark:border-slate-600
+                    shadow-sm dark:shadow-[0_0_0_1px_rgba(56,189,248,0.15)] transition-colors"
+                  >
+                    <div className="absolute inset-0 rounded-lg pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-green-500/5 via-emerald-400/5 to-cyan-400/5" />
+                    <div className="relative flex items-start justify-between gap-4">
+                      <CreateFormField
+                        name="isNsfassAccredited"
+                        label="NSFAS Accredited Property"
+                        type="switch"
+                        labelClassName={`${labelStyle} font-semibold text-green-700 dark:text-green-300`}
+                      />
+                      {/* Visual status pill (mirrors switch state via form value in future if desired) */}
+                    </div>
+                    <p className="relative text-xs mt-1 leading-relaxed text-green-700 dark:text-slate-300/80">
+                      Mark if this property accepts NSFAS funding. Accredited listings surface faster for students with government funding.
                     </p>
                   </div>
                 </div>
