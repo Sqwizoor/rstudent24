@@ -474,6 +474,46 @@ const NewProperty = () => {
             if (confirmRes.ok) {
               const confirmed = await confirmRes.json();
               console.log('Post-upload property refetch photoUrls length:', confirmed.photoUrls?.length, confirmed.photoUrls);
+              // Fallback: if no photos persisted but we had files, try sequential single-photo endpoint (like update flow)
+              if ((confirmed.photoUrls?.length ?? 0) === 0 && photoFiles.length > 0) {
+                console.warn('Grouped upload produced zero persisted photos. Initiating sequential fallback uploads...');
+                let seqSuccess = 0; let seqFail = 0;
+                for (let i = 0; i < photoFiles.length; i++) {
+                  const f = photoFiles[i];
+                  const fd = new FormData();
+                  fd.append('photo', f);
+                  if (i === 0) fd.append('featuredImageIndex', '0');
+                  try {
+                    const resp = await fetch(`/api/properties/${propertyResponse.id}/photos`, { method: 'POST', body: fd });
+                    if (!resp.ok) {
+                      let err: any = {}; try { err = await resp.json(); } catch {}
+                      console.error('Sequential upload failed', f.name, { status: resp.status, err });
+                      seqFail++;
+                    } else {
+                      const js = await resp.json();
+                      console.log('Sequential upload success', f.name, js.photoUrl);
+                      seqSuccess++;
+                    }
+                  } catch (se) {
+                    console.error('Sequential upload exception', f.name, se);
+                    seqFail++;
+                  }
+                }
+                try {
+                  const finalCheck = await fetch(`/api/properties/${propertyResponse.id}`);
+                  if (finalCheck.ok) {
+                    const finalProp = await finalCheck.json();
+                    console.log('After sequential fallback photoUrls length:', finalProp.photoUrls?.length, finalProp.photoUrls);
+                  }
+                } catch {}
+                if (seqSuccess > 0 && seqFail === 0) {
+                  toast.success('Property photos uploaded via fallback', { position: 'top-center' });
+                } else if (seqSuccess > 0) {
+                  toast.warning(`Fallback partial success: ${seqSuccess} ok, ${seqFail} failed`, { position: 'top-center' });
+                } else {
+                  toast.error('All photo uploads failed (group + fallback)', { position: 'top-center' });
+                }
+              }
             } else {
               console.warn('Property refetch after uploads failed with status', confirmRes.status);
             }
