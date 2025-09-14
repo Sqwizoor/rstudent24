@@ -39,6 +39,7 @@ import {
 
 // Schemas, Types, Constants, and API Hooks
 import { PropertyFormData, propertySchema } from "@/lib/schemas";
+import { processImageFiles } from '@/lib/imageUtils';
 import { RoomFormData } from "@/lib/schemas"; // Use for typing
 import { PropertyTypeEnum, AmenityEnum, HighlightEnum, UNIVERSITY_OPTIONS } from "@/lib/constants";
 import { ApiProperty, ApiRoom } from "@/lib/schemas"; // Use defined API types
@@ -357,33 +358,41 @@ export default function EditPropertyPage() {
     
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-        if (key === "amenities" || key === "highlights") {
-            if (Array.isArray(value) && value.length > 0) formData.append(key, value.join(','));
-            // Omit if empty array, unless backend requires empty string
-        } else if (typeof value === 'boolean') {
-            formData.append(key, String(value));
+        const isArrayField = ['amenities', 'highlights', 'closestUniversities'].includes(key);
+        if (isArrayField) {
+          if (Array.isArray(value)) {
+            value.forEach(v => formData.append(key, v));
+          }
+          return;
+        }
+        if (typeof value === 'boolean') {
+          formData.append(key, String(value));
+        } else if (value instanceof Date) {
+          formData.append(key, value.toISOString());
         } else if (value !== null && value !== undefined && value !== '') {
-            formData.append(key, String(value));
-        } else if (key === 'squareFeet' || key === 'securityDeposit') { // Handle optional numbers that might be 0
-             if (typeof value === 'number' && value === 0) {
-                 formData.append(key, '0');
-             } // If null/undefined, don't append
+          formData.append(key, String(value));
+        } else if (['squareFeet','securityDeposit','beds','baths','kitchens','pricePerMonth'].includes(key)) {
+          if (value === 0) formData.append(key, '0');
         }
     });
 
     if (newPropertyPhotoFiles) {
-      Array.from(newPropertyPhotoFiles).forEach(file => formData.append("photos", file));
+      try {
+        const files = Array.from(newPropertyPhotoFiles);
+        const processed = await processImageFiles(files, 3 * 1024 * 1024, 15 * 1024 * 1024); // 3MB per file, 15MB total
+        processed.forEach(f => formData.append('photos', f));
+      } catch (e:any) {
+        toast.dismiss();
+        toast.error(e?.message || 'Image processing failed');
+        return;
+      }
     }
     formData.append("replacePhotos", String(replacePropertyPhotosFlag));
 
     // Handle image deletion - send the list of photos to keep
-    if (!replacePropertyPhotosFlag && propertyPhotosMarkedForDelete.length > 0) {
-        // Filter out images marked for deletion
-        const keptPhotoUrls = currentPropertyPhotos.filter(url => !propertyPhotosMarkedForDelete.includes(url));
-        // Send this list to backend so it knows which images to keep
-        formData.append('photoUrls', JSON.stringify(keptPhotoUrls));
-        console.log('Images kept:', keptPhotoUrls);
-        console.log('Images to delete:', propertyPhotosMarkedForDelete);
+    if (!replacePropertyPhotosFlag) {
+      const keptPhotoUrls = currentPropertyPhotos.filter(url => !propertyPhotosMarkedForDelete.includes(url));
+      formData.append('finalPhotoUrlsToKeep', JSON.stringify(keptPhotoUrls));
     }
 
     try {
