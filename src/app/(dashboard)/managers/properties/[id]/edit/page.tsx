@@ -248,6 +248,7 @@ export default function EditPropertyPage() {
 
   // Property Photos State
   const [currentPropertyPhotos, setCurrentPropertyPhotos] = usePageState<string[]>([]);
+  const [featuredPhotoIndex, setFeaturedPhotoIndex] = usePageState<number>(0);
   const [newPropertyPhotoFiles, setNewPropertyPhotoFiles] = usePageState<FileList | null>(null);
   const [propertyPhotosMarkedForDelete, setPropertyPhotosMarkedForDelete] = usePageState<string[]>([]);
   const [replacePropertyPhotosFlag, setReplacePropertyPhotosFlag] = usePageState(false);
@@ -328,6 +329,7 @@ export default function EditPropertyPage() {
         locationId: fetchedPropertyData.locationId,
       });
       setCurrentPropertyPhotos(fetchedPropertyData.photoUrls || []);
+  setFeaturedPhotoIndex(0);
       setNewPropertyPhotoFiles(null);
       setPropertyPhotosMarkedForDelete([]);
       setReplacePropertyPhotosFlag(false);
@@ -391,7 +393,13 @@ export default function EditPropertyPage() {
 
     // Handle image deletion - send the list of photos to keep
     if (!replacePropertyPhotosFlag) {
+      // Build kept list preserving current order
       const keptPhotoUrls = currentPropertyPhotos.filter(url => !propertyPhotosMarkedForDelete.includes(url));
+      // Reorder so featured comes first
+      if (keptPhotoUrls.length > 1 && featuredPhotoIndex >= 0 && featuredPhotoIndex < keptPhotoUrls.length) {
+        const [featured] = keptPhotoUrls.splice(featuredPhotoIndex, 1);
+        keptPhotoUrls.unshift(featured);
+      }
       formData.append('finalPhotoUrlsToKeep', JSON.stringify(keptPhotoUrls));
     }
 
@@ -654,33 +662,48 @@ export default function EditPropertyPage() {
 
                     {newPropertyPhotoFiles && Array.from(newPropertyPhotoFiles).length > 0 && (
                         <div>
-                            <p className="text-sm font-medium text-muted-foreground dark:text-gray-400 mb-2">New photos preview ({Array.from(newPropertyPhotoFiles).length}):</p>
+                            <p className="text-sm font-medium text-muted-foreground dark:text-gray-400 mb-2">New photos preview ({Array.from(newPropertyPhotoFiles).length}): Select one existing photo below to be featured. New uploads append after featured unless replacing all.</p>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                                {Array.from(newPropertyPhotoFiles).map((file, index) => (
-                                <div key={index} className="relative aspect-video bg-muted dark:bg-gray-700 rounded-md overflow-hidden shadow">
-                                    <Image src={URL.createObjectURL(file)} alt={`New Property Preview ${index}`} layout="fill" objectFit="cover" />
-                                </div>
-                                ))}
+                                {Array.from(newPropertyPhotoFiles).map((file, index) => {
+                                  return (
+                                    <div key={index} className="relative aspect-video bg-muted dark:bg-gray-700 rounded-md overflow-hidden shadow">
+                                      <Image src={URL.createObjectURL(file)} alt={`New Property Preview ${index}`} layout="fill" objectFit="cover" />
+                                    </div>
+                                  );
+                                })}
                             </div>
                         </div>
                     )}
 
                     {currentPropertyPhotos.length > 0 && (
                         <div className="mt-4">
-                            <p className="text-sm font-medium text-muted-foreground dark:text-gray-400 mb-2">Current Photos ({currentPropertyPhotos.length}):</p>
+                            <p className="text-sm font-medium text-muted-foreground dark:text-gray-400 mb-2">Current Photos ({currentPropertyPhotos.length}): Click "Feature" to set default image.</p>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                                {currentPropertyPhotos.map((url, index) => (
-                                <div key={url} className="relative aspect-video bg-muted dark:bg-gray-700 rounded-md group overflow-hidden shadow">
-                                    <Image src={url} alt={`Property Photo ${index + 1}`} layout="fill" objectFit="cover" />
-                                    <UIButton type="button" variant="secondary" size="icon"
-                                        onClick={() => togglePropertyPhotoForDelete(url)}
-                                        className={`absolute top-1.5 right-1.5 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-all duration-150
-                                                    ${propertyPhotosMarkedForDelete.includes(url) ? '!opacity-100 bg-green-500 hover:bg-green-600 text-white' : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'}`}>
-                                        {propertyPhotosMarkedForDelete.includes(url) ? <CheckIcon size={16} /> : <Trash2 size={16} />}
-                                    </UIButton>
-                                    {propertyPhotosMarkedForDelete.includes(url) && <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-md"><UIBadge variant="destructive">Marked</UIBadge></div>}
-                                </div>
-                                ))}
+                                {currentPropertyPhotos.map((url, index) => {
+                                  const isFeatured = index === featuredPhotoIndex;
+                                  return (
+                                    <div key={url} className={`relative aspect-video bg-muted dark:bg-gray-700 rounded-md group overflow-hidden shadow ring-2 ${isFeatured ? 'ring-blue-500' : 'ring-transparent'}`}>
+                                      <Image src={url} alt={`Property Photo ${index + 1}`} layout="fill" objectFit="cover" />
+                                      <div className="absolute top-1 left-1 flex gap-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => setFeaturedPhotoIndex(index)}
+                                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium backdrop-blur-sm border transition ${isFeatured ? 'bg-blue-600 text-white border-blue-400' : 'bg-black/50 text-gray-200 border-white/20 hover:bg-black/60'}`}
+                                          title={isFeatured ? 'Featured image' : 'Set as featured'}
+                                        >
+                                          {isFeatured ? 'Featured' : 'Feature'}
+                                        </button>
+                                      </div>
+                                      <UIButton type="button" variant="secondary" size="icon"
+                                          onClick={() => togglePropertyPhotoForDelete(url)}
+                                          className={`absolute top-1.5 right-1.5 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-all duration-150
+                                                      ${propertyPhotosMarkedForDelete.includes(url) ? '!opacity-100 bg-green-500 hover:bg-green-600 text-white' : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'}`}>
+                                          {propertyPhotosMarkedForDelete.includes(url) ? <CheckIcon size={16} /> : <Trash2 size={16} />}
+                                      </UIButton>
+                                      {propertyPhotosMarkedForDelete.includes(url) && <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-md"><UIBadge variant="destructive">Marked</UIBadge></div>}
+                                    </div>
+                                  );
+                                })}
                             </div>
                             {propertyPhotosMarkedForDelete.length > 0 && !replacePropertyPhotosFlag && (
                                 <p className="text-xs text-amber-600 dark:text-amber-500 mt-2">

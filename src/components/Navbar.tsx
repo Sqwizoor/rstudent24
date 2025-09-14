@@ -108,14 +108,17 @@ const Navbar = () => {
     }
   }
 
-  // Helper function to get user's first letter for avatar
+  // Helper function to get user's first letter for avatar (name > email > role > U)
   const getUserInitial = () => {
-    if (authUser?.name) {
-      // Just return the first letter capitalized
-      return authUser.name[0].toUpperCase();
-    }
-    return authUser?.role?.[0].toUpperCase() || "U";
-  }
+    const name = authUser?.name?.trim();
+    if (name && name.length > 0) return name.charAt(0).toUpperCase();
+    const email = (authUser as any)?.email || (authUser as any)?.userInfo?.email;
+    if (email && typeof email === 'string' && email.length > 0) return email.charAt(0).toUpperCase();
+    const userName = (authUser as any)?.userInfo?.username;
+    if (userName && typeof userName === 'string' && userName.length > 0) return userName.charAt(0).toUpperCase();
+    if (authUser?.role) return authUser.role.charAt(0).toUpperCase();
+    return 'U';
+  };
 
   return (
     <>

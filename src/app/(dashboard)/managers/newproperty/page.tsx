@@ -171,6 +171,7 @@ const NewProperty = () => {
   const { data: authUser } = useGetAuthUserQuery(undefined);
   const [submitting, setSubmitting] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]); // For property photo previews
+  const [featuredImageIndex, setFeaturedImageIndex] = useState<number>(0); // Selected default image
   const [rooms, setRooms] = useState<RoomFormData[]>([]);
   const router = useRouter();
   
@@ -299,6 +300,10 @@ const NewProperty = () => {
     if (e.target.files?.length) {
       const filesArray = Array.from(e.target.files);
       setUploadedFiles(filesArray);
+      // Ensure currently selected featured index stays valid; default to first if none
+      if (featuredImageIndex >= filesArray.length) {
+        setFeaturedImageIndex(0);
+      }
     }
   };
 
@@ -362,14 +367,14 @@ const NewProperty = () => {
         return;
       }
 
-      // Extract photo files from the form data
-      let photoFiles: File[] = [];
-      if (data.photoUrls) {
-        const files = data.photoUrls as unknown as FileList;
-        if (files && files.length) {
-          photoFiles = Array.from(files);
-          console.log(`Extracted ${photoFiles.length} photo files`);
-        }
+      // Use state-managed uploadedFiles for ordering & featured
+      let photoFiles: File[] = [...uploadedFiles];
+      if (photoFiles.length > 1 && featuredImageIndex >= 0 && featuredImageIndex < photoFiles.length) {
+        const reordered = [...photoFiles];
+        const [feat] = reordered.splice(featuredImageIndex, 1);
+        reordered.unshift(feat);
+        photoFiles = reordered;
+        console.log(`Reordered photos: featured index ${featuredImageIndex} moved to front.`);
       }
 
       // Prepare property data as JSON
@@ -1025,21 +1030,33 @@ const NewProperty = () => {
                     <div className="mt-4">
                       <p className="text-sm text-gray-400 mb-2">Selected property files ({uploadedFiles.length}):</p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                        {uploadedFiles.map((file, index) => (
-                          <div
-                            key={index}
-                            className="relative bg-[#0B1120] rounded-md p-1 h-20 flex items-center justify-center overflow-hidden"
-                          >
-                            <Image
-                              src={URL.createObjectURL(file)} // No need for placeholder here if file exists
-                              alt={`Preview ${index}`}
-                              width={300}
-                              height={200}
-                              className="w-full h-full object-cover rounded-lg"
-                            />
-                          </div>
-                        ))}
+                        {uploadedFiles.map((file, index) => {
+                          const isFeatured = index === featuredImageIndex;
+                          return (
+                            <div
+                              key={index}
+                              className={`relative group bg-[#0B1120] rounded-md p-1 h-24 flex items-center justify-center overflow-hidden ring-2 ${isFeatured ? 'ring-blue-500' : 'ring-transparent'}`}
+                            >
+                              <Image
+                                src={URL.createObjectURL(file)}
+                                alt={`Preview ${index}`}
+                                width={300}
+                                height={200}
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setFeaturedImageIndex(index)}
+                                className={`absolute top-1 left-1 text-[10px] px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-sm border border-white/20 transition ${isFeatured ? 'text-white font-semibold' : 'text-gray-300 group-hover:bg-black/70'}`}
+                                title={isFeatured ? 'Featured image' : 'Set as featured'}
+                              >
+                                {isFeatured ? 'Featured' : 'Set'}
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
+                      <p className="mt-2 text-xs text-gray-500">The featured image appears first in listings. Click a thumbnail label to change.</p>
                     </div>
                   )}
                 </div>

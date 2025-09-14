@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { S3Client, ObjectCannedACL, PutObjectAclCommand } from '@aws-sdk/client-s3';
+import { S3Client } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { verifyAuth } from '@/lib/auth';
 
@@ -34,7 +34,6 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
     Key: key,
     Body: file,
     ContentType: mimeType,
-    ACL: 'public-read' as ObjectCannedACL,
     CacheControl: 'public, max-age=86400',
   };
 
@@ -49,19 +48,7 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
 
     const result = await upload.done();
     console.log(`Successfully uploaded file: ${params.Key}`);
-    
-    // Explicitly set ACL again to ensure it's public-read
-    try {
-      await s3Client.send(new PutObjectAclCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: key,
-        ACL: 'public-read'
-      }));
-      console.log(`Successfully set ACL to public-read for ${key}`);
-    } catch (aclError) {
-      console.warn(`Warning: Could not set ACL. This might affect public access:`, aclError);
-    }
-
+    // ACL removal: Bucket should have policy / ownership that allows public access or be served via proxy
     // Construct URL in a consistent way
     const fileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
     console.log(`Generated file URL: ${fileUrl}`);
@@ -114,6 +101,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ message: 'No photo file provided' }, { status: 400 });
     }
 
+    // Size guard: reject extremely large single files (>15MB)
+    const MAX_SINGLE_FILE_BYTES = 15 * 1024 * 1024;
+    if (photoFile.size > MAX_SINGLE_FILE_BYTES) {
+      return NextResponse.json({ message: 'File too large. Max 15MB per image.' }, { status: 400 });
+    }
+
     // Get featured image index if provided (for batch uploads)
     const featuredImageIndexParam = formData.get('featuredImageIndex');
     const featuredImageIndex = featuredImageIndexParam ? parseInt(featuredImageIndexParam as string) : null;
@@ -125,8 +118,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Upload the file to S3
     try {
-      const buffer = await photoFile.arrayBuffer();
-      const photoUrl = await uploadFileToS3(Buffer.from(buffer), photoFile.name, photoFile.type);
+  const buffer = await photoFile.arrayBuffer();
+  const photoUrl = await uploadFileToS3(Buffer.from(buffer), photoFile.name, photoFile.type);
       
       // Get current property to check existing photos
       const currentProperty = await prisma.property.findUnique({

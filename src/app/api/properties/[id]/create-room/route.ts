@@ -46,9 +46,7 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
     await upload.done();
     console.log('Successfully uploaded file:', fileName);
     
-    // No need to set ACL explicitly, it's often not allowed in modern S3 configurations
-    // Instead, we can configure the bucket to allow public access through bucket policies
-    console.log('Successfully set ACL to public-read for', fileName);
+  // ACL not set: rely on bucket policy / ownership settings
     
     // Generate the URL
     const fileUrl = `https://${process.env.AWS_BUCKET_NAME || 'realstatee'}.s3.${process.env.AWS_REGION || 'eu-north-1'}.amazonaws.com/${fileName}`;

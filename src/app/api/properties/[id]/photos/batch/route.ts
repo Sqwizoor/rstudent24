@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { S3Client, ObjectCannedACL, PutObjectAclCommand } from '@aws-sdk/client-s3';
+import { S3Client } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 
 // Configure S3 client with credentials
@@ -33,7 +33,6 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
     Key: key,
     Body: file,
     ContentType: mimeType,
-    ACL: 'public-read' as ObjectCannedACL,
     CacheControl: 'public, max-age=86400',
   };
 
@@ -48,18 +47,7 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
 
     const result = await upload.done();
     console.log(`Successfully uploaded file: ${params.Key}`);
-    
-    // Explicitly set ACL again to ensure it's public-read
-    try {
-      await s3Client.send(new PutObjectAclCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: key,
-        ACL: 'public-read'
-      }));
-      console.log(`Successfully set ACL to public-read for ${key}`);
-    } catch (aclError) {
-      console.warn(`Warning: Could not set ACL. This might affect public access:`, aclError);
-    }
+    // ACL removed; bucket policy or proxy must handle public access
 
     // Construct URL in a consistent way
     const fileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
@@ -108,6 +96,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const photoFiles = formData.getAll('photos') as File[];
     if (photoFiles.length === 0) {
       return NextResponse.json({ message: 'No photo files provided' }, { status: 400 });
+    }
+
+    // Basic guards
+    const MAX_FILES_PER_BATCH = 40; // safeguard to prevent abuse
+    if (photoFiles.length > MAX_FILES_PER_BATCH) {
+      return NextResponse.json({ message: `Too many files in one batch. Max ${MAX_FILES_PER_BATCH}.` }, { status: 400 });
+    }
+    const MAX_SINGLE_FILE_BYTES = 15 * 1024 * 1024; // 15MB
+    for (const f of photoFiles) {
+      if (f.size > MAX_SINGLE_FILE_BYTES) {
+        return NextResponse.json({ message: `File ${f.name} exceeds 15MB limit.` }, { status: 400 });
+      }
     }
 
     // Get featured image index (default to 0)

@@ -157,7 +157,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                         Key: uniqueFileName,
                         Body: buffer,
                         ContentType: fileEntry.type,
-                        ACL: 'public-read',
                         CacheControl: 'max-age=31536000',
                       },
                     }).done();
