@@ -1102,7 +1102,7 @@ const NewProperty = () => {
                     render={({ field }) => ( // field.onChange is crucial for react-hook-form
                       <div className="mt-2">
                         <label
-                          htmlFor={field.name}
+                          htmlFor={`${field.name}-input`}
                           className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-[#1E2A45] rounded-lg cursor-pointer bg-white dark:bg-[#0B1120]/50 hover:bg-slate-50 dark:hover:bg-[#0B1120] transition-colors"
                         >
                           <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -1113,7 +1113,7 @@ const NewProperty = () => {
                             <p className="text-xs text-slate-500 dark:text-gray-500">PNG, JPG, GIF up to 10MB</p>
                           </div>
                           <input
-                            id={field.name}
+                            id={`${field.name}-input`}
                             type="file"
                             className="hidden"
                             multiple
@@ -1146,6 +1146,7 @@ const NewProperty = () => {
                                 width={300}
                                 height={200}
                                 className="w-full h-full object-cover rounded-lg"
+                                unoptimized={true}
                               />
                               <button
                                 type="button"
