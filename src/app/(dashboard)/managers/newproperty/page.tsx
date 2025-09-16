@@ -368,8 +368,14 @@ const NewProperty = () => {
         return;
       }
 
-      // Use state-managed uploadedFiles for ordering & featured
-      let photoFiles: File[] = [...uploadedFiles];
+      // Prefer files stored in react-hook-form (FilePond), fallback to local state
+      let photoFiles: File[] = [];
+      const formFiles = form.getValues('photoUrls') as unknown as File[] | undefined;
+      if (Array.isArray(formFiles) && formFiles.length > 0) {
+        photoFiles = [...formFiles];
+      } else {
+        photoFiles = [...uploadedFiles];
+      }
       if (photoFiles.length > 1 && featuredImageIndex >= 0 && featuredImageIndex < photoFiles.length) {
         const reordered = [...photoFiles];
         const [feat] = reordered.splice(featuredImageIndex, 1);
@@ -1129,11 +1135,16 @@ const NewProperty = () => {
                   />
 
                   {/* File preview for property photos */}
-                  {uploadedFiles.length > 0 && (
+                  {(() => {
+                    const watched = form.watch('photoUrls') as unknown as File[] | undefined;
+                    const previewFiles: File[] = (Array.isArray(watched) && watched.length > 0)
+                      ? watched
+                      : uploadedFiles;
+                    return previewFiles.length > 0 ? (
                     <div className="mt-4">
-                      <p className="text-sm text-slate-700 dark:text-gray-400 mb-2">Selected property files ({uploadedFiles.length}):</p>
+                      <p className="text-sm text-slate-700 dark:text-gray-400 mb-2">Selected property files ({previewFiles.length}):</p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                        {uploadedFiles.map((file, index) => {
+                        {previewFiles.map((file, index) => {
                           const isFeatured = index === featuredImageIndex;
                           return (
                             <div
@@ -1162,7 +1173,8 @@ const NewProperty = () => {
                       </div>
                       <p className="mt-2 text-xs text-slate-600 dark:text-gray-500">The featured image appears first in listings. Click a thumbnail label to change.</p>
                     </div>
-                  )}
+                    ) : null;
+                  })()}
                 </div>
                 
                 <StepNavigation
