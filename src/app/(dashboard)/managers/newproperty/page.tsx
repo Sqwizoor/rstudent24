@@ -420,24 +420,49 @@ const NewProperty = () => {
         } else {
           // Compress / process main property images (reuse room processing constraints but slightly larger total)
           try {
-            const processed = await processImageFiles(photoFiles, 2 * 1024 * 1024, 12 * 1024 * 1024);
+            // Allow a larger total budget so many images (9+)
+            // can be compressed without tripping the total cap client-side
+            const processed = await processImageFiles(
+              photoFiles,
+              2 * 1024 * 1024,   // 2MB per file target
+              40 * 1024 * 1024   // 40MB total to accommodate many images
+            );
             console.log(`Processed main property images: original=${photoFiles.length}, processed=${processed.length}`);
             photoFiles = processed;
           } catch (procErr) {
             console.error('Failed processing main property images, proceeding with originals:', procErr);
           }
+          // Group files by cumulative size to avoid 413s on hosts with low limits
+          // Aim for <= ~4MB per request and max 2 files per group for safety
+          const MAX_GROUP_BYTES = 4_000_000; // ~3.8MB to leave overhead margin
+          const MAX_FILES_PER_GROUP = 2;
+          const groups: File[][] = [];
+          let current: File[] = [];
+          let currentBytes = 0;
+          for (const f of photoFiles) {
+            const willExceed = currentBytes + f.size > MAX_GROUP_BYTES;
+            const willHitCount = current.length >= MAX_FILES_PER_GROUP;
+            if (current.length > 0 && (willExceed || willHitCount)) {
+              groups.push(current);
+              current = [];
+              currentBytes = 0;
+            }
+            current.push(f);
+            currentBytes += f.size;
+          }
+          if (current.length > 0) groups.push(current);
 
-          console.log(`Grouped uploading ${photoFiles.length} photos for property ID ${propertyResponse.id}`);
-          const GROUP_SIZE = 3;
+          console.log(`Uploading ${photoFiles.length} photos in ${groups.length} size-based group(s) for property ID ${propertyResponse.id}`);
           let uploadedCount = 0;
           let failedCount = 0;
+          const failedFiles: File[] = [];
           let latestPhotoUrls: string[] = [];
-          for (let start = 0; start < photoFiles.length; start += GROUP_SIZE) {
-            const slice = photoFiles.slice(start, start + GROUP_SIZE);
+          for (let gi = 0; gi < groups.length; gi++) {
+            const slice = groups[gi];
             const formData = new FormData();
             slice.forEach((f) => formData.append('photos', f));
-            if (start === 0) formData.append('featuredIndex', '0');
-            console.log(`Uploading photo group ${start / GROUP_SIZE + 1} containing ${slice.length} file(s)`);
+            if (gi === 0) formData.append('featuredIndex', '0');
+            console.log(`Uploading photo group #${gi + 1}/${groups.length} containing ${slice.length} file(s), totalBytes=${slice.reduce((s, f) => s + f.size, 0)}`);
             try {
               const res = await fetch(`/api/properties/${propertyResponse.id}/photos/group`, {
                 method: 'POST',
@@ -449,9 +474,10 @@ const NewProperty = () => {
                 try { err = await res.json(); } catch {}
                 console.error('Group upload failed', { status: res.status, err });
                 failedCount += slice.length;
+                failedFiles.push(...slice);
               } else {
                 const json = await res.json();
-                console.log(`Uploaded group starting at ${start}:`, json);
+                console.log(`Uploaded group #${gi + 1}:`, json);
                 uploadedCount += slice.length;
                 if (Array.isArray(json.photoUrls)) {
                   latestPhotoUrls = json.photoUrls;
@@ -460,6 +486,7 @@ const NewProperty = () => {
             } catch (e) {
               console.error('Error during group upload', e);
               failedCount += slice.length;
+              failedFiles.push(...slice);
             }
           }
           if (failedCount > 0) {
@@ -474,12 +501,13 @@ const NewProperty = () => {
             if (confirmRes.ok) {
               const confirmed = await confirmRes.json();
               console.log('Post-upload property refetch photoUrls length:', confirmed.photoUrls?.length, confirmed.photoUrls);
-              // Fallback: if no photos persisted but we had files, try sequential single-photo endpoint (like update flow)
-              if ((confirmed.photoUrls?.length ?? 0) === 0 && photoFiles.length > 0) {
-                console.warn('Grouped upload produced zero persisted photos. Initiating sequential fallback uploads...');
+              // Fallback: if zero persisted OR we have known failed files, upload those sequentially
+              if (((confirmed.photoUrls?.length ?? 0) === 0 && photoFiles.length > 0) || failedFiles.length > 0) {
+                const toUploadSeq = failedFiles.length > 0 ? failedFiles : photoFiles;
+                console.warn(`Initiating sequential fallback uploads for ${toUploadSeq.length} file(s)...`);
                 let seqSuccess = 0; let seqFail = 0;
-                for (let i = 0; i < photoFiles.length; i++) {
-                  const f = photoFiles[i];
+                for (let i = 0; i < toUploadSeq.length; i++) {
+                  const f = toUploadSeq[i];
                   const fd = new FormData();
                   fd.append('photo', f);
                   if (i === 0) fd.append('featuredImageIndex', '0');

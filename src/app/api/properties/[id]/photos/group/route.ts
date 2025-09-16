@@ -37,6 +37,14 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
 
 export const runtime = 'nodejs';
 export const preferredRegion = ['fra1', 'arn1'];
+// Force dynamic to avoid any caching or static optimization on this heavy route
+export const dynamic = 'force-dynamic';
+// Increase body and form limits to comfortably handle grouped uploads
+export const maxDuration = 60; // allow longer processing time
+export const maxUploadSize = '35mb'; // Next 14+ option when supported
+export const api = {
+  bodyParser: false,
+};
 
 // Adjusted signature: loosen context typing to satisfy Next.js route validation
 export async function POST(request: NextRequest, context: any) {
