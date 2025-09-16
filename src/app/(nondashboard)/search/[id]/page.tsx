@@ -360,8 +360,8 @@ const SingleListing = () => {
 
   {/* Property Information Below Images (centered wrapper) */}
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          {/* Left Column - Property Info */}
-          <div className="lg:col-span-2 space-y-6">
+    {/* Main Content - Right on desktop (cols 2-3) */}
+    <div className="lg:col-span-2 lg:col-start-2 space-y-6">
             {/* Property Header */}
             <div>
               <div className="flex items-start justify-between mb-4">
@@ -460,8 +460,8 @@ const SingleListing = () => {
             )}
           </div>
 
-          {/* Right Column - Pricing Sidebar */}
-          <div className="lg:col-span-1">
+          {/* Pricing Sidebar - Left on desktop (col 1) */}
+          <div className="lg:col-span-1 lg:col-start-1">
             <div className="sticky top-24">
               {/* Pricing Section */}
               <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
