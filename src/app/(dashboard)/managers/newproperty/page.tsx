@@ -36,7 +36,6 @@ import {
   ArrowRight,
   ImageDown,
   X,
-  CircleDollarSign,
   CheckCircle2,
 } from "lucide-react";
 
@@ -179,15 +178,13 @@ const NewProperty = () => {
   // Slider form state
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const totalSteps = 6; // Total number of steps in the form
+  const totalSteps = 5; // Removed Pricing step to simplify
 
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
     defaultValues: {
-      name: "",
-      description: "",
-      pricePerMonth: 1000,
-      securityDeposit: 500,
+  name: "",
+  description: "",
       isNsfassAccredited: false,
       isParkingIncluded: true,
       photoUrls: [] as unknown as FileList, // Important for react-hook-form with file inputs
@@ -202,7 +199,8 @@ const NewProperty = () => {
       city: "",
       state: "",
       country: "",
-      closestUniversities: [],
+      suburb: "",
+  closestUniversities: [],
     },
     mode: "onChange", // Validate on change for better UX
   });
@@ -218,22 +216,18 @@ const NewProperty = () => {
                  !!formState.description && formState.description.trim() !== '' && 
                  !!formState.propertyType;
         break;
-      case 2: // Pricing & Fees
-        isValid = formState.pricePerMonth > 0 && 
-                 formState.securityDeposit >= 0;
-        break;
-      case 3: // Rooms
+      case 2: // Rooms
         // At least one room should be added
         isValid = rooms.length > 0;
         break;
-      case 4: // Amenities & Highlights
+      case 3: // Amenities & Highlights
         // At least one amenity required
         isValid = (formState.amenities && formState.amenities.length > 0);
         break;
-      case 5: // Property Photos
+      case 4: // Property Photos
         // At least one photo required
         isValid = (uploadedFiles.length > 0 || (formState.photoUrls && formState.photoUrls.length > 0));
-        break;      case 6: // Location Information
+        break;      case 5: // Location Information
         isValid = !!formState.address && formState.address.trim() !== '' && 
                  !!formState.city && formState.city.trim() !== '' && 
                  !!formState.country && formState.country.trim() !== '' &&
@@ -568,7 +562,6 @@ const NewProperty = () => {
             // Create a clean JSON object from the room data first
             const cleanRoomData: {
               name: string;
-              description: string;
               pricePerMonth: number;
               securityDeposit: number;
               squareFeet: number;
@@ -576,12 +569,11 @@ const NewProperty = () => {
               capacity: number;
               isAvailable: boolean;
               propertyId: any;
-              amenities: string[];
-              features: string[];
-              availableFrom?: string; // Add this property as optional
+              bathroomPrivacy?: 'PRIVATE' | 'SHARED';
+              kitchenPrivacy?: 'PRIVATE' | 'SHARED';
+              availableFrom?: string;
             } = {
               name: room.name || 'Unnamed Room',
-              description: room.description || '',
               pricePerMonth: Math.min(Math.max(0, Number(room.pricePerMonth || 0)), 100000),
               securityDeposit: Math.min(Math.max(0, Number(room.securityDeposit || 0)), 100000),
               squareFeet: Math.min(Math.max(0, Number(room.squareFeet || 0)), 10000),
@@ -589,8 +581,8 @@ const NewProperty = () => {
               capacity: Math.max(1, Number(room.capacity || 1)),
               isAvailable: room.isAvailable !== false,
               propertyId: propertyResponse.id,
-              amenities: Array.isArray(room.amenities) ? room.amenities : [],
-              features: Array.isArray(room.features) ? room.features : [],
+              bathroomPrivacy: room.bathroomPrivacy,
+              kitchenPrivacy: room.kitchenPrivacy,
             };
             
             if (room.availableFrom) {
@@ -786,11 +778,10 @@ const NewProperty = () => {
                 </div>
                 <div className={`text-xs ${isActive ? 'text-blue-600 dark:text-blue-400' : isCompleted ? 'text-green-600 dark:text-green-400' : 'text-slate-500 dark:text-gray-500'}`}>
                   {stepNum === 1 && 'Basic Info'}
-                  {stepNum === 2 && 'Pricing'}
-                  {stepNum === 3 && 'Details'}
-                  {stepNum === 4 && 'Amenities'}
-                  {stepNum === 5 && 'Photos'}
-                  {stepNum === 6 && 'Location'}
+                  {stepNum === 2 && 'Rooms'}
+                  {stepNum === 3 && 'Amenities'}
+                  {stepNum === 4 && 'Photos'}
+                  {stepNum === 5 && 'Location'}
                 </div>
               </div>
             );
@@ -841,6 +832,55 @@ const NewProperty = () => {
                     inputClassName={`${inputStyle} h-10`}
                   />
 
+                  {/* Simple specs & parking */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <CreateFormField
+                      name="beds"
+                      label="Total Bedrooms"
+                      type="number"
+                      labelClassName={labelStyle}
+                      inputClassName={inputStyle}
+                      min={0}
+                      placeholder="e.g., 4"
+                    />
+                    <CreateFormField
+                      name="baths"
+                      label="Total Bathrooms"
+                      type="number"
+                      labelClassName={labelStyle}
+                      inputClassName={inputStyle}
+                      min={0}
+                      step="0.5"
+                      placeholder="e.g., 2.5"
+                    />
+                    <CreateFormField
+                      name="kitchens"
+                      label="Total Kitchens"
+                      type="number"
+                      labelClassName={labelStyle}
+                      inputClassName={inputStyle}
+                      min={0}
+                      placeholder="e.g., 1"
+                    />
+                  </div>
+                  <div>
+                    <CreateFormField
+                      name="squareFeet"
+                      label="Total Square Feet"
+                      type="number"
+                      labelClassName={labelStyle}
+                      inputClassName={inputStyle}
+                      min={0}
+                      placeholder="e.g., 2500"
+                    />
+                  </div>
+                  <CreateFormField
+                    name="isParkingIncluded"
+                    label="Parking Included"
+                    type="switch"
+                    labelClassName={labelStyle}
+                  />
+
                   {/* NSFAS Accreditation - Accessible + Dark Mode Optimized */}
                   <div
                     className="relative group rounded-lg p-4 border
@@ -874,113 +914,15 @@ const NewProperty = () => {
                 />
               </FormStep>
 
-              {/* Step 2: Pricing & Fees */}
-              <FormStep 
-                title="Pricing & Fees" 
-                icon={<CircleDollarSign size={20} />} 
-                isActive={currentStep === 2}
-                isCompleted={completedSteps.includes(2)}
-                stepNumber={2}
-                totalSteps={totalSteps}
-                onStepClick={goToStep}
-              >
-                <div className="space-y-6">
-                  <div className="relative">
-                    <CustomFormField
-                      name="pricePerMonth"
-                      label="Monthly Rent"
-                      type="number"
-                      labelClassName={labelStyle}
-                      inputClassName={`${inputStyle} pl-7`}
-                      min={0}
-                    />
-                    <span className="absolute top-9 left-3 text-gray-400">R</span>
-                  </div>
+              {/* Step 2: Rooms */}
+              
 
-                  <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                    <div className="relative">
-                      <CustomFormField
-                        name="securityDeposit"
-                        label="Security Deposit"
-                        type="number"
-                        labelClassName={labelStyle}
-                        inputClassName={`${inputStyle} pl-7`}
-                        min={0}
-                      />
-                      <span className="absolute top-9 left-3 text-gray-400">R</span>
-                    </div>
-                  </div>
-                  <CreateFormField
-                    name="isParkingIncluded"
-                    label="Parking Included"
-                    type="switch"
-                    labelClassName={labelStyle}
-                  />
-
-                  {/* Property Specifications */}
-                  <div className="border-t border-slate-200 dark:border-gray-700 pt-6">
-                    <h4 className="text-lg font-medium text-slate-800 dark:text-white mb-4">Property Specifications</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <CreateFormField
-                        name="beds"
-                        label="Total Bedrooms"
-                        type="number"
-                        labelClassName={labelStyle}
-                        inputClassName={inputStyle}
-                        min={0}
-                        placeholder="e.g., 4"
-                      />
-                      <CreateFormField
-                        name="baths"
-                        label="Total Bathrooms"
-                        type="number"
-                        labelClassName={labelStyle}
-                        inputClassName={inputStyle}
-                        min={0}
-                        step="0.5"
-                        placeholder="e.g., 2.5"
-                      />
-                      <CreateFormField
-                        name="kitchens"
-                        label="Total Kitchens"
-                        type="number"
-                        labelClassName={labelStyle}
-                        inputClassName={inputStyle}
-                        min={0}
-                        placeholder="e.g., 1"
-                      />
-                    </div>
-                    <div className="mt-4">
-                      <CreateFormField
-                        name="squareFeet"
-                        label="Total Square Feet"
-                        type="number"
-                        labelClassName={labelStyle}
-                        inputClassName={inputStyle}
-                        min={0}
-                        placeholder="e.g., 2500"
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <StepNavigation
-                  currentStep={currentStep}
-                  totalSteps={totalSteps}
-                  onNext={goToNextStep}
-                  onPrev={goToPrevStep}
-                  isSubmitting={submitting}
-                  isLastStep={false}
-                />
-              </FormStep>
-
-              {/* Step 3: Rooms */}
               <FormStep 
                 title="Rooms" 
                 icon={<Home size={20} />}
-                isActive={currentStep === 3}
-                isCompleted={completedSteps.includes(3)}
-                stepNumber={3}
+                isActive={currentStep === 2}
+                isCompleted={completedSteps.includes(2)}
+                stepNumber={2}
                 totalSteps={totalSteps}
                 onStepClick={goToStep}
               >
@@ -999,13 +941,13 @@ const NewProperty = () => {
                 />
               </FormStep>
 
-              {/* Step 4: Amenities & Highlights */}
+              {/* Step 3: Amenities & Highlights */}
               <FormStep 
                 title="Amenities & Highlights" 
                 icon={<Sparkles size={20} />}
-                isActive={currentStep === 4}
-                isCompleted={completedSteps.includes(4)}
-                stepNumber={4}
+                isActive={currentStep === 3}
+                isCompleted={completedSteps.includes(3)}
+                stepNumber={3}
                 totalSteps={totalSteps}
                 onStepClick={goToStep}
               >
@@ -1085,13 +1027,13 @@ const NewProperty = () => {
                 />
               </FormStep>
 
-              {/* Step 5: Property Photos */}
+              {/* Step 4: Property Photos */}
               <FormStep 
                 title="Property Photos" 
                 icon={<ImageDown size={20} />}
-                isActive={currentStep === 5}
-                isCompleted={completedSteps.includes(5)}
-                stepNumber={5}
+                isActive={currentStep === 4}
+                isCompleted={completedSteps.includes(4)}
+                stepNumber={4}
                 totalSteps={totalSteps}
                 onStepClick={goToStep}
               >
@@ -1187,13 +1129,13 @@ const NewProperty = () => {
                 />
               </FormStep>
 
-              {/* Step 6: Location */}
+              {/* Step 5: Location */}
               <FormStep 
                 title="Location Information" 
                 icon={<MapPin size={20} />}
-                isActive={currentStep === 6}
-                isCompleted={completedSteps.includes(6)}
-                stepNumber={6}
+                isActive={currentStep === 5}
+                isCompleted={completedSteps.includes(5)}
+                stepNumber={5}
                 totalSteps={totalSteps}
                 onStepClick={goToStep}
               >
@@ -1214,6 +1156,15 @@ const NewProperty = () => {
                       labelClassName={labelStyle}
                       inputClassName={inputStyle}
                       placeholder="Cape Town"
+                    />
+
+                    <CreateFormField
+                      name="suburb"
+                      label="Suburb (Optional)"
+                      className="w-full"
+                      labelClassName={labelStyle}
+                      inputClassName={inputStyle}
+                      placeholder="e.g., Rondebosch"
                     />
 
                     <CreateFormField
@@ -1245,14 +1196,14 @@ const NewProperty = () => {
 
                   <CreateFormField
                     name="closestUniversities"
-                    label="Closest Universities"
+                    label="Accredited by University"
                     type="multi-select"
                     options={UNIVERSITY_OPTIONS}
                     labelClassName={labelStyle}
                     inputClassName={`${inputStyle}`}
                   />
                   <p className="text-xs text-slate-600 dark:text-gray-400 mt-1">
-                    Select the universities that are closest to this property. This helps students find accommodation near their campus.
+                    Select the university or universities that accredit this property.
                   </p>
                 </div>
                 

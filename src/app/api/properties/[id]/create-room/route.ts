@@ -75,6 +75,8 @@ interface RoomData {
   amenities: string[];
   features: string[];
   photoUrls: string[];
+  bathroomPrivacy?: 'PRIVATE' | 'SHARED';
+  kitchenPrivacy?: 'PRIVATE' | 'SHARED';
 }
 
 // POST handler for the create-room endpoint
@@ -139,7 +141,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           // Handle arrays - use getAll() to get all values for amenities and features
           amenities: formData.getAll('amenities') as string[],
           features: formData.getAll('features') as string[],
-          photoUrls: [] as string[]
+          photoUrls: [] as string[],
+          bathroomPrivacy: formData.get('bathroomPrivacy')?.toString() as 'PRIVATE' | 'SHARED' | undefined,
+          kitchenPrivacy: formData.get('kitchenPrivacy')?.toString() as 'PRIVATE' | 'SHARED' | undefined,
         };
         
         // Process photo uploads with size validation
@@ -234,8 +238,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     } else if (contentType.includes('application/json')) {
       try {
         // For JSON content type, parse the request body as JSON
-        const jsonData = await request.json();
-        roomData = jsonData as RoomData;
+  const jsonData = await request.json();
+  roomData = jsonData as RoomData;
         console.log('JSON data parsed successfully');
       } catch (jsonError) {
         console.error('JSON parse error:', jsonError);
@@ -261,6 +265,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       
       console.log('Room data processed:', roomData);
       
+      // Derive privacy features for storage without DB migration
+      const derivedFeatures: string[] = [];
+      if (roomData.bathroomPrivacy) {
+        derivedFeatures.push(`Bathroom:${roomData.bathroomPrivacy}`);
+      }
+      if (roomData.kitchenPrivacy) {
+        derivedFeatures.push(`Kitchen:${roomData.kitchenPrivacy}`);
+      }
+
       // Create the room in the database
       const createdRoom = await prisma.room.create({
         data: {
@@ -274,7 +287,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           isAvailable: roomData.isAvailable === false ? false : true,
           propertyId: propertyId,
           amenities: Array.isArray(roomData.amenities) ? roomData.amenities : [],
-          features: Array.isArray(roomData.features) ? roomData.features : [],
+          features: [
+            ...((Array.isArray(roomData.features) ? roomData.features : []))
+              .filter(f => !/^Bathroom:|^Kitchen:/.test(f)),
+            ...derivedFeatures,
+          ],
           photoUrls: Array.isArray(roomData.photoUrls) ? roomData.photoUrls : [],
           availableFrom: roomData.availableFrom ? new Date(roomData.availableFrom) : null,
           beds: roomData.beds || 1,
@@ -283,6 +300,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       });
       
       console.log('Room created successfully:', createdRoom);
+
+      try {
+        const minPrice = await prisma.room.aggregate({
+          where: { propertyId },
+          _min: { pricePerMonth: true },
+        });
+        const minVal = minPrice._min.pricePerMonth ?? createdRoom.pricePerMonth;
+        await prisma.property.update({
+          where: { id: propertyId },
+          data: { pricePerMonth: minVal },
+        });
+        console.log(`Updated property ${propertyId} pricePerMonth to min room price:`, minVal);
+      } catch (e) {
+        console.warn('Failed to update property min price after room create:', e);
+      }
+
       return NextResponse.json(createdRoom, { status: 201 });
   } catch (error) {
     console.error("Error in create-room endpoint:", error);

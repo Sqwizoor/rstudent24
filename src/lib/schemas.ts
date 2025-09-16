@@ -4,8 +4,8 @@ import { PropertyTypeEnum, RoomTypeEnum } from "@/lib/constants";
 export const propertySchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().min(1, "Description is required"),
-  pricePerMonth: z.number().min(0, "Price must be positive"),
-  securityDeposit: z.number().min(0, "Security deposit must be positive"),
+  pricePerMonth: z.number().min(0, "Price must be positive").optional().default(0),
+  securityDeposit: z.number().min(0, "Security deposit must be positive").optional().default(0),
   isNsfassAccredited: z.boolean().default(false),
   isParkingIncluded: z.boolean().default(true),
   photoUrls: z.any(), // This will be handled by the file input
@@ -22,6 +22,7 @@ export const propertySchema = z.object({
   state: z.string().optional(),
   country: z.string().min(1, "Country is required"),
   postalCode: z.string().min(1, "Postal code is required"),
+  suburb: z.string().optional(),
   locationId: z.number().optional(),
 });
 
@@ -54,7 +55,6 @@ export const roomSchema = z.object({
   id: z.number().optional(), // For editing existing rooms
   propertyId: z.number().or(z.string().transform(val => parseInt(val))),
   name: z.string().min(1, "Room name is required"),
-  description: z.string().optional(),
   pricePerMonth: z.number().min(1, "Price is required")
     .or(z.string().transform(val => parseFloat(val)).refine(val => val >= 1, { message: "Price is required" })),
   securityDeposit: z.number().or(z.string().transform(val => parseFloat(val))).default(0),
@@ -63,8 +63,8 @@ export const roomSchema = z.object({
   availableFrom: z.date().or(z.string().transform(val => new Date(val))).optional().nullable(),
   roomType: z.nativeEnum(RoomTypeEnum).default(RoomTypeEnum.PRIVATE),
   capacity: z.number().min(1).or(z.string().transform(val => parseInt(val)).refine(val => val >= 1, { message: "Capacity must be at least 1" })).default(1),
-  amenities: z.array(z.string()).default([]),
-  features: z.array(z.string()).default([]),
+  bathroomPrivacy: z.enum(["PRIVATE", "SHARED"]).default("SHARED"),
+  kitchenPrivacy: z.enum(["PRIVATE", "SHARED"]).default("SHARED"),
   photoUrls: z.any().optional(), // handles File objects for upload
 });
 

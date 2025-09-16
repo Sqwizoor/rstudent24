@@ -23,7 +23,7 @@ import { RoomFormData as ModalRoomFormDataBase, roomSchema as modalRoomSchema } 
 
 // Extend the form data type to include optional id for editing
 type ModalRoomFormData = ModalRoomFormDataBase & { id?: number };
-import { AmenityEnum as ModalAmenityEnum, RoomTypeEnum as ModalRoomTypeEnum } from '@/lib/constants';
+import { RoomTypeEnum as ModalRoomTypeEnum } from '@/lib/constants';
 import { CreateFormField as ModalCreateFormField } from '@/components/CreateFormField';
 import { cn } from '@/lib/utils';
 import { DatePickerDemo as UIDatePicker } from '@/components/ui/date-picker';
@@ -83,9 +83,9 @@ export function PropertyEditPageRoomFormModal({
     if (isOpen) {
       const defaults = {
         propertyId: typeof propertyId === "string" ? Number(propertyId) : propertyId,
-        name: "", description: "", pricePerMonth: 0, securityDeposit: 0, squareFeet: undefined,
-        isAvailable: true, availableFrom: null, roomType: ModalRoomTypeEnum.PRIVATE, capacity: 1,
-        amenities: [], features: [], photoUrls: [], newPhotos: null, photosToDelete: [], replacePhotos: false,
+        name: "", pricePerMonth: 0, securityDeposit: 0, squareFeet: undefined,
+  isAvailable: true, availableFrom: null, roomType: ModalRoomTypeEnum.PRIVATE, capacity: 1,
+  bathroomPrivacy: 'SHARED' as 'SHARED', kitchenPrivacy: 'SHARED' as 'SHARED', photoUrls: [], newPhotos: null, photosToDelete: [], replacePhotos: false,
         ...initialRoomData, // Apply initial data for editing
       };
       // Ensure date is a Date object if present
@@ -150,13 +150,10 @@ export function PropertyEditPageRoomFormModal({
 
     Object.entries(data).forEach(([key, value]) => {
         // Skip frontend-only or handled-separately fields
-        if (['id', 'photoUrls', 'newPhotos', 'photosToDelete', 'replacePhotos', 'propertyId'].includes(key)) return;
+    if (['id', 'photoUrls', 'newPhotos', 'photosToDelete', 'replacePhotos', 'propertyId'].includes(key)) return;
 
-        if (key === 'amenities' || key === 'features') {
-            if (Array.isArray(value)) {
-                // Append each item separately so formData.getAll() works correctly
-                value.forEach(item => formData.append(key, item));
-            }
+    if (key === 'amenities' || key === 'features') {
+      return; // removed in simplified form
         } else if (key === 'availableFrom' && value instanceof Date) {
             formData.append(key, value.toISOString());
         } else if (typeof value === 'boolean') {
@@ -230,7 +227,6 @@ export function PropertyEditPageRoomFormModal({
         <Form {...({ control: roomControl, handleSubmit: handleRoomSubmit, reset: resetRoomForm, watch: watchRoomForm, setValue: setRoomFormValue } as any)}>
           <form onSubmit={handleRoomSubmit(onRoomFormSubmit)} className="space-y-4 text-white mt-4">
             <ModalCreateFormField name="name" label="Room Name / Number" placeholder="e.g., Master Bedroom, Unit A-102" />
-            <ModalCreateFormField name="description" label="Room Description (Optional)" type="textarea" placeholder="Specific details about this room" />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-white">
               <ModalCreateFormField name="roomType" label="Room Type" type="select" options={Object.values(ModalRoomTypeEnum).map(rt => ({ value: rt, label: rt }))} />
@@ -240,6 +236,10 @@ export function PropertyEditPageRoomFormModal({
               <ModalCreateFormField name="pricePerMonth" label="Price / Month (R)" type="number" min={1} placeholder="e.g., 4500" />
               <ModalCreateFormField name="securityDeposit" label="Security Deposit (R)" type="number" min={0} placeholder="e.g., 2000" />
               <ModalCreateFormField name="squareFeet" label="Square Feet (Optional)" type="number" min={0} placeholder="e.g., 120" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-white">
+              <ModalCreateFormField name="bathroomPrivacy" label="Bathroom" type="select" options={[{ value: 'PRIVATE', label: 'Private' }, { value: 'SHARED', label: 'Shared' }]} />
+              <ModalCreateFormField name="kitchenPrivacy" label="Kitchen" type="select" options={[{ value: 'PRIVATE', label: 'Private' }, { value: 'SHARED', label: 'Shared' }]} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
               {/* Availability Switch */}
@@ -269,68 +269,7 @@ export function PropertyEditPageRoomFormModal({
                 <p className="text-[10px] text-gray-400">Leave empty if immediately available.</p>
               </div>
             </div>
-            {/* Custom Amenity Chips */}
-            <div className="space-y-2">
-              <UILabel className="text-sm font-medium text-slate-800 dark:text-white">Room-Specific Amenities</UILabel>
-              <div className="flex flex-wrap gap-2">
-                {Object.values(ModalAmenityEnum).map(am => {
-                  const selected = (watchRoomForm('amenities') || []).includes(am as any);
-                  return (
-                    <button
-                      type="button"
-                      key={am}
-                      onClick={() => {
-                        const current = (watchRoomForm('amenities') || []) as string[];
-                        if (current.includes(am)) {
-                          setRoomFormValue('amenities', current.filter(a => a !== am) as any, { shouldDirty: true });
-                        } else {
-                          setRoomFormValue('amenities', [...current, am] as any, { shouldDirty: true });
-                        }
-                      }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500
-                        ${selected 
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
-                          : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-600'}
-                      `}
-                    >
-                      {selected && <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-white" />}
-                      {am}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            {/* Custom Feature Chips */}
-            <div className="space-y-2">
-              <UILabel className="text-sm font-medium text-slate-800 dark:text-white">Room-Specific Features</UILabel>
-              <div className="flex flex-wrap gap-2">
-                {["Private Balcony", "Walk-in Closet", "Corner Room", "Good View", "Spacious", "Bright", "Recently Renovated"].map(feat => {
-                  const selected = (watchRoomForm('features') || []).includes(feat as any);
-                  return (
-                    <button
-                      type="button"
-                      key={feat}
-                      onClick={() => {
-                        const current = (watchRoomForm('features') || []) as string[];
-                        if (current.includes(feat)) {
-                          setRoomFormValue('features', current.filter(f => f !== feat) as any, { shouldDirty: true });
-                        } else {
-                          setRoomFormValue('features', [...current, feat] as any, { shouldDirty: true });
-                        }
-                      }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500
-                        ${selected 
-                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' 
-                          : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-600'}
-                      `}
-                    >
-                      {selected && <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-white" />}
-                      {feat}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            {/* Amenities and Features removed for simplified room form */}
 
             {/* Photo Management for Room */}
             <div className="space-y-3 border-t border-border dark:border-gray-700 pt-4 mt-4">

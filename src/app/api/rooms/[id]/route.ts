@@ -75,8 +75,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     console.log('Updating room:', roomId);
     
     // Extract room data
-    const name = formData.get('name') as string;
-    const description = formData.get('description') as string;
+  const name = formData.get('name') as string;
+  const descriptionRaw = formData.get('description');
     const pricePerMonth = parseFloat(formData.get('pricePerMonth') as string);
     const securityDeposit = parseFloat(formData.get('securityDeposit') as string) || 0;
     const squareFeet = parseInt(formData.get('squareFeet') as string) || null;
@@ -84,10 +84,26 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const capacity = parseInt(formData.get('capacity') as string) || 1;
     const isAvailable = formData.get('isAvailable') === 'true';
     const availableFromStr = formData.get('availableFrom') as string;
+  const bathroomPrivacy = formData.get('bathroomPrivacy') as ('PRIVATE' | 'SHARED' | null);
+  const kitchenPrivacy = formData.get('kitchenPrivacy') as ('PRIVATE' | 'SHARED' | null);
     
     // Parse amenities and features
-    const amenities = formData.getAll('amenities') as string[];
-    const features = formData.getAll('features') as string[];
+    const amenities = formData.has('amenities') ? (formData.getAll('amenities') as string[]) : existingRoom.amenities;
+    const featuresBase = formData.has('features') ? (formData.getAll('features') as string[]) : existingRoom.features;
+  const featuresWithoutPrivacy = (featuresBase || []).filter((f: string) => !/^Bathroom:|^Kitchen:/.test(f));
+    const finalFeatures = [...featuresWithoutPrivacy];
+    if (bathroomPrivacy) {
+      finalFeatures.push(`Bathroom:${bathroomPrivacy}`);
+    } else {
+  const keep = existingRoom.features.find((f: string) => /^Bathroom:/.test(f));
+      if (keep) finalFeatures.push(keep);
+    }
+    if (kitchenPrivacy) {
+      finalFeatures.push(`Kitchen:${kitchenPrivacy}`);
+    } else {
+  const keep = existingRoom.features.find((f: string) => /^Kitchen:/.test(f));
+      if (keep) finalFeatures.push(keep);
+    }
     
     // Parse availableFrom date
     let availableFrom: Date | null = null;
@@ -157,7 +173,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       where: { id: roomId },
       data: {
         name,
-        description: description || null,
+        description: descriptionRaw !== undefined ? ((descriptionRaw as string) || null) : existingRoom.description,
         pricePerMonth,
         securityDeposit,
         squareFeet,
@@ -166,7 +182,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         isAvailable,
         availableFrom,
         amenities,
-        features,
+        features: finalFeatures,
         photoUrls,
       },
     });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useGetAuthUserQuery, useGetPropertyQuery, useGetRoomsQuery, useGetPropertiesQuery } from "@/state/api";
+import { useGetAuthUserQuery, useGetPropertyQuery, useGetRoomsQuery, useGetPropertiesQuery, useAddFavoritePropertyMutation, useRemoveFavoritePropertyMutation } from "@/state/api";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
@@ -15,6 +15,7 @@ import Loading from "@/components/Loading";
 import PropertyReviews from "@/components/PropertyReviews";
 import { Building2, Bed, Bath, Users, Home } from "lucide-react";
 import { getRoomStats } from "@/lib/roomUtils";
+import Card from "@/components/Card";
 
 // Define interfaces for type safety
 interface Room {
@@ -132,6 +133,8 @@ const SingleListing = () => {
     // Don't show error toasts for auth errors
     skip: false,
   });
+  const [addFavoriteProperty] = useAddFavoritePropertyMutation();
+  const [removeFavoriteProperty] = useRemoveFavoritePropertyMutation();
   
   const { data: property, isLoading, isError } = useGetPropertyQuery(propertyId, {
     skip: !propertyId // Skip if propertyId is not available
@@ -204,6 +207,32 @@ const SingleListing = () => {
     // Filter out current property and slice to 6
   return nearbyRaw.filter((p: any) => p.id !== propertyId).slice(0, 6);
   }, [nearbyRaw, propertyId]);
+
+  // Favorite helpers (match home featured behavior)
+  const isPropertyFavorite = (propId: number) => {
+    if (authUser?.userRole !== 'tenant') return false;
+    const tenantInfo = (authUser as any).userInfo as any;
+    return tenantInfo?.favorites?.some((fav: any) => fav.id === propId) || false;
+  };
+
+  const handleFavoriteToggle = async (propId: number) => {
+    if (!authUser?.cognitoInfo?.userId) {
+      // Redirect handled elsewhere; here we simply no-op to keep UI consistent
+      return;
+    }
+    if (authUser.userRole !== 'tenant') return;
+    try {
+      const tenantInfo = (authUser as any).userInfo as any;
+      const currentlyFavorite = tenantInfo?.favorites?.some((fav: any) => fav.id === propId) || false;
+      if (currentlyFavorite) {
+        await removeFavoriteProperty({ cognitoId: authUser.cognitoInfo.userId, propertyId: propId }).unwrap();
+      } else {
+        await addFavoriteProperty({ cognitoId: authUser.cognitoInfo.userId, propertyId: propId }).unwrap();
+      }
+    } catch (e) {
+      console.error('Error toggling favorite for nearby card:', e);
+    }
+  };
 
   // Calculate room-based statistics
   const roomStats = getRoomStats(rooms);
@@ -696,30 +725,24 @@ const SingleListing = () => {
               <h2 className="text-2xl font-semibold text-gray-900">Nearby Accommodations</h2>
               <Link href="/search" className="text-[#00acee] text-sm font-medium hover:underline">View all</Link>
             </div>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {nearby.map((p: any) => (
-                <div key={p.id} className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-                  <div className="relative h-48 w-full overflow-hidden">
-                    <Image
-                      src={(Array.isArray(p.images) && p.images[0]) || (Array.isArray(p.photoUrls) && p.photoUrls[0]) || '/placeholder.jpg'}
-                      alt={p.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      unoptimized={true}
-                    />
-                    {p.isNsfassAccredited && (
-                      <span className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2 py-0.5 text-[11px] font-semibold text-red-600 rounded-full border border-red-200">NSFAS</span>
-                    )}
-                  </div>
-                  <div className="p-4 space-y-2">
-                    <h3 className="font-semibold text-gray-900 line-clamp-1">{p.name}</h3>
-                    <p className="text-sm text-gray-600 line-clamp-1">{p.location?.city}</p>
-                    <div className="flex items-center justify-between">
-                      <p className="text-[#00acee] font-bold">R {Number(p.pricePerMonth || 0).toLocaleString('en-ZA')}</p>
-                      <Link href={`/search/${p.id}`} className="text-xs font-medium text-[#00acee] hover:underline">View</Link>
-                    </div>
-                  </div>
-                </div>
+                <Card
+                  key={p.id}
+                  property={p}
+                  isFavorite={isPropertyFavorite(p.id)}
+                  onFavoriteToggle={() => handleFavoriteToggle(p.id)}
+                  propertyLink={`/search/${p.id}`}
+                  userRole={authUser?.userRole || null}
+                  showFavoriteButton={true}
+                  className="mt-0 border-0 mx-auto !p-2"
+                  imagePaddingClass="p-0"
+                  largeActionIcons
+                  simpleShadow
+                  reviewsCount={(p as any).reviews ?? (p as any).reviewCount ?? (p as any).reviewsCount}
+                  locationDisplayMode="suburbCity"
+                  imageAspect="4/2"
+                />
               ))}
             </div>
           </div>

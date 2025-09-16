@@ -326,7 +326,8 @@ export async function POST(request: NextRequest) {
     // Extract property data
     const address = propertyData.address as string;
     const city = propertyData.city as string;
-    const state = propertyData.state as string;
+  const state = propertyData.state as string;
+  const suburb = propertyData.suburb as string;
     const country = propertyData.country as string;
     const postalCode = propertyData.postalCode as string;
     const managerCognitoId = propertyData.managerCognitoId as string;
@@ -354,7 +355,7 @@ export async function POST(request: NextRequest) {
     // Create location first
     try {
       // Construct address string dynamically based on available components
-      const addressParts = [address, city];
+  const addressParts = [address, suburb && suburb.trim() !== '' ? suburb : null, city].filter(Boolean) as string[];
       
       // Add state only if it's provided and valid
       if (state && state.trim() !== '') {
@@ -389,7 +390,7 @@ export async function POST(request: NextRequest) {
         const locationResult = await prisma.$queryRaw<{ id: number }[]>`
           INSERT INTO "Location" ("address", "city", "state", "country", "postalCode", "coordinates")
           VALUES (
-            ${address},
+            ${addressParts.join(', ')},
             ${city},
             ${state || 'N/A'},  -- Provide a default value if state is null
             ${country},
@@ -443,10 +444,8 @@ export async function POST(request: NextRequest) {
             isNsfassAccredited: typeof propertyData.isNsfassAccredited === "boolean" 
               ? propertyData.isNsfassAccredited 
               : propertyData.isNsfassAccredited === "true",
-            // Parse numeric fields
-            pricePerMonth: typeof propertyData.pricePerMonth === "number" 
-              ? propertyData.pricePerMonth 
-              : parseFloat(propertyData.pricePerMonth) || 0,
+            // Parse numeric fields (property price is derived from rooms; default to 0 here)
+            pricePerMonth: 0,
             securityDeposit: typeof propertyData.securityDeposit === "number" 
               ? propertyData.securityDeposit 
               : parseFloat(propertyData.securityDeposit) || 0,

@@ -21,7 +21,6 @@ import { Bed, Upload, X, Trash2, CircleDollarSign, SquareUser, Home } from "luci
 // Room schema
 export const roomSchema = z.object({
   name: z.string().min(1, "Room name is required"),
-  description: z.string().optional(),
   pricePerMonth: z.number().min(0, "Price must be a positive number"),
   securityDeposit: z.number().min(0, "Security deposit must be a positive number"),
   squareFeet: z.number().min(0, "Square feet must be a positive number").optional(),
@@ -29,28 +28,14 @@ export const roomSchema = z.object({
   availableFrom: z.date().optional().nullable(),
   roomType: z.enum(["PRIVATE", "SHARED"]).default("PRIVATE"),
   capacity: z.number().min(1, "Capacity must be at least 1").default(1),
-  amenities: z.array(z.string()).default([]),
-  features: z.array(z.string()).default([]),
+  bathroomPrivacy: z.enum(["PRIVATE", "SHARED"]).default("SHARED"),
+  kitchenPrivacy: z.enum(["PRIVATE", "SHARED"]).default("SHARED"),
   photoUrls: z.any().optional(),
 })
 
 export type RoomFormData = z.infer<typeof roomSchema>
 
-// Room amenities and features options
-const roomAmenities = [
-  "Air Conditioning",
-  "Heating",
-  "Ceiling Fan",
-  "Private Bathroom",
-  "Walk-in Closet",
-  "Desk",
-  "TV",
-  "Internet",
-  "Balcony",
-  "Window",
-]
-
-const roomFeatures = ["Ensuite", "Corner Room", "Quiet", "Good View", "Spacious", "Bright", "Recently Renovated"]
+// Removed legacy amenities/features for simplified room form
 
 interface RoomFormProps {
   onAddRoom: (room: RoomFormData) => void
@@ -64,15 +49,14 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
     resolver: zodResolver(roomSchema),
     defaultValues: {
       name: "",
-      description: "",
       pricePerMonth: 0,
       securityDeposit: 0,
       squareFeet: 0,
       isAvailable: true,
       roomType: "PRIVATE",
       capacity: 1,
-      amenities: [],
-      features: [],
+      bathroomPrivacy: "SHARED",
+      kitchenPrivacy: "SHARED",
     },
   })
 
@@ -84,19 +68,7 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
     }
   }
 
-  // Handle removing an amenity
-  const handleRemoveAmenity = (amenityToRemove: string) => {
-    const currentAmenities = form.getValues("amenities") || []
-    const updatedAmenities = currentAmenities.filter((amenity) => amenity !== amenityToRemove)
-    form.setValue("amenities", updatedAmenities)
-  }
-
-  // Handle removing a feature
-  const handleRemoveFeature = (featureToRemove: string) => {
-    const currentFeatures = form.getValues("features") || []
-    const updatedFeatures = currentFeatures.filter((feature) => feature !== featureToRemove)
-    form.setValue("features", updatedFeatures)
-  }
+  // Removed amenities/features handlers in simplified form
 
   const handleAddRoom = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -140,14 +112,6 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                 placeholder="Master Bedroom"
               />
 
-              <CreateFormField
-                name="description"
-                label="Description"
-                type="textarea"
-                labelClassName={labelStyle}
-                inputClassName={`${inputStyle} min-h-[80px] resize-y`}
-                placeholder="Describe the room..."
-              />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="relative">
@@ -210,6 +174,31 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                 />
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CreateFormField
+                  name="bathroomPrivacy"
+                  label="Bathroom"
+                  type="select"
+                  options={[
+                    { value: "PRIVATE", label: "Private" },
+                    { value: "SHARED", label: "Shared" },
+                  ]}
+                  labelClassName={labelStyle}
+                  inputClassName={inputStyle}
+                />
+                <CreateFormField
+                  name="kitchenPrivacy"
+                  label="Kitchen"
+                  type="select"
+                  options={[
+                    { value: "PRIVATE", label: "Private" },
+                    { value: "SHARED", label: "Shared" },
+                  ]}
+                  labelClassName={labelStyle}
+                  inputClassName={inputStyle}
+                />
+              </div>
+
               <CreateFormField
                 name="isAvailable"
                 label="Available for Rent"
@@ -226,70 +215,7 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
               />
             </div>
 
-            {/* Amenities and Features */}
-            <div className="space-y-4">
-              <div>
-                <CreateFormField
-                  name="amenities"
-                  label="Amenities"
-                  type="multi-select"
-                  options={roomAmenities.map((amenity) => ({
-                    value: amenity,
-                    label: amenity,
-                  }))}
-                  labelClassName={labelStyle}
-                  inputClassName={`${inputStyle} bg-[#0B1120] !text-white`}
-                />
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {form.watch("amenities")?.map((amenity, idx) => (
-                    <Badge
-                      key={idx}
-                      className="bg-[#1E3A8A]/30 text-[#60A5FA] border-[#1E3A8A] px-3 py-1.5 flex items-center gap-1.5"
-                    >
-                      {amenity}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveAmenity(amenity)}
-                        className="ml-1 hover:bg-[#1E3A8A] rounded-full p-0.5"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <CreateFormField
-                  name="features"
-                  label="Features"
-                  type="multi-select"
-                  options={roomFeatures.map((feature) => ({
-                    value: feature,
-                    label: feature,
-                  }))}
-                  labelClassName={labelStyle}
-                  inputClassName={`${inputStyle} bg-[#0B1120] !text-white`}
-                />
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {form.watch("features")?.map((feature, idx) => (
-                    <Badge
-                      key={idx}
-                      className="bg-[#5B21B6]/30 text-[#A78BFA] border-[#5B21B6] px-3 py-1.5 flex items-center gap-1.5"
-                    >
-                      {feature}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveFeature(feature)}
-                        className="ml-1 hover:bg-[#5B21B6] rounded-full p-0.5"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
+            {/* Amenities and Features removed for simplified room form */}
 
             {/* Room Photos */}
             <div>
@@ -397,9 +323,7 @@ export const RoomList = ({ rooms, onRemoveRoom }: RoomListProps) => {
                 </Button>
               </div>
 
-              {room.description && (
-                <p className="text-sm text-gray-400 mt-2">{room.description}</p>
-              )}
+              {/* Description removed in simplified view */}
 
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-3">
                 <div className="flex items-center gap-2">
@@ -419,6 +343,17 @@ export const RoomList = ({ rooms, onRemoveRoom }: RoomListProps) => {
                 <div className="flex items-center gap-2">
                   <Bed className="h-4 w-4 text-gray-400" />
                   <span className="text-sm text-gray-300">{room.roomType}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">Bathroom:</span>
+                  <span className="text-sm text-gray-300">{room.bathroomPrivacy}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">Kitchen:</span>
+                  <span className="text-sm text-gray-300">{room.kitchenPrivacy}</span>
                 </div>
               </div>
 
@@ -449,35 +384,7 @@ export const RoomList = ({ rooms, onRemoveRoom }: RoomListProps) => {
                 </div>
               )}
 
-              {/* Amenities and Features */}
-              {(room.amenities?.length > 0 || room.features?.length > 0) && (
-                <div className="mt-3 space-y-2">
-                  {room.amenities?.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {room.amenities.map((amenity, idx) => (
-                        <Badge
-                          key={idx}
-                          className="bg-[#1E3A8A]/30 text-[#60A5FA] border-[#1E3A8A] px-2 py-0.5 text-xs"
-                        >
-                          {amenity}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                  {room.features?.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {room.features.map((feature, idx) => (
-                        <Badge
-                          key={idx}
-                          className="bg-[#5B21B6]/30 text-[#A78BFA] border-[#5B21B6] px-2 py-0.5 text-xs"
-                        >
-                          {feature}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Amenities and Features removed in simplified view */}
             </CardContent>
           </Card>
         ))}
