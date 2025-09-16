@@ -85,7 +85,7 @@ export function PropertyEditPageRoomFormModal({
         propertyId: typeof propertyId === "string" ? Number(propertyId) : propertyId,
         name: "", pricePerMonth: 0, securityDeposit: 0, squareFeet: undefined,
   isAvailable: true, availableFrom: null, roomType: ModalRoomTypeEnum.PRIVATE, capacity: 1,
-  bathroomPrivacy: 'SHARED' as 'SHARED', kitchenPrivacy: 'SHARED' as 'SHARED', photoUrls: [], newPhotos: null, photosToDelete: [], replacePhotos: false,
+  bathroomPrivacy: 'SHARED' as const, kitchenPrivacy: 'SHARED' as const, photoUrls: [], newPhotos: null, photosToDelete: [], replacePhotos: false,
         ...initialRoomData, // Apply initial data for editing
       };
       // Ensure date is a Date object if present
