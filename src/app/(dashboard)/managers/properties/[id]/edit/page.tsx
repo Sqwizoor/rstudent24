@@ -544,11 +544,17 @@ export default function EditPropertyPage() {
   };
 
   const openRoomModalForEdit = (roomFromApi: ApiRoom) => {
+    // Derive privacy from features (e.g., "Bathroom:PRIVATE", "Kitchen:SHARED")
+    const features = Array.isArray(roomFromApi.features) ? roomFromApi.features : [];
+    const bathroomFeature = features.find((f: string) => f.startsWith("Bathroom:"));
+    const kitchenFeature = features.find((f: string) => f.startsWith("Kitchen:"));
+    const bathroomPrivacy = (bathroomFeature?.split(":")[1] as 'PRIVATE' | 'SHARED') || 'SHARED';
+    const kitchenPrivacy = (kitchenFeature?.split(":")[1] as 'PRIVATE' | 'SHARED') || 'SHARED';
+
     const roomFormDataForModal: Partial<RoomFormData> = {
-        id: roomFromApi.id, // Add the room ID for editing
+        id: roomFromApi.id,
         propertyId: roomFromApi.propertyId,
         name: roomFromApi.name,
-        description: roomFromApi.description || "",
         photoUrls: roomFromApi.photoUrls || [],
         pricePerMonth: roomFromApi.pricePerMonth,
         securityDeposit: roomFromApi.securityDeposit ?? undefined,
@@ -557,8 +563,8 @@ export default function EditPropertyPage() {
         availableFrom: roomFromApi.availableFrom ? new Date(roomFromApi.availableFrom) : null,
         roomType: roomFromApi.roomType,
         capacity: roomFromApi.capacity ?? 1,
-        amenities: roomFromApi.amenities || [],
-        features: roomFromApi.features || [],
+        bathroomPrivacy,
+        kitchenPrivacy,
     };
     setEditingRoomInitialData(roomFormDataForModal);
     setIsRoomModalOpen(true);

@@ -55,6 +55,7 @@ export const roomSchema = z.object({
   id: z.number().optional(), // For editing existing rooms
   propertyId: z.number().or(z.string().transform(val => parseInt(val))),
   name: z.string().min(1, "Room name is required"),
+  description: z.string().optional().nullable(),
   pricePerMonth: z.number().min(1, "Price is required")
     .or(z.string().transform(val => parseFloat(val)).refine(val => val >= 1, { message: "Price is required" })),
   securityDeposit: z.number().or(z.string().transform(val => parseFloat(val))).default(0),
