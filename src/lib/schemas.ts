@@ -22,7 +22,7 @@ export const propertySchema = z.object({
   state: z.string().optional(),
   country: z.string().min(1, "Country is required"),
   postalCode: z.string().min(1, "Postal code is required"),
-  suburb: z.string().optional(),
+  suburb: z.string().min(1, "Suburb is required"),
   locationId: z.number().optional(),
 });
 

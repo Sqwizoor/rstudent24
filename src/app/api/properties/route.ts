@@ -409,9 +409,16 @@ export async function POST(request: NextRequest) {
         // Extract property data fields from JSON
         const extractedPropertyData: any = {};
         for (const [key, value] of Object.entries(propertyData)) {
-          if (key !== 'address' && key !== 'city' && key !== 'state' && 
-              key !== 'country' && key !== 'postalCode' && 
-              key !== 'managerCognitoId' && key !== 'photoUrls') {
+          if (
+            key !== 'address' &&
+            key !== 'city' &&
+            key !== 'state' &&
+            key !== 'country' &&
+            key !== 'postalCode' &&
+            key !== 'managerCognitoId' &&
+            key !== 'photoUrls' &&
+            key !== 'suburb' // not a Property field; used only for geocoding
+          ) {
             extractedPropertyData[key] = value;
           }
         }
