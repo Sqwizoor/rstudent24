@@ -61,6 +61,7 @@ export interface Property {
   description?: string;
   propertyType?: string;
   price: number;
+  minRoomPrice?: number;
   securityDeposit?: number;
   beds: number;
   baths: number;

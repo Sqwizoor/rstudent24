@@ -24,6 +24,7 @@ interface ModernPropertyCardProps {
     kitchens?: number
     squareFeet: number
     pricePerMonth?: number
+    minRoomPrice?: number
     averageRating?: number
     numberOfReviews?: number
     isPetsAllowed?: boolean
@@ -58,7 +59,7 @@ function ModernPropertyCard({
   const displayBaths = property.baths || 0;
   const displayKitchens = property.kitchens || 0;
   const displaySquareFeet = property.squareFeet || 0;
-  const displayPrice = roomStats.minPrice || property.price || property.pricePerMonth || 0;
+  const displayPrice = (property.minRoomPrice ?? 0) || roomStats.minPrice || property.price || property.pricePerMonth || 0;
   
   // Add simple debug logging just for price
   console.log("PRICE DEBUG:", {

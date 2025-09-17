@@ -228,6 +228,11 @@ export async function GET(request: NextRequest) {
   const completeQuery = Prisma.sql`
       SELECT 
         p.*,
+        (
+          SELECT MIN(r."pricePerMonth")
+          FROM "Room" r
+          WHERE r."propertyId" = p.id AND r."isAvailable" = true
+        ) as "minRoomPrice",
         l.id as "locationId", 
         json_build_object(
           'id', l.id,

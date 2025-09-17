@@ -24,6 +24,7 @@ interface PropertyCardCompactProps {
     kitchens?: number
     squareFeet: number
     pricePerMonth: number
+    minRoomPrice?: number
     averageRating: number
     numberOfReviews: number
     isPetsAllowed?: boolean
@@ -55,7 +56,7 @@ export default function DashboardCardCompact({
   const displayBaths = property.baths || 0;
   const displayKitchens = property.kitchens || 0;
   const displaySquareFeet = property.squareFeet || 0;
-  const displayPrice = roomStats.minPrice || property.pricePerMonth || 0;
+  const displayPrice = (property.minRoomPrice ?? 0) || roomStats.minPrice || property.pricePerMonth || 0;
 
   return (
     <Card 

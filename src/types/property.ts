@@ -27,6 +27,7 @@ export interface Property {
   pricePerMonth?: number; // Keep optional for backward compatibility
   price?: number;        // Add alternative field name for compatibility
   priceUnit?: string;
+  minRoomPrice?: number; // Computed on API: lowest available room price
   securityDeposit?: number;
   isPetsAllowed: boolean;
   isParkingIncluded: boolean;
