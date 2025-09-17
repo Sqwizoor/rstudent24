@@ -43,7 +43,7 @@ import {
 import { type PropertyFormData, propertySchema } from "@/lib/schemas";
 import { processImageFiles } from "@/lib/imageUtils";
 import { useCreatePropertyMutation, useCreateRoomMutation, useGetAuthUserQuery } from "@/state/api";
-import { AmenityEnum, HighlightEnum, PropertyTypeEnum, UNIVERSITY_OPTIONS } from "@/lib/constants";
+import { AmenityEnum, HighlightEnum, PropertyTypeEnum, UNIVERSITY_OPTIONS, PROVINCES, getUniversityOptionsByProvince } from "@/lib/constants";
 
 
 // Form step component for slider form
@@ -191,12 +191,9 @@ const NewProperty = () => {
       amenities: [],
       highlights: [],
       propertyType: PropertyTypeEnum.Apartment,
-      beds: 0,
-      baths: 0,
-      kitchens: 0,
-      squareFeet: 0,
       address: "",
       city: "",
+      province: "",
       state: "",
       country: "",
       suburb: "",
@@ -204,6 +201,10 @@ const NewProperty = () => {
     },
     mode: "onChange", // Validate on change for better UX
   });
+  
+  // Filtered university options based on selected province
+  const watchedProvince = form.watch("province");
+  const filteredUniversityOptions = getUniversityOptionsByProvince(watchedProvince);
   
   // Step validation functions
   const validateStep = (step: number): boolean => {
@@ -228,11 +229,12 @@ const NewProperty = () => {
         // At least one photo required
         isValid = (uploadedFiles.length > 0 || (formState.photoUrls && formState.photoUrls.length > 0));
         break;      case 5: // Location Information
-        isValid = !!formState.address && formState.address.trim() !== '' && 
-                 !!formState.city && formState.city.trim() !== '' && 
-                 !!formState.country && formState.country.trim() !== '' &&
-                 !!formState.postalCode && formState.postalCode.trim() !== '' &&
-                 formState.closestUniversities && formState.closestUniversities.length > 0;
+  isValid = !!formState.address && formState.address.trim() !== '' && 
+     !!formState.city && formState.city.trim() !== '' && 
+     !!formState.province && formState.province.trim() !== '' &&
+     !!formState.country && formState.country.trim() !== '' &&
+     !!formState.postalCode && formState.postalCode.trim() !== '' &&
+     !!formState.closestUniversities && formState.closestUniversities.length > 0;
         break;
       default:
         isValid = true;
@@ -385,6 +387,9 @@ const NewProperty = () => {
         // Convert arrays to comma-separated strings if needed
         amenities: Array.isArray(data.amenities) ? data.amenities : [],
         highlights: Array.isArray(data.highlights) ? data.highlights : [],
+        accreditedBy: Array.isArray(data.accreditedBy) ? data.accreditedBy : [],
+        closestUniversity: data.closestUniversity || undefined,
+        closeToUniversity: data.closeToUniversity || undefined,
         // Remove the FileList which can't be serialized to JSON
         photoUrls: []
       };
@@ -833,47 +838,7 @@ const NewProperty = () => {
                   />
 
                   {/* Simple specs & parking */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <CreateFormField
-                      name="beds"
-                      label="Total Bedrooms"
-                      type="number"
-                      labelClassName={labelStyle}
-                      inputClassName={inputStyle}
-                      min={0}
-                      placeholder="e.g., 4"
-                    />
-                    <CreateFormField
-                      name="baths"
-                      label="Total Bathrooms"
-                      type="number"
-                      labelClassName={labelStyle}
-                      inputClassName={inputStyle}
-                      min={0}
-                      step="0.5"
-                      placeholder="e.g., 2.5"
-                    />
-                    <CreateFormField
-                      name="kitchens"
-                      label="Total Kitchens"
-                      type="number"
-                      labelClassName={labelStyle}
-                      inputClassName={inputStyle}
-                      min={0}
-                      placeholder="e.g., 1"
-                    />
-                  </div>
-                  <div>
-                    <CreateFormField
-                      name="squareFeet"
-                      label="Total Square Feet"
-                      type="number"
-                      labelClassName={labelStyle}
-                      inputClassName={inputStyle}
-                      min={0}
-                      placeholder="e.g., 2500"
-                    />
-                  </div>
+                  {/* Parking toggle */}
                   <CreateFormField
                     name="isParkingIncluded"
                     label="Parking Included"
@@ -1160,7 +1125,7 @@ const NewProperty = () => {
 
                     <CreateFormField
                       name="suburb"
-                      label="Suburb (Optional)"
+                      label="Suburb"
                       className="w-full"
                       labelClassName={labelStyle}
                       inputClassName={inputStyle}
@@ -1168,12 +1133,14 @@ const NewProperty = () => {
                     />
 
                     <CreateFormField
-                      name="state"
-                      label="State/Province"
+                      name="province"
+                      label="Province"
+                      type="select"
+                      options={PROVINCES.map(p => ({ value: p, label: p }))}
                       className="w-full"
                       labelClassName={labelStyle}
                       inputClassName={inputStyle}
-                      placeholder="Western Cape"
+                      placeholder="Select a province"
                     />
 
                     <CreateFormField
@@ -1194,17 +1161,46 @@ const NewProperty = () => {
                     placeholder="South Africa"
                   />
 
+                  {/* Filtered universities by province */}
                   <CreateFormField
                     name="closestUniversities"
-                    label="Accredited by University"
+                    label="Closest Universities"
                     type="multi-select"
-                    options={UNIVERSITY_OPTIONS}
+                    options={filteredUniversityOptions}
                     labelClassName={labelStyle}
                     inputClassName={`${inputStyle}`}
                   />
                   <p className="text-xs text-slate-600 dark:text-gray-400 mt-1">
-                    Select the university or universities that accredit this property.
+                    Options are filtered by the selected province.
                   </p>
+
+                  {/* Accredited by (multi-select) */}
+                  <CreateFormField
+                    name="accreditedBy"
+                    label="Accredited by University"
+                    type="multi-select"
+                    options={filteredUniversityOptions}
+                    labelClassName={labelStyle}
+                    inputClassName={`${inputStyle}`}
+                  />
+
+                  {/* Single closest university (optional additional) */}
+                  <CreateFormField
+                    name="closestUniversity"
+                    label="Closest University (Single)"
+                    type="select"
+                    options={filteredUniversityOptions}
+                    labelClassName={labelStyle}
+                    inputClassName={`${inputStyle}`}
+                  />
+                    <CreateFormField
+                      name="closeToUniversity"
+                      label="Close To University"
+                      type="select"
+                      options={filteredUniversityOptions}
+                      labelClassName={labelStyle}
+                      inputClassName={`${inputStyle}`}
+                    />
                 </div>
                 
                 <StepNavigation

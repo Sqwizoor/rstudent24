@@ -105,6 +105,8 @@ model Property {
   amenities         Amenity[]
   highlights        Highlight[]
   closestUniversities University[]
+  accreditedBy      University[]
+  closestUniversity University?
   isPetsAllowed     Boolean      @default(false)
   isParkingIncluded Boolean      @default(false)
   isNsfassAccredited Boolean     @default(false)

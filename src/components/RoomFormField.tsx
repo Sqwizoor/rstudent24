@@ -51,10 +51,9 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
       name: "",
       pricePerMonth: 0,
       securityDeposit: 0,
-      squareFeet: 0,
+      capacity: 1,
       isAvailable: true,
       roomType: "PRIVATE",
-      capacity: 1,
       bathroomPrivacy: "SHARED",
       kitchenPrivacy: "SHARED",
     },
@@ -86,20 +85,20 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
   }
 
   // Style for form field labels
-  const labelStyle = "text-sm font-medium text-gray-200"
+  const labelStyle = "text-sm font-medium text-slate-700 dark:text-gray-200"
 
   // Style for form field inputs
-  const inputStyle = "bg-[#0B1120] text-white border-[#1E2A45] focus:border-[#4F9CF9] focus:ring-[#4F9CF9] rounded-md"
+  const inputStyle = "bg-white text-slate-900 border-slate-300 focus:border-blue-500 focus:ring-blue-500 rounded-md dark:bg-[#0B1120] dark:text-white dark:border-[#1E2A45] dark:focus:border-[#4F9CF9] dark:focus:ring-[#4F9CF9]"
 
   return (
-    <Card className="bg-[#0B1120]/90 border border-[#1E2A45] shadow-lg">
+    <Card className="bg-white border border-slate-200 shadow-sm dark:bg-[#0B1120]/90 dark:border-[#1E2A45] dark:shadow-lg">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xl text-white flex items-center gap-2">
+        <CardTitle className="text-xl text-slate-900 dark:text-white flex items-center gap-2">
           <Bed className="h-5 w-5 text-[#4F9CF9]" />
           Add New Room
         </CardTitle>
       </CardHeader>
-      <CardContent>
+  <CardContent>
         <Form {...form}>
           <div className="space-y-4">
             {/* Basic Room Information */}
@@ -123,7 +122,7 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                     inputClassName={`${inputStyle} pl-7`}
                     min={0}
                   />
-                  <span className="absolute top-9 left-3 text-gray-400">R</span>
+                  <span className="absolute top-9 left-3 text-slate-500 dark:text-gray-400">R</span>
                 </div>
 
                 <div className="relative">
@@ -135,23 +134,14 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                     inputClassName={`${inputStyle} pl-7`}
                     min={0}
                   />
-                  <span className="absolute top-9 left-3 text-gray-400">R</span>
+                  <span className="absolute top-9 left-3 text-slate-500 dark:text-gray-400">R</span>
                 </div>
               </div>
             </div>
 
             {/* Room Details */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <CreateFormField
-                  name="squareFeet"
-                  label="Square Feet"
-                  type="number"
-                  labelClassName={labelStyle}
-                  inputClassName={inputStyle}
-                  min={0}
-                />
-
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <CreateFormField
                   name="roomType"
                   label="Room Type"
@@ -163,18 +153,6 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                   labelClassName={labelStyle}
                   inputClassName={inputStyle}
                 />
-
-                <CreateFormField
-                  name="capacity"
-                  label="Capacity"
-                  type="number"
-                  labelClassName={labelStyle}
-                  inputClassName={inputStyle}
-                  min={1}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <CreateFormField
                   name="bathroomPrivacy"
                   label="Bathroom"
@@ -186,6 +164,9 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                   labelClassName={labelStyle}
                   inputClassName={inputStyle}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <CreateFormField
                   name="kitchenPrivacy"
                   label="Kitchen"
@@ -197,6 +178,13 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                   labelClassName={labelStyle}
                   inputClassName={inputStyle}
                 />
+                <CreateFormField
+                  name="availableFrom"
+                  label="Available From"
+                  type="date"
+                  labelClassName={labelStyle}
+                  inputClassName={inputStyle}
+                />
               </div>
 
               <CreateFormField
@@ -204,14 +192,6 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                 label="Available for Rent"
                 type="switch"
                 labelClassName={labelStyle}
-              />
-
-              <CreateFormField
-                name="availableFrom"
-                label="Available From"
-                type="date"
-                labelClassName={labelStyle}
-                inputClassName={inputStyle}
               />
             </div>
 
@@ -223,14 +203,14 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
               <div className="mt-2">
                 <label
                   htmlFor="roomPhotos"
-                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[#1E2A45] rounded-lg cursor-pointer bg-[#0B1120]/50 hover:bg-[#0B1120] transition-colors"
+                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 border-slate-300 transition-colors dark:border-[#1E2A45] dark:bg-[#0B1120]/50 dark:hover:bg-[#0B1120]"
                 >
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload className="w-8 h-8 mb-3 text-[#4F9CF9]" />
-                    <p className="mb-2 text-sm text-gray-400">
+                    <Upload className="w-8 h-8 mb-3 text-blue-600 dark:text-[#4F9CF9]" />
+                    <p className="mb-2 text-sm text-slate-600 dark:text-gray-400">
                       <span className="font-semibold">Click to upload</span> or drag and drop
                     </p>
-                    <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    <p className="text-xs text-slate-500 dark:text-gray-500">PNG, JPG, GIF up to 10MB</p>
                   </div>
                   <input
                     id="roomPhotos"
@@ -246,12 +226,12 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
               {/* File preview */}
               {uploadedFiles.length > 0 && (
                 <div className="mt-4">
-                  <p className="text-sm text-gray-400 mb-2">Selected files ({uploadedFiles.length}):</p>
+                  <p className="text-sm text-slate-600 dark:text-gray-400 mb-2">Selected files ({uploadedFiles.length}):</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                     {uploadedFiles.map((file, index) => (
                       <div
                         key={index}
-                        className="relative bg-[#0B1120] rounded-md p-1 h-20 flex items-center justify-center overflow-hidden"
+                        className="relative bg-slate-100 rounded-md p-1 h-20 flex items-center justify-center overflow-hidden dark:bg-[#0B1120]"
                       >
                         <Image
                           src={URL.createObjectURL(file) || "/placeholder.svg"}
@@ -273,14 +253,14 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                 type="button"
                 variant="outline"
                 onClick={onCancel}
-                className="border-[#1E2A45] text-gray-300 hover:bg-[#1E2A45]/50"
+                className="border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-[#1E2A45] dark:text-gray-300 dark:hover:bg-[#1E2A45]/50"
               >
                 Cancel
               </Button>
               <Button
                 type="button"
                 onClick={handleAddRoom}
-                className="bg-gradient-to-r from-[#0070F3] to-[#4F9CF9] hover:from-[#0060D3] hover:to-[#3F8CE9] text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-gradient-to-r dark:from-[#0070F3] dark:to-[#4F9CF9] dark:hover:from-[#0060D3] dark:hover:to-[#3F8CE9]"
               >
                 Add Room
               </Button>

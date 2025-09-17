@@ -213,6 +213,41 @@ export const UNIVERSITY_OPTIONS = Object.entries(UniversityEnum).map(([key, valu
 }));
 
 
+// Provinces of South Africa
+export const PROVINCES = [
+  "Western Cape",
+  "Eastern Cape",
+  "Northern Cape",
+  "Free State",
+  "KwaZulu-Natal",
+  "North West",
+  "Gauteng",
+  "Limpopo",
+  "Mpumalanga",
+] as const;
+
+// Map provinces to universities (by enum key) for filtering
+export const PROVINCE_UNIVERSITY_KEYS: Record<(typeof PROVINCES)[number], Array<keyof typeof UniversityEnum>> = {
+  "Western Cape": ["UCT", "SU", "UWC", "CPUT"],
+  "Eastern Cape": ["UFH", "RU", "WSU"],
+  "Northern Cape": ["SPU"],
+  "Free State": ["UFS", "CUT"],
+  "KwaZulu-Natal": ["UKZN", "UZ", "MUT"],
+  "North West": ["NWU"],
+  "Gauteng": ["WITS", "UJ", "UP", "UNISA", "TUT"],
+  "Limpopo": ["UL"],
+  "Mpumalanga": [], // No listed universities in current enum
+};
+
+export const getUniversityOptionsByProvince = (province?: string) => {
+  const keys = province && province in PROVINCE_UNIVERSITY_KEYS
+    ? PROVINCE_UNIVERSITY_KEYS[province as (typeof PROVINCES)[number]]
+    : null;
+  if (!keys) return UNIVERSITY_OPTIONS;
+  return keys.map((k) => ({ value: k as string, label: UniversityEnum[k] }));
+};
+
+
 // --- BEGIN FILE: @/lib/constants.ts ---
 
 

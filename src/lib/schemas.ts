@@ -12,14 +12,18 @@ export const propertySchema = z.object({
   amenities: z.array(z.string()).min(1, "At least one amenity is required"),
   highlights: z.array(z.string()).min(1, "At least one highlight is required"),
   propertyType: z.nativeEnum(PropertyTypeEnum),
-  beds: z.number().min(0, "Beds must be 0 or more").optional().default(0),
-  baths: z.number().min(0, "Baths must be 0 or more").optional().default(0),
-  kitchens: z.number().min(0, "Kitchens must be 0 or more").optional().default(0),
-  squareFeet: z.number().min(0, "Square footage must be 0 or more").optional().default(0),
+  beds: z.number().min(0, "Beds must be 0 or more").optional().nullable(),
+  baths: z.number().min(0, "Baths must be 0 or more").optional().nullable(),
+  kitchens: z.number().min(0, "Kitchens must be 0 or more").optional().nullable(),
+  squareFeet: z.number().min(0, "Square footage must be 0 or more").optional().nullable(),
   closestUniversities: z.array(z.string()).min(1, "At least one closest university is required"),
+  accreditedBy: z.array(z.string()).optional().default([]),
+  closestUniversity: z.string().optional(),
+  closeToUniversity: z.string().optional(),
   address: z.string().min(1, "Address is required"),
   city: z.string().min(1, "City is required"),
   state: z.string().optional(),
+  province: z.string().min(1, "Province is required"),
   country: z.string().min(1, "Country is required"),
   postalCode: z.string().min(1, "Postal code is required"),
   suburb: z.string().min(1, "Suburb is required"),
@@ -90,6 +94,8 @@ export interface ApiProperty {
   squareFeet?: number | null;
   amenities: AmenityEnum[];
   highlights: HighlightEnum[];
+  accreditedBy?: string[];
+  closestUniversity?: string | null;
   managerCognitoId: string;
   locationId: number;
   

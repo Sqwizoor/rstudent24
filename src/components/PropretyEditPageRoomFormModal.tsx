@@ -218,26 +218,26 @@ export function PropertyEditPageRoomFormModal({
 
   return (
     <UIDialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <UIDialogContent className="sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto p-6 dark:bg-gray-800 dark:border-gray-700">
+      <UIDialogContent className="sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto p-6 bg-white border border-slate-200 dark:bg-gray-800 dark:border-gray-700">
         <UIDialogHeader>
-          <UIDialogTitle className="dark:text-gray-100">{initialRoomData?.id ? "Edit Room" : "Add New Room"}</UIDialogTitle>
-          {initialRoomData?.id && <UIDialogDescription className="dark:text-gray-400">Modifying: {initialRoomData.name}</UIDialogDescription>}
+          <UIDialogTitle className="text-slate-900 dark:text-gray-100">{initialRoomData?.id ? "Edit Room" : "Add New Room"}</UIDialogTitle>
+          {initialRoomData?.id && <UIDialogDescription className="text-slate-600 dark:text-gray-400">Modifying: {initialRoomData.name}</UIDialogDescription>}
         </UIDialogHeader>
         {/* Provide the correct type for the Form component */}
         <Form {...({ control: roomControl, handleSubmit: handleRoomSubmit, reset: resetRoomForm, watch: watchRoomForm, setValue: setRoomFormValue } as any)}>
-          <form onSubmit={handleRoomSubmit(onRoomFormSubmit)} className="space-y-4 text-white mt-4">
+          <form onSubmit={handleRoomSubmit(onRoomFormSubmit)} className="space-y-4 text-slate-900 dark:text-white mt-4">
             <ModalCreateFormField name="name" label="Room Name / Number" placeholder="e.g., Master Bedroom, Unit A-102" />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-white">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-slate-900 dark:text-white">
               <ModalCreateFormField name="roomType" label="Room Type" type="select" options={Object.values(ModalRoomTypeEnum).map(rt => ({ value: rt, label: rt }))} />
               <ModalCreateFormField name="capacity" label="Capacity (Persons)" type="number" min={1} placeholder="e.g., 2" />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-white">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-slate-900 dark:text-white">
               <ModalCreateFormField name="pricePerMonth" label="Price / Month (R)" type="number" min={1} placeholder="e.g., 4500" />
               <ModalCreateFormField name="securityDeposit" label="Security Deposit (R)" type="number" min={0} placeholder="e.g., 2000" />
               <ModalCreateFormField name="squareFeet" label="Square Feet (Optional)" type="number" min={0} placeholder="e.g., 120" />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-white">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-slate-900 dark:text-white">
               <ModalCreateFormField name="bathroomPrivacy" label="Bathroom" type="select" options={[{ value: 'PRIVATE', label: 'Private' }, { value: 'SHARED', label: 'Shared' }]} />
               <ModalCreateFormField name="kitchenPrivacy" label="Kitchen" type="select" options={[{ value: 'PRIVATE', label: 'Private' }, { value: 'SHARED', label: 'Shared' }]} />
             </div>
@@ -251,7 +251,7 @@ export function PropertyEditPageRoomFormModal({
                   render={({ field }) => (
                     <div className="flex items-center gap-3">
                       <UISwitch checked={Boolean(field.value)} onCheckedChange={field.onChange} />
-                      <span className="text-xs text-gray-300">{field.value ? 'Available' : 'Unavailable'}</span>
+                      <span className="text-xs text-slate-600 dark:text-gray-300">{field.value ? 'Available' : 'Unavailable'}</span>
                     </div>
                   )}
                 />
@@ -266,29 +266,29 @@ export function PropertyEditPageRoomFormModal({
                     <UIDatePicker value={field.value instanceof Date ? field.value : (field.value ? new Date(field.value as any) : null)} onSelect={(date) => field.onChange(date)} />
                   )}
                 />
-                <p className="text-[10px] text-gray-400">Leave empty if immediately available.</p>
+                <p className="text-[10px] text-slate-500 dark:text-gray-400">Leave empty if immediately available.</p>
               </div>
             </div>
             {/* Amenities and Features removed for simplified room form */}
 
             {/* Photo Management for Room */}
-            <div className="space-y-3 border-t border-border dark:border-gray-700 pt-4 mt-4">
-                <UILabel className="text-base font-semibold dark:text-gray-100">Room Photos</UILabel>
+      <div className="space-y-3 border-t border-slate-200 dark:border-gray-700 pt-4 mt-4">
+        <UILabel className="text-base font-semibold text-slate-900 dark:text-gray-100">Room Photos</UILabel>
                 <div>
-                    <UILabel htmlFor={`roomPhotosFile-${initialRoomData?.id || 'new'}`} className="text-sm font-medium text-white">Upload New Photos</UILabel>
-                    <UIInput id={`roomPhotosFile-${initialRoomData?.id || 'new'}`} type="file" multiple onChange={handleFileChangeModal} className="mt-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 file:text-primary dark:file:text-primary-foreground"/>
+          <UILabel htmlFor={`roomPhotosFile-${initialRoomData?.id || 'new'}`} className="text-sm font-medium text-slate-900 dark:text-white">Upload New Photos</UILabel>
+          <UIInput id={`roomPhotosFile-${initialRoomData?.id || 'new'}`} type="file" multiple onChange={handleFileChangeModal} className="mt-1 bg-white border-slate-300 text-slate-900 file:text-primary dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:file:text-primary-foreground"/>
                     <div className="mt-2 flex items-center space-x-2">
-                        <UICheckbox id={`replaceRoomPhotos-${initialRoomData?.id || 'new'}`} checked={replacePhotosFlagModal} onCheckedChange={(checked) => setReplacePhotosFlagModal(Boolean(checked))} className="dark:border-gray-600 dark:data-[state=checked]:bg-primary" />
-                        <UILabel htmlFor={`replaceRoomPhotos-${initialRoomData?.id || 'new'}`} className="text-xs font-normal text-white">Replace all existing photos for this room</UILabel>
+            <UICheckbox id={`replaceRoomPhotos-${initialRoomData?.id || 'new'}`} checked={replacePhotosFlagModal} onCheckedChange={(checked) => setReplacePhotosFlagModal(Boolean(checked))} className="border-slate-300 data-[state=checked]:bg-primary dark:border-gray-600 dark:data-[state=checked]:bg-primary" />
+            <UILabel htmlFor={`replaceRoomPhotos-${initialRoomData?.id || 'new'}`} className="text-xs font-normal text-slate-700 dark:text-white">Replace all existing photos for this room</UILabel>
                     </div>
                 </div>
 
                 {newPhotoFilesModal && Array.from(newPhotoFilesModal).length > 0 && (
                     <div>
-                        <p className="text-xs text-white mb-1">New photos preview:</p>
+            <p className="text-xs text-slate-700 dark:text-white mb-1">New photos preview:</p>
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                             {Array.from(newPhotoFilesModal).map((file, index) => (
-                                <div key={index} className="relative aspect-square w-20 h-20 bg-muted dark:bg-gray-700 rounded-md overflow-hidden">
+                <div key={index} className="relative aspect-square w-20 h-20 bg-slate-100 dark:bg-gray-700 rounded-md overflow-hidden">
                                     <Image src={URL.createObjectURL(file)} alt={`New room photo ${index}`} layout="fill" objectFit="cover" />
                                 </div>
                             ))}
@@ -298,22 +298,22 @@ export function PropertyEditPageRoomFormModal({
 
                 {currentPhotosInModal.length > 0 && (
                     <div className="mt-2">
-                        <p className="text-xs text-white mb-1">Current photos ({currentPhotosInModal.length}):</p>
+            <p className="text-xs text-slate-700 dark:text-white mb-1">Current photos ({currentPhotosInModal.length}):</p>
                         <div className="grid grid-cols-2 gap-4">
                             {currentPhotosInModal.map((url) => (
                                 <div key={url} className="relative group aspect-square w-20 h-20">
-                                    <Image src={url} alt="Current room photo" layout="fill" objectFit="cover" className="rounded-md border dark:border-gray-600" />
+                  <Image src={url} alt="Current room photo" layout="fill" objectFit="cover" className="rounded-md border border-slate-200 dark:border-gray-600" />
                                     <UIButton type="button" variant="destructive" size="icon"
                                         onClick={() => togglePhotoForDeleteModal(url)}
-                                        className={`absolute top-0.5 right-0.5 h-5 w-5 p-0.5 opacity-0 group-hover:opacity-100 transition-opacity
-                                                    ${photosToDeleteModal.includes(url) ? '!opacity-100 bg-green-500 hover:bg-green-600' : 'bg-red-600 hover:bg-red-700'}`}>
+                    className={`absolute top-0.5 right-0.5 h-5 w-5 p-0.5 opacity-0 group-hover:opacity-100 transition-opacity
+                          ${photosToDeleteModal.includes(url) ? '!opacity-100 bg-green-500 hover:bg-green-600' : 'bg-red-600 hover:bg-red-700'}`}>
                                         {photosToDeleteModal.includes(url) ? <ModalCheck size={12} /> : <ModalTrash size={12} />}
                                     </UIButton>
                                 </div>
                             ))}
                         </div>
-                         {photosToDeleteModal.length > 0 && !replacePhotosFlagModal && (
-                            <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
+             {photosToDeleteModal.length > 0 && !replacePhotosFlagModal && (
+              <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
                                 ({photosToDeleteModal.length}) photo(s) marked for deletion. Actual deletion depends on backend logic if not replacing all.
                             </p>
                         )}
@@ -323,7 +323,7 @@ export function PropertyEditPageRoomFormModal({
 
 
             <UIDialogFooter className="pt-8">
-              <UIButton type="button" variant="outline" onClick={onClose} disabled={isLoadingAction} className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
+              <UIButton type="button" variant="outline" onClick={onClose} disabled={isLoadingAction} className="border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white">
                 Cancel
               </UIButton>
               <UIButton type="submit" disabled={isLoadingAction} className="bg-blue-600 hover:bg-blue-700 text-white font-medium">

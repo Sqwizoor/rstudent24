@@ -326,7 +326,7 @@ export async function POST(request: NextRequest) {
     // Extract property data
     const address = propertyData.address as string;
     const city = propertyData.city as string;
-  const state = propertyData.state as string;
+  const state = (propertyData.state as string) || (propertyData.province as string);
   const suburb = propertyData.suburb as string;
     const country = propertyData.country as string;
     const postalCode = propertyData.postalCode as string;
@@ -417,7 +417,11 @@ export async function POST(request: NextRequest) {
             key !== 'postalCode' &&
             key !== 'managerCognitoId' &&
             key !== 'photoUrls' &&
-            key !== 'suburb' // not a Property field; used only for geocoding
+            key !== 'suburb' && // not a Property field; used only for geocoding
+            key !== 'province' &&
+            key !== 'accreditedBy' &&
+            key !== 'closestUniversity' &&
+            key !== 'closeToUniversity'
           ) {
             extractedPropertyData[key] = value;
           }
@@ -441,6 +445,14 @@ export async function POST(request: NextRequest) {
               : typeof propertyData.highlights === "string"
                 ? propertyData.highlights.split(",")
                 : [],
+            // Accredited by (array of University enums)
+            accreditedBy: Array.isArray(propertyData.accreditedBy)
+              ? propertyData.accreditedBy
+              : typeof propertyData.accreditedBy === "string"
+                ? propertyData.accreditedBy.split(",")
+                : [],
+            // Single closest university (optional)
+            closestUniversity: propertyData.closestUniversity || null,
             // Parse boolean fields
             isPetsAllowed: typeof propertyData.isPetsAllowed === "boolean" 
               ? propertyData.isPetsAllowed 
