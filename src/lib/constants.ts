@@ -421,3 +421,26 @@ export const getCampusOptionsByUniversity = (universityKey?: keyof typeof Univer
   return CAMPUSES.filter(c => c.universityID === universityKey).map(c => ({ value: String(c.campusID), label: c.websiteLabel }));
 };
 
+// Expanded province -> university keys used for campus filtering.
+// Includes universities present in CAMPUSES even if not listed in UniversityEnum.
+export const PROVINCE_UNIVERSITY_KEYS_EXPANDED: Record<(typeof PROVINCES)[number], string[]> = {
+  "Western Cape": ["UCT", "SU", "UWC", "CPUT"],
+  "Eastern Cape": ["UFH", "RU", "WSU", "NMU"],
+  "Northern Cape": ["SPU", "VUT"],
+  "Free State": ["UFS", "CUT"],
+  "KwaZulu-Natal": ["UKZN", "UZ", "UNIZULU", "DUT", "MUT"],
+  "North West": ["NWU"],
+  "Gauteng": ["WITS", "UJ", "UP", "UNISA", "TUT", "VUT", "SMU"],
+  "Limpopo": ["UL", "UNIVEN"],
+  "Mpumalanga": ["UMP", "VUT"],
+};
+
+// Helper: get campus options by selected province, using expanded mapping
+export const getCampusOptionsByProvince = (province?: (typeof PROVINCES)[number]) => {
+  if (!province) return CAMPUS_OPTIONS;
+  const uniKeys = PROVINCE_UNIVERSITY_KEYS_EXPANDED[province] || [];
+  return CAMPUSES
+    .filter(c => uniKeys.includes(String(c.universityID)))
+    .map(c => ({ value: String(c.campusID), label: c.websiteLabel }));
+};
+

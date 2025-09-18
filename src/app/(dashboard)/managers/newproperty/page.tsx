@@ -43,7 +43,7 @@ import {
 import { type PropertyFormData, propertySchema } from "@/lib/schemas";
 import { processImageFiles } from "@/lib/imageUtils";
 import { useCreatePropertyMutation, useCreateRoomMutation, useGetAuthUserQuery } from "@/state/api";
-import { AmenityEnum, HighlightEnum, PropertyTypeEnum, UNIVERSITY_OPTIONS, PROVINCES, getUniversityOptionsByProvince, CAMPUS_OPTIONS } from "@/lib/constants";
+import { AmenityEnum, HighlightEnum, PropertyTypeEnum, UNIVERSITY_OPTIONS, PROVINCES, getUniversityOptionsByProvince, getCampusOptionsByProvince } from "@/lib/constants";
 
 
 // Form step component for slider form
@@ -206,6 +206,7 @@ const NewProperty = () => {
   // Filtered university options based on selected province
   const watchedProvince = form.watch("province");
   const filteredUniversityOptions = getUniversityOptionsByProvince(watchedProvince);
+  const filteredCampusOptions = getCampusOptionsByProvince(watchedProvince as any);
   
   // Step validation functions
   const validateStep = (step: number): boolean => {
@@ -1168,7 +1169,7 @@ const NewProperty = () => {
                     name="closestCampuses"
                     label="Closest Campuses"
                     type="multi-select"
-                    options={CAMPUS_OPTIONS}
+                    options={filteredCampusOptions}
                     labelClassName={labelStyle}
                     inputClassName={`${inputStyle}`}
                   />
@@ -1185,24 +1186,7 @@ const NewProperty = () => {
                     labelClassName={labelStyle}
                     inputClassName={`${inputStyle}`}
                   />
-
-                  {/* Single closest university (optional additional) */}
-                  <CreateFormField
-                    name="closestUniversity"
-                    label="Closest University (Single)"
-                    type="select"
-                    options={filteredUniversityOptions}
-                    labelClassName={labelStyle}
-                    inputClassName={`${inputStyle}`}
-                  />
-                    <CreateFormField
-                      name="closeToUniversity"
-                      label="Close To University"
-                      type="select"
-                      options={filteredUniversityOptions}
-                      labelClassName={labelStyle}
-                      inputClassName={`${inputStyle}`}
-                    />
+                  
                 </div>
                 
                 <StepNavigation

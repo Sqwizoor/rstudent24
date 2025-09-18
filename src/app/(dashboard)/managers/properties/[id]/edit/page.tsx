@@ -41,7 +41,7 @@ import {
 import { PropertyFormData, propertySchema } from "@/lib/schemas";
 import { processImageFiles } from '@/lib/imageUtils';
 import { RoomFormData } from "@/lib/schemas"; // Use for typing
-import { PropertyTypeEnum, AmenityEnum, HighlightEnum, UNIVERSITY_OPTIONS } from "@/lib/constants";
+import { PropertyTypeEnum, AmenityEnum, HighlightEnum, CAMPUS_OPTIONS } from "@/lib/constants";
 import { ApiProperty, ApiRoom } from "@/lib/schemas"; // Use defined API types
 import { useGetPropertyQuery, useUpdatePropertyMutation, useDeletePropertyMutation, useGetRoomsQuery, useDeleteRoomMutation } from "@/state/api"; // Use the re-exported hooks
 import type { Property } from "@/types/property";
@@ -328,7 +328,8 @@ export default function EditPropertyPage() {
         isNsfassAccredited: fetchedPropertyData.isNsfassAccredited || false,
         amenities: coerceAmenityArray(fetchedPropertyData.amenities),
         highlights: coerceHighlightArray(fetchedPropertyData.highlights),
-        closestUniversities: (fetchedPropertyData as any).closestUniversities || [],
+  closestUniversities: (fetchedPropertyData as any).closestUniversities || [],
+  closestCampuses: (fetchedPropertyData as any).closestCampuses || [],
         propertyType: fetchedPropertyData.propertyType ? (fetchedPropertyData.propertyType as PropertyTypeEnum) : PropertyTypeEnum.Apartment,
         beds: fetchedPropertyData.beds || 0,
         baths: fetchedPropertyData.baths || 0,
@@ -373,7 +374,7 @@ export default function EditPropertyPage() {
     
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-        const isArrayField = ['amenities', 'highlights', 'closestUniversities'].includes(key);
+        const isArrayField = ['amenities', 'highlights', 'closestUniversities', 'closestCampuses'].includes(key);
         if (isArrayField) {
           if (Array.isArray(value)) {
             value.forEach(v => formData.append(key, v));
@@ -830,14 +831,15 @@ export default function EditPropertyPage() {
                 </div>
                  <p className="text-xs text-muted-foreground dark:text-gray-400">Note: Changing address details will re-geocode the location and update its coordinates on the map upon saving.</p>
 
-                 <CreateFormFieldt 
-                   name="closestUniversities" 
-                   label="Closest Universities" 
-                   type="multi-select" 
-                   control={propertyForm.control} 
-                   options={UNIVERSITY_OPTIONS}
-                   description="Select the universities that are closest to this property to help students find accommodation."
-                 />
+                   {/* Closest campuses selection */}
+                   <CreateFormFieldt 
+                     name="closestCampuses" 
+                     label="Closest Campuses" 
+                     type="multi-select" 
+                     control={propertyForm.control} 
+                     options={CAMPUS_OPTIONS}
+                     description="Select all relevant campuses for this property."
+                   />
               </div>
             </FormSection>
 
