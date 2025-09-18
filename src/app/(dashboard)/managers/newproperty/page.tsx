@@ -1173,7 +1173,7 @@ const NewProperty = () => {
                     inputClassName={`${inputStyle}`}
                   />
                   <p className="text-xs text-slate-600 dark:text-gray-400 mt-1">
-                    Select all relevant campuses (e.g., "Close to UCT (Upper Campus)").
+                    Select all relevant campuses (e.g., &quot;Close to UCT (Upper Campus)&quot;).
                   </p>
 
                   {/* Accredited by (multi-select) */}
