@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { PropertyTypeEnum, RoomTypeEnum } from "@/lib/constants";
+import { PropertyTypeEnum, RoomTypeEnum, AmenityEnum, HighlightEnum } from "@/lib/constants";
 
 export const propertySchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -9,14 +9,16 @@ export const propertySchema = z.object({
   isNsfassAccredited: z.boolean().default(false),
   isParkingIncluded: z.boolean().default(true),
   photoUrls: z.any(), // This will be handled by the file input
-  amenities: z.array(z.string()).min(1, "At least one amenity is required"),
-  highlights: z.array(z.string()).min(1, "At least one highlight is required"),
+  amenities: z.array(z.nativeEnum(AmenityEnum)).min(1, "At least one amenity is required"),
+  highlights: z.array(z.nativeEnum(HighlightEnum)).min(1, "At least one highlight is required"),
   propertyType: z.nativeEnum(PropertyTypeEnum),
   beds: z.number().min(0, "Beds must be 0 or more").optional().nullable(),
   baths: z.number().min(0, "Baths must be 0 or more").optional().nullable(),
   kitchens: z.number().min(0, "Kitchens must be 0 or more").optional().nullable(),
   squareFeet: z.number().min(0, "Square footage must be 0 or more").optional().nullable(),
-  closestUniversities: z.array(z.string()).min(1, "At least one closest university is required"),
+  closestCampuses: z.array(z.string()).min(1, "At least one closest campus is required"),
+  // Keep previous university fields as optional for compatibility
+  closestUniversities: z.array(z.string()).optional().default([]),
   accreditedBy: z.array(z.string()).optional().default([]),
   closestUniversity: z.string().optional(),
   closeToUniversity: z.string().optional(),
@@ -94,6 +96,7 @@ export interface ApiProperty {
   squareFeet?: number | null;
   amenities: AmenityEnum[];
   highlights: HighlightEnum[];
+  closestCampuses?: string[];
   accreditedBy?: string[];
   closestUniversity?: string | null;
   managerCognitoId: string;

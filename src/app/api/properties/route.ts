@@ -456,6 +456,12 @@ export async function POST(request: NextRequest) {
               : typeof propertyData.accreditedBy === "string"
                 ? propertyData.accreditedBy.split(",")
                 : [],
+            // Closest campuses (string website labels)
+            closestCampuses: Array.isArray(propertyData.closestCampuses)
+              ? propertyData.closestCampuses
+              : typeof propertyData.closestCampuses === "string"
+                ? propertyData.closestCampuses.split(",")
+                : [],
             // Single closest university (optional)
             closestUniversity: propertyData.closestUniversity || null,
             // Parse boolean fields

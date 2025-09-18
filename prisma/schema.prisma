@@ -26,6 +26,12 @@ enum Highlight {
   CloseToTransit
   GreatView
   QuietNeighborhood
+  BedroomCleaning
+  BackupWater
+  BackupElectricity
+  Refrigerator
+  SwimmingPool
+  SleepoversAllowed
 }
 
 enum Amenity {
@@ -42,6 +48,21 @@ enum Amenity {
   Parking
   PetsAllowed
   WiFi
+  OnSiteSecurity
+  TransportToCampus
+  OutdoorChillArea
+  SecurityCameras
+  Cafe
+  LaundryFacilities
+  GamesRoom
+  TVRoom
+  ComputerRoom
+  StudyLabs
+  Heater
+  Fan
+  Stove
+  Oven
+  BiometricAccess
 }
 
 enum PropertyType {
@@ -107,6 +128,7 @@ model Property {
   closestUniversities University[]
   accreditedBy      University[]
   closestUniversity University?
+  closestCampuses   String[]     @default([])
   isPetsAllowed     Boolean      @default(false)
   isParkingIncluded Boolean      @default(false)
   isNsfassAccredited Boolean     @default(false)

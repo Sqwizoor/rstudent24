@@ -317,7 +317,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Extract and parse property data from form (support repeated keys for arrays)
-    const arrayFieldNames = new Set(['amenities','highlights','closestUniversities']);
+  const arrayFieldNames = new Set(['amenities','highlights','closestUniversities','closestCampuses']);
     const propertyData: any = {};
     for (const [key, value] of formData.entries()) {
       if (
@@ -367,6 +367,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
               ? propertyData.closestUniversities
               : typeof propertyData.closestUniversities === 'string'
                 ? propertyData.closestUniversities.split(',')
+                : undefined
+          }),
+          // Parse closestCampuses if present
+          ...(propertyData.closestCampuses && {
+            closestCampuses: Array.isArray(propertyData.closestCampuses)
+              ? propertyData.closestCampuses
+              : typeof propertyData.closestCampuses === 'string'
+                ? propertyData.closestCampuses.split(',')
                 : undefined
           }),
           // Parse boolean fields if present
@@ -437,6 +445,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                 ? propertyData.closestUniversities
                 : typeof propertyData.closestUniversities === 'string'
                   ? propertyData.closestUniversities.split(',')
+                  : undefined
+            }),
+            ...(propertyData.closestCampuses && {
+              closestCampuses: Array.isArray(propertyData.closestCampuses)
+                ? propertyData.closestCampuses
+                : typeof propertyData.closestCampuses === 'string'
+                  ? propertyData.closestCampuses.split(',')
                   : undefined
             }),
             // Parse boolean fields if present

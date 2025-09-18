@@ -43,7 +43,7 @@ import {
 import { type PropertyFormData, propertySchema } from "@/lib/schemas";
 import { processImageFiles } from "@/lib/imageUtils";
 import { useCreatePropertyMutation, useCreateRoomMutation, useGetAuthUserQuery } from "@/state/api";
-import { AmenityEnum, HighlightEnum, PropertyTypeEnum, UNIVERSITY_OPTIONS, PROVINCES, getUniversityOptionsByProvince } from "@/lib/constants";
+import { AmenityEnum, HighlightEnum, PropertyTypeEnum, UNIVERSITY_OPTIONS, PROVINCES, getUniversityOptionsByProvince, CAMPUS_OPTIONS } from "@/lib/constants";
 
 
 // Form step component for slider form
@@ -198,6 +198,7 @@ const NewProperty = () => {
       country: "",
       suburb: "",
   closestUniversities: [],
+  closestCampuses: [],
     },
     mode: "onChange", // Validate on change for better UX
   });
@@ -230,11 +231,11 @@ const NewProperty = () => {
         isValid = (uploadedFiles.length > 0 || (formState.photoUrls && formState.photoUrls.length > 0));
         break;      case 5: // Location Information
   isValid = !!formState.address && formState.address.trim() !== '' && 
-     !!formState.city && formState.city.trim() !== '' && 
-     !!formState.province && formState.province.trim() !== '' &&
-     !!formState.country && formState.country.trim() !== '' &&
-     !!formState.postalCode && formState.postalCode.trim() !== '' &&
-     !!formState.closestUniversities && formState.closestUniversities.length > 0;
+    !!formState.city && formState.city.trim() !== '' && 
+    !!formState.province && formState.province.trim() !== '' &&
+    !!formState.country && formState.country.trim() !== '' &&
+    !!formState.postalCode && formState.postalCode.trim() !== '' &&
+    !!formState.closestCampuses && formState.closestCampuses.length > 0;
         break;
       default:
         isValid = true;
@@ -1162,16 +1163,17 @@ const NewProperty = () => {
                   />
 
                   {/* Filtered universities by province */}
+                  {/* Closest campuses (predefined) */}
                   <CreateFormField
-                    name="closestUniversities"
-                    label="Closest Universities"
+                    name="closestCampuses"
+                    label="Closest Campuses"
                     type="multi-select"
-                    options={filteredUniversityOptions}
+                    options={CAMPUS_OPTIONS}
                     labelClassName={labelStyle}
                     inputClassName={`${inputStyle}`}
                   />
                   <p className="text-xs text-slate-600 dark:text-gray-400 mt-1">
-                    Options are filtered by the selected province.
+                    Select all relevant campuses (e.g., "Close to UCT (Upper Campus)").
                   </p>
 
                   {/* Accredited by (multi-select) */}

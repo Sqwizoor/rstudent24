@@ -21,6 +21,21 @@ import {
   Building,
   Castle,
   Trees,
+  Shield,
+  Camera,
+  Coffee,
+  Gamepad2,
+  Monitor,
+  Library,
+  Flame,
+  Fan as FanIcon,
+  CookingPot as StoveIcon,
+  Fingerprint,
+  BedDouble,
+  Droplet,
+  BatteryCharging,
+  Refrigerator as RefrigeratorIcon,
+  Moon,
   LucideIcon,
 } from "lucide-react";
 
@@ -38,6 +53,21 @@ export enum AmenityEnum {
   Parking = "Parking",
   PetsAllowed = "PetsAllowed",
   WiFi = "WiFi",
+  OnSiteSecurity = "OnSiteSecurity",
+  TransportToCampus = "TransportToCampus",
+  OutdoorChillArea = "OutdoorChillArea",
+  SecurityCameras = "SecurityCameras",
+  Cafe = "Cafe",
+  LaundryFacilities = "LaundryFacilities",
+  GamesRoom = "GamesRoom",
+  TVRoom = "TVRoom",
+  ComputerRoom = "ComputerRoom",
+  StudyLabs = "StudyLabs",
+  Heater = "Heater",
+  Fan = "Fan",
+  Stove = "Stove",
+  Oven = "Oven",
+  BiometricAccess = "BiometricAccess",
 }
 
 export const AmenityIcons: Record<AmenityEnum, LucideIcon> = {
@@ -54,6 +84,21 @@ export const AmenityIcons: Record<AmenityEnum, LucideIcon> = {
   Parking: Car,
   PetsAllowed: PawPrint,
   WiFi: Wifi,
+  OnSiteSecurity: Shield,
+  TransportToCampus: Bus,
+  OutdoorChillArea: Trees,
+  SecurityCameras: Camera,
+  Cafe: Coffee,
+  LaundryFacilities: Waves,
+  GamesRoom: Gamepad2,
+  TVRoom: Tv,
+  ComputerRoom: Monitor,
+  StudyLabs: Library,
+  Heater: Flame,
+  Fan: FanIcon,
+  Stove: StoveIcon,
+  Oven: StoveIcon,
+  BiometricAccess: Fingerprint,
 };
 
 export enum HighlightEnum {
@@ -72,6 +117,12 @@ export enum HighlightEnum {
   CloseToTransit = "CloseToTransit",
   GreatView = "GreatView",
   QuietNeighborhood = "QuietNeighborhood",
+  BedroomCleaning = "BedroomCleaning",
+  BackupWater = "BackupWater",
+  BackupElectricity = "BackupElectricity",
+  Refrigerator = "Refrigerator",
+  SwimmingPool = "SwimmingPool",
+  SleepoversAllowed = "SleepoversAllowed",
 }
 
 export const HighlightIcons: Record<HighlightEnum, LucideIcon> = {
@@ -90,6 +141,12 @@ export const HighlightIcons: Record<HighlightEnum, LucideIcon> = {
   CloseToTransit: Bus,
   GreatView: Mountain,
   QuietNeighborhood: VolumeX,
+  BedroomCleaning: BedDouble,
+  BackupWater: Droplet,
+  BackupElectricity: BatteryCharging,
+  Refrigerator: RefrigeratorIcon,
+  SwimmingPool: Waves,
+  SleepoversAllowed: Moon,
 };
 
 
@@ -254,4 +311,113 @@ export const getUniversityOptionsByProvince = (province?: string) => {
 
 
 // This is a duplicate HighlightEnum declaration - removing it to avoid conflicts
+
+// Campus list derived from provided CSV attachment
+export type Campus = {
+  campusID: number;
+  campusName: string;
+  universityID: keyof typeof UniversityEnum | string;
+  websiteLabel: string;
+};
+
+export const CAMPUSES: Campus[] = [
+  { campusID: 1, campusName: 'APK Campus', universityID: 'UJ', websiteLabel: 'Close to UJ (APK Campus)' },
+  { campusID: 2, campusName: 'APB Campus', universityID: 'UJ', websiteLabel: 'Close to UJ (APB Campus)' },
+  { campusID: 3, campusName: 'Soweto Campus', universityID: 'UJ', websiteLabel: 'Close to UJ (Soweto Campus)' },
+  { campusID: 4, campusName: 'Doornfontein Campus', universityID: 'UJ', websiteLabel: 'Close to UJ (Doornfontein Campus)' },
+  { campusID: 5, campusName: 'Upper Campus', universityID: 'UCT', websiteLabel: 'Close to UCT (Upper Campus)' },
+  { campusID: 6, campusName: 'Middle Campus', universityID: 'UCT', websiteLabel: 'Close to UCT (Middle Campus)' },
+  { campusID: 7, campusName: 'Lower Campus', universityID: 'UCT', websiteLabel: 'Close to UCT (Lower Campus)' },
+  { campusID: 8, campusName: 'Health Sciences Campus', universityID: 'UCT', websiteLabel: 'Close to UCT (Health Sciences Campus)' },
+  { campusID: 9, campusName: 'Groote Schuur Campus', universityID: 'UCT', websiteLabel: 'Close to UCT (Groote Schuur Campus)' },
+  { campusID: 10, campusName: 'Hiddingh Campus', universityID: 'UCT', websiteLabel: 'Close to UCT (Hiddingh Campus)' },
+  { campusID: 11, campusName: 'Breakwater Campus', universityID: 'UCT', websiteLabel: 'Close to UCT (Breakwater Campus)' },
+  { campusID: 12, campusName: 'Vanderbijlpark Campus', universityID: 'NWU', websiteLabel: 'Close to NWU (Vanderbijlpark Campus)' },
+  { campusID: 13, campusName: 'Potchefstroom Campus', universityID: 'NWU', websiteLabel: 'Close to NWU (Potchefstroom Campus)' },
+  { campusID: 14, campusName: 'Mahikeng Campus', universityID: 'NWU', websiteLabel: 'Close to NWU (Mahikeng Campus)' },
+  { campusID: 15, campusName: 'Hatfield Campus', universityID: 'UP', websiteLabel: 'Close to UP (Hatfield Campus)' },
+  { campusID: 16, campusName: 'Hillcrest Campus', universityID: 'UP', websiteLabel: 'Close to UP (Hillcrest Campus)' },
+  { campusID: 17, campusName: 'Groenkloof Campus', universityID: 'UP', websiteLabel: 'Close to UP (Groenkloof Campus)' },
+  { campusID: 18, campusName: 'Prinshof Campus', universityID: 'UP', websiteLabel: 'Close to UP (Prinshof Campus)' },
+  { campusID: 19, campusName: 'Onderstepoort Campus', universityID: 'UP', websiteLabel: 'Close to UP (Onderstepoort Campus)' },
+  { campusID: 20, campusName: 'Mamelodi Campus', universityID: 'UP', websiteLabel: 'Close to UP (Mamelodi Campus)' },
+  { campusID: 21, campusName: 'Gordon Institute of Business Science', universityID: 'UP', websiteLabel: 'Close to UP (Gordon Institute of Business Science)' },
+  { campusID: 22, campusName: 'Braamfontein Campus', universityID: 'WITS', websiteLabel: 'Close to WITS (Braamfontein Campus)' },
+  { campusID: 23, campusName: 'Parktown Campus', universityID: 'WITS', websiteLabel: 'Close to WITS (Parktown Campus)' },
+  { campusID: 26, campusName: 'South Campus', universityID: 'UFS', websiteLabel: 'Close to UFS (South Campus)' },
+  { campusID: 27, campusName: 'Qwaqwa Campus', universityID: 'UFS', websiteLabel: 'Close to UFS (Qwaqwa Campus)' },
+  { campusID: 28, campusName: 'Bloemfontein Campus', universityID: 'UFS', websiteLabel: 'Close to UFS (Bloemfontein Campus)' },
+  { campusID: 29, campusName: 'Edgewood Campus', universityID: 'UKZN', websiteLabel: 'Close to UKZN (Edgewood Campus)' },
+  { campusID: 30, campusName: 'Howard College', universityID: 'UKZN', websiteLabel: 'Close to UKZN (Howard College)' },
+  { campusID: 31, campusName: 'Medical School', universityID: 'UKZN', websiteLabel: 'Close to UKZN (Medical School)' },
+  { campusID: 32, campusName: 'PMB Campus', universityID: 'UKZN', websiteLabel: 'Close to UKZN (PMB Campus)' },
+  { campusID: 33, campusName: 'Westville Campus', universityID: 'UKZN', websiteLabel: 'Close to UKZN (Westville Campus)' },
+  { campusID: 34, campusName: 'Steve Biko Campus', universityID: 'DUT', websiteLabel: 'Close to DUT (Steve Biko Campus)' },
+  { campusID: 35, campusName: 'Brickfield Campus', universityID: 'DUT', websiteLabel: 'Close to DUT (Brickfield Campus)' },
+  { campusID: 36, campusName: 'Ritson Campus', universityID: 'DUT', websiteLabel: 'Close to DUT (Ritson Campus)' },
+  { campusID: 37, campusName: 'City Campus', universityID: 'DUT', websiteLabel: 'Close to DUT (City Campus)' },
+  { campusID: 38, campusName: 'Riverside Campus', universityID: 'DUT', websiteLabel: 'Close to DUT (Riverside Campus)' },
+  { campusID: 39, campusName: 'Indumiso Campus', universityID: 'DUT', websiteLabel: 'Close to DUT (Indumiso Campus)' },
+  { campusID: 40, campusName: 'Bellville Campus', universityID: 'CPUT', websiteLabel: 'Close to CPUT (Bellville Campus)' },
+  { campusID: 41, campusName: 'District Six Campus', universityID: 'CPUT', websiteLabel: 'Close to CPUT (District Six Campus)' },
+  { campusID: 42, campusName: 'Granger Bay Campus', universityID: 'CPUT', websiteLabel: 'Close to CPUT (Granger Bay Campus)' },
+  { campusID: 43, campusName: 'Mowbray Campus', universityID: 'CPUT', websiteLabel: 'Close to CPUT (Mowbray Campus)' },
+  { campusID: 44, campusName: 'Wellington Campus', universityID: 'CPUT', websiteLabel: 'Close to CPUT (Wellington Campus)' },
+  { campusID: 45, campusName: 'Turfloop Campus', universityID: 'UL', websiteLabel: 'Close to UL (Turfloop Campus)' },
+  { campusID: 46, campusName: 'Main Campus', universityID: 'UNIVEN', websiteLabel: 'Close to UNIVEN (Main Campus)' },
+  { campusID: 47, campusName: 'Kwadlangezwa Campus', universityID: 'UNIZULU', websiteLabel: 'Close to UNIZULU (Kwadlangezwa Campus)' },
+  { campusID: 48, campusName: 'Richards Bay Campus', universityID: 'UNIZULU', websiteLabel: 'Close to UNIZULU (Richards Bay Campus)' },
+  { campusID: 49, campusName: 'Main Campus', universityID: 'SU', websiteLabel: 'Close to SU (Main Campus)' },
+  { campusID: 50, campusName: 'Tygerberg Campus', universityID: 'SU', websiteLabel: 'Close to SU (Tygerberg Campus)' },
+  { campusID: 51, campusName: 'Bellville Park Campus', universityID: 'SU', websiteLabel: 'Close to SU (Bellville Park Campus)' },
+  { campusID: 72, campusName: 'Muckleneuk Campus', universityID: 'UNISA', websiteLabel: 'Close to UNISA (Muckleneuk Campus)' },
+  { campusID: 73, campusName: 'Science Campus', universityID: 'UNISA', websiteLabel: 'Close to UNISA (Science Campus)' },
+  { campusID: 74, campusName: 'Sunnyside Campus', universityID: 'UNISA', websiteLabel: 'Close to UNISA (Sunnyside Campus)' },
+  { campusID: 75, campusName: 'Main Campus', universityID: 'UWC', websiteLabel: 'Close to UWC (Main Campus)' },
+  { campusID: 76, campusName: 'CHS Bellville Campus', universityID: 'UWC', websiteLabel: 'Close to UWC (CHS Bellville Campus)' },
+  { campusID: 78, campusName: 'Bird Street Campus', universityID: 'NMU', websiteLabel: 'Close to NMU (Bird Street Campus)' },
+  { campusID: 79, campusName: 'George Campus', universityID: 'NMU', websiteLabel: 'Close to NMU (George Campus)' },
+  { campusID: 80, campusName: 'North Campus', universityID: 'NMU', websiteLabel: 'Close to NMU (North Campus)' },
+  { campusID: 81, campusName: 'South Campus', universityID: 'NMU', websiteLabel: 'Close to NMU (South Campus)' },
+  { campusID: 82, campusName: '2nd Avenue Campus', universityID: 'NMU', websiteLabel: 'Close to NMU (2nd Avenue Campus)' },
+  { campusID: 83, campusName: 'Missionvale Campus', universityID: 'NMU', websiteLabel: 'Close to NMU (Missionvale Campus)' },
+  { campusID: 84, campusName: 'Ocean Sciences Campus', universityID: 'NMU', websiteLabel: 'Close to NMU (Ocean Sciences Campus)' },
+  { campusID: 85, campusName: 'Mbombela Campus', universityID: 'UMP', websiteLabel: 'Close to UMP (Mbombela Campus)' },
+  { campusID: 86, campusName: 'Siyabuswa Campus', universityID: 'UMP', websiteLabel: 'Close to UMP (Siyabuswa Campus)' },
+  { campusID: 87, campusName: 'Arcadia Campus', universityID: 'TUT', websiteLabel: 'Close to TUT (Arcadia Campus)' },
+  { campusID: 88, campusName: 'Arts Campus', universityID: 'TUT', websiteLabel: 'Close to TUT (Arts Campus)' },
+  { campusID: 89, campusName: 'eMalahleni Campus', universityID: 'TUT', websiteLabel: 'Close to TUT (eMalahleni Campus)' },
+  { campusID: 90, campusName: 'Ga-Rankuwa Campus', universityID: 'TUT', websiteLabel: 'Close to TUT (Ga-Rankuwa Campus)' },
+  { campusID: 91, campusName: 'Mbombela Campus', universityID: 'TUT', websiteLabel: 'Close to TUT (Mbombela Campus)' },
+  { campusID: 92, campusName: 'Soshanguve South Campus', universityID: 'TUT', websiteLabel: 'Close to TUT (Soshanguve South Campus)' },
+  { campusID: 93, campusName: 'Soshanguve North Campus', universityID: 'TUT', websiteLabel: 'Close to TUT (Soshanguve North Campus)' },
+  { campusID: 94, campusName: 'Polokwane Campus', universityID: 'TUT', websiteLabel: 'Close to TUT (Polokwane Campus)' },
+  { campusID: 95, campusName: 'Pretoria Campus', universityID: 'TUT', websiteLabel: 'Close to TUT (Pretoria Campus)' },
+  { campusID: 96, campusName: 'Main Campus', universityID: 'RU', websiteLabel: 'Close to RU (Main Campus)' },
+  { campusID: 97, campusName: 'Secunda Campus', universityID: 'VUT', websiteLabel: 'Close to VUT (Secunda Campus)' },
+  { campusID: 98, campusName: 'Upington Campus', universityID: 'VUT', websiteLabel: 'Close to VUT (Upington Campus)' },
+  { campusID: 99, campusName: 'Ekurhuleni Campus', universityID: 'VUT', websiteLabel: 'Close to VUT (Ekurhuleni Campus)' },
+  { campusID: 100, campusName: 'Main Campus', universityID: 'MUT', websiteLabel: 'Close to MUT (Main Campus)' },
+  { campusID: 101, campusName: 'City Campus', universityID: 'MUT', websiteLabel: 'Close to MUT (City Campus)' },
+  { campusID: 102, campusName: 'Butterworth Campus', universityID: 'WSU', websiteLabel: 'Close to WSU (Butterworth Campus)' },
+  { campusID: 103, campusName: 'Komani Campus', universityID: 'WSU', websiteLabel: 'Close to WSU (Komani Campus)' },
+  { campusID: 104, campusName: 'Mthatha Main Campus', universityID: 'WSU', websiteLabel: 'Close to WSU (Mthatha Main Campus)' },
+  { campusID: 105, campusName: 'Buffalo City Campus', universityID: 'WSU', websiteLabel: 'Close to WSU (Buffalo City Campus)' },
+  { campusID: 106, campusName: 'Bloemfontein Campus', universityID: 'CUT', websiteLabel: 'Close to CUT (Bloemfontein Campus)' },
+  { campusID: 107, campusName: 'Welkom Campus', universityID: 'CUT', websiteLabel: 'Close to CUT (Welkom Campus)' },
+  { campusID: 108, campusName: 'Alice Main Campus', universityID: 'UFH', websiteLabel: 'Close to UFH (Alice Main Campus)' },
+  { campusID: 109, campusName: 'Bhisho Campus', universityID: 'UFH', websiteLabel: 'Close to UFH (Bhisho Campus)' },
+  { campusID: 110, campusName: 'East London Campus', universityID: 'UFH', websiteLabel: 'Close to UFH (East London Campus)' },
+  { campusID: 111, campusName: 'Main Campus', universityID: 'SMU', websiteLabel: 'Close to SMU (Main Campus)' },
+  { campusID: 112, campusName: 'Central Campus', universityID: 'SPU', websiteLabel: 'Close to SPU (Central Campus)' },
+  { campusID: 113, campusName: 'North Campus', universityID: 'SPU', websiteLabel: 'Close to SPU (North Campus)' },
+  { campusID: 114, campusName: 'ML Sultan Campus', universityID: 'DUT', websiteLabel: 'Close to DUT (ML Sultan Campus)' },
+];
+
+export const CAMPUS_OPTIONS = CAMPUSES.map(c => ({ value: String(c.campusID), label: c.websiteLabel }));
+
+export const getCampusOptionsByUniversity = (universityKey?: keyof typeof UniversityEnum | string) => {
+  if (!universityKey) return CAMPUS_OPTIONS;
+  return CAMPUSES.filter(c => c.universityID === universityKey).map(c => ({ value: String(c.campusID), label: c.websiteLabel }));
+};
 

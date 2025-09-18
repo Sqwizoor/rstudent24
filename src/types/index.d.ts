@@ -24,6 +24,21 @@ declare global {
     Parking = "Parking",
     PetsAllowed = "PetsAllowed",
     WiFi = "WiFi",
+    OnSiteSecurity = "OnSiteSecurity",
+    TransportToCampus = "TransportToCampus",
+    OutdoorChillArea = "OutdoorChillArea",
+    SecurityCameras = "SecurityCameras",
+    Cafe = "Cafe",
+    LaundryFacilities = "LaundryFacilities",
+    GamesRoom = "GamesRoom",
+    TVRoom = "TVRoom",
+    ComputerRoom = "ComputerRoom",
+    StudyLabs = "StudyLabs",
+    Heater = "Heater",
+    Fan = "Fan",
+    Stove = "Stove",
+    Oven = "Oven",
+    BiometricAccess = "BiometricAccess",
   }
 
   enum HighlightEnum {
@@ -42,6 +57,12 @@ declare global {
     CloseToTransit = "CloseToTransit",
     GreatView = "GreatView",
     QuietNeighborhood = "QuietNeighborhood",
+    BedroomCleaning = "BedroomCleaning",
+    BackupWater = "BackupWater",
+    BackupElectricity = "BackupElectricity",
+    Refrigerator = "Refrigerator",
+    SwimmingPool = "SwimmingPool",
+    SleepoversAllowed = "SleepoversAllowed",
   }
 
   enum PropertyTypeEnum {

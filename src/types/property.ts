@@ -35,6 +35,7 @@ export interface Property {
   amenities?: string[];
   highlights?: string[];
   closestUniversities?: string[];
+  closestCampuses?: string[];
   averageRating?: number;
   numberOfReviews?: number;
   managerCognitoId: string;
