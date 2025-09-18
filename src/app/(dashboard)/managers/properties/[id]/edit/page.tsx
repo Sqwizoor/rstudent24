@@ -304,6 +304,19 @@ export default function EditPropertyPage() {
     defaultValues: { /* Populated in useEffect */ },
   });
 
+  // Coerce API string arrays to enum arrays for form types
+  const coerceAmenityArray = (vals: unknown): AmenityEnum[] => {
+    if (!Array.isArray(vals)) return [];
+    const allowed = new Set(Object.values(AmenityEnum) as string[]);
+    return ((vals as unknown[]).filter((v): v is AmenityEnum => typeof v === 'string' && allowed.has(v as string))) as AmenityEnum[];
+  };
+
+  const coerceHighlightArray = (vals: unknown): HighlightEnum[] => {
+    if (!Array.isArray(vals)) return [];
+    const allowed = new Set(Object.values(HighlightEnum) as string[]);
+    return ((vals as unknown[]).filter((v): v is HighlightEnum => typeof v === 'string' && allowed.has(v as string))) as HighlightEnum[];
+  };
+
   useEffect(() => {
     if (fetchedPropertyData) {
       propertyForm.reset({
@@ -313,8 +326,8 @@ export default function EditPropertyPage() {
         securityDeposit: fetchedPropertyData.securityDeposit ?? undefined, // Use undefined for optional numbers
         isParkingIncluded: fetchedPropertyData.isParkingIncluded || false,
         isNsfassAccredited: fetchedPropertyData.isNsfassAccredited || false,
-        amenities: fetchedPropertyData.amenities || [],
-        highlights: fetchedPropertyData.highlights || [],
+        amenities: coerceAmenityArray(fetchedPropertyData.amenities),
+        highlights: coerceHighlightArray(fetchedPropertyData.highlights),
         closestUniversities: (fetchedPropertyData as any).closestUniversities || [],
         propertyType: fetchedPropertyData.propertyType ? (fetchedPropertyData.propertyType as PropertyTypeEnum) : PropertyTypeEnum.Apartment,
         beds: fetchedPropertyData.beds || 0,
