@@ -228,46 +228,39 @@ export function PropertyEditPageRoomFormModal({
           <form onSubmit={handleRoomSubmit(onRoomFormSubmit)} className="space-y-4 text-slate-900 dark:text-white mt-4">
             <ModalCreateFormField name="name" label="Room Name / Number" placeholder="e.g., Master Bedroom, Unit A-102" />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-slate-900 dark:text-white">
-              <ModalCreateFormField name="roomType" label="Room Type" type="select" options={Object.values(ModalRoomTypeEnum).map(rt => ({ value: rt, label: rt }))} />
-              <ModalCreateFormField name="capacity" label="Capacity (Persons)" type="number" min={1} placeholder="e.g., 2" />
-            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-slate-900 dark:text-white">
               <ModalCreateFormField name="pricePerMonth" label="Price / Month (R)" type="number" min={1} placeholder="e.g., 4500" />
               <ModalCreateFormField name="securityDeposit" label="Security Deposit (R)" type="number" min={0} placeholder="e.g., 2000" />
-              <ModalCreateFormField name="squareFeet" label="Square Feet (Optional)" type="number" min={0} placeholder="e.g., 120" />
+              <ModalCreateFormField name="capacity" label="Capacity (Persons)" type="number" min={1} placeholder="e.g., 2" />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-slate-900 dark:text-white">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-slate-900 dark:text-white items-end">
+              <ModalCreateFormField name="roomType" label="Room Type" type="select" options={Object.values(ModalRoomTypeEnum).map(rt => ({ value: rt, label: rt }))} />
               <ModalCreateFormField name="bathroomPrivacy" label="Bathroom" type="select" options={[{ value: 'PRIVATE', label: 'Private' }, { value: 'SHARED', label: 'Shared' }]} />
               <ModalCreateFormField name="kitchenPrivacy" label="Kitchen" type="select" options={[{ value: 'PRIVATE', label: 'Private' }, { value: 'SHARED', label: 'Shared' }]} />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-              {/* Availability Switch */}
               <div className="space-y-2">
                 <UILabel className="text-sm font-medium text-slate-800 dark:text-white">Availability</UILabel>
                 <ControllerModal
                   control={roomControl}
                   name="isAvailable"
                   render={({ field }) => (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 pt-2">
                       <UISwitch checked={Boolean(field.value)} onCheckedChange={field.onChange} />
                       <span className="text-xs text-slate-600 dark:text-gray-300">{field.value ? 'Available' : 'Unavailable'}</span>
                     </div>
                   )}
                 />
               </div>
-              {/* Available From Date Picker */}
-              <div className="space-y-2">
-                <UILabel className="text-sm font-medium text-slate-800 dark:text-white">Available From (Optional)</UILabel>
-                <ControllerModal
-                  control={roomControl}
-                  name="availableFrom"
-                  render={({ field }) => (
-                    <UIDatePicker value={field.value instanceof Date ? field.value : (field.value ? new Date(field.value as any) : null)} onSelect={(date) => field.onChange(date)} />
-                  )}
-                />
-                <p className="text-[10px] text-slate-500 dark:text-gray-400">Leave empty if immediately available.</p>
-              </div>
+            </div>
+            <div className="space-y-2">
+              <UILabel className="text-sm font-medium text-slate-800 dark:text-white">Available From (Optional)</UILabel>
+              <ControllerModal
+                control={roomControl}
+                name="availableFrom"
+                render={({ field }) => (
+                  <UIDatePicker value={field.value instanceof Date ? field.value : (field.value ? new Date(field.value as any) : null)} onSelect={(date) => field.onChange(date)} />
+                )}
+              />
+              <p className="text-[10px] text-slate-500 dark:text-gray-400">Leave empty if immediately available.</p>
             </div>
             {/* Amenities and Features removed for simplified room form */}
 

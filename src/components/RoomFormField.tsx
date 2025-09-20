@@ -141,7 +141,7 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
 
             {/* Room Details */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                 <CreateFormField
                   name="roomType"
                   label="Room Type"
@@ -164,9 +164,6 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                   labelClassName={labelStyle}
                   inputClassName={inputStyle}
                 />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <CreateFormField
                   name="kitchenPrivacy"
                   label="Kitchen"
@@ -179,19 +176,19 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                   inputClassName={inputStyle}
                 />
                 <CreateFormField
-                  name="availableFrom"
-                  label="Available From"
-                  type="date"
+                  name="isAvailable"
+                  label="Available"
+                  type="switch"
                   labelClassName={labelStyle}
-                  inputClassName={inputStyle}
                 />
               </div>
 
               <CreateFormField
-                name="isAvailable"
-                label="Available for Rent"
-                type="switch"
+                name="availableFrom"
+                label="Available From"
+                type="date"
                 labelClassName={labelStyle}
+                inputClassName={inputStyle}
               />
             </div>
 
