@@ -44,6 +44,7 @@ import { type PropertyFormData, propertySchema } from "@/lib/schemas";
 import { processImageFiles } from "@/lib/imageUtils";
 import { useCreatePropertyMutation, useCreateRoomMutation, useGetAuthUserQuery } from "@/state/api";
 import { AmenityEnum, HighlightEnum, PropertyTypeEnum, UNIVERSITY_OPTIONS, PROVINCES, getUniversityOptionsByProvince, getCampusOptionsByProvince, getCampusOptionsByUniversity } from "@/lib/constants";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 // Form step component for slider form
@@ -1178,18 +1179,29 @@ const NewProperty = () => {
                     placeholder="Select a university"
                   />
 
-                  {/* Closest campuses (filtered by selected university or province) */}
+                  {/* Closest campus (single-select stored as array[0]) */}
                   <CreateFormField
                     name="closestCampuses"
-                    label="Closest Campuses"
-                    type="multi-select"
-                    options={filteredCampusOptions}
+                    label="Closest Compaus"
+                    type="select"
                     labelClassName={labelStyle}
                     inputClassName={`${inputStyle}`}
+                    render={(field) => (
+                      <Select
+                        value={Array.isArray(field.value) ? (field.value[0] ?? "") : ""}
+                        onValueChange={(val) => field.onChange(val ? [val] : [])}
+                      >
+                        <SelectTrigger className={`${inputStyle}`}>
+                          <SelectValue placeholder="Select campus" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filteredCampusOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   />
-                  <p className="text-xs text-slate-600 dark:text-gray-400 mt-1">
-                    Select all relevant campuses (e.g., &quot;Close to UCT (Upper Campus)&quot;).
-                  </p>
 
                   {/* Accredited by (multi-select) */}
                   <CreateFormField

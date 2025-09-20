@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState as usePageState } from "react";
-import { useForm as usePropertyForm } from "react-hook-form";
+import { useForm as usePropertyForm, Controller } from "react-hook-form";
 import { zodResolver as zodPropertyResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useParams } from "next/navigation";
@@ -42,6 +42,7 @@ import { PropertyFormData, propertySchema } from "@/lib/schemas";
 import { processImageFiles } from '@/lib/imageUtils';
 import { RoomFormData } from "@/lib/schemas"; // Use for typing
 import { PropertyTypeEnum, AmenityEnum, HighlightEnum, CAMPUS_OPTIONS } from "@/lib/constants";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ApiProperty, ApiRoom } from "@/lib/schemas"; // Use defined API types
 import { useGetPropertyQuery, useUpdatePropertyMutation, useDeletePropertyMutation, useGetRoomsQuery, useDeleteRoomMutation } from "@/state/api"; // Use the re-exported hooks
 import type { Property } from "@/types/property";
@@ -831,15 +832,35 @@ export default function EditPropertyPage() {
                 </div>
                  <p className="text-xs text-muted-foreground dark:text-gray-400">Note: Changing address details will re-geocode the location and update its coordinates on the map upon saving.</p>
 
-                   {/* Closest campuses selection */}
-                   <CreateFormFieldt 
-                     name="closestCampuses" 
-                     label="Closest Campuses" 
-                     type="multi-select" 
-                     control={propertyForm.control} 
-                     options={CAMPUS_OPTIONS}
-                     description="Select all relevant campuses for this property."
-                   />
+                   {/* Closest campus selection (single-select, stored as array[0]) */}
+                   <div className="space-y-1.5 w-full">
+                     <UILabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Closest Compaus</UILabel>
+                     <Controller
+                       name="closestCampuses"
+                       control={propertyForm.control}
+                       render={({ field, fieldState: { error } }) => (
+                         <>
+                           <Select
+                             value={Array.isArray(field.value) ? (field.value[0] ?? "") : ""}
+                             onValueChange={(val) => field.onChange(val ? [val] : [])}
+                           >
+                             <SelectTrigger className={`w-full dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 ${error ? 'border-destructive' : 'border-border dark:border-gray-600'}`}>
+                               <SelectValue placeholder="Select campus" />
+                             </SelectTrigger>
+                             <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                               {CAMPUS_OPTIONS.map((opt) => (
+                                 <SelectItem key={opt.value} value={String(opt.value)} className="dark:text-gray-200 dark:focus:bg-gray-700">
+                                   {opt.label}
+                                 </SelectItem>
+                               ))}
+                             </SelectContent>
+                           </Select>
+                           <p className="text-xs text-muted-foreground dark:text-gray-400 pt-1">Pick the single closest campus.</p>
+                           {error && <p className="text-xs text-destructive pt-1">{error.message}</p>}
+                         </>
+                       )}
+                     />
+                   </div>
               </div>
             </FormSection>
 
