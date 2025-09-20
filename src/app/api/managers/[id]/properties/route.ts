@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
+import { Prisma } from '@prisma/client';
 
 // GET handler for a manager's properties
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -23,24 +24,45 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status');
-    
-    // Build the query
-    const query: any = {
-      where: {
-        managerCognitoId: id,
-      },
-      include: {
-        location: true,
-      },
-    };
-    
-    // Add status filter if provided
+
+    // Build WHERE conditions using raw SQL to compute minRoomPrice consistently
+    const whereConditions: Prisma.Sql[] = [
+      Prisma.sql`p."managerCognitoId" = ${id}`,
+    ];
+
     if (status) {
-      query.where.status = status;
+      // Include status filter only if provided
+      whereConditions.push(Prisma.sql`p.status = ${status}`);
     }
-    
-    // Find properties for this manager
-    const properties = await prisma.property.findMany(query);
+
+    const query = Prisma.sql`
+      SELECT 
+        p.*,
+        (
+          SELECT MIN(r."pricePerMonth")
+          FROM "Room" r
+          WHERE r."propertyId" = p.id AND r."isAvailable" = true
+        ) as "minRoomPrice",
+        l.id as "locationId", 
+        json_build_object(
+          'id', l.id,
+          'address', l.address,
+          'city', l.city,
+          'state', l.state,
+          'country', l.country,
+          'postalCode', l."postalCode",
+          'coordinates', json_build_object(
+            'longitude', ST_X(l."coordinates"::geometry),
+            'latitude', ST_Y(l."coordinates"::geometry)
+          )
+        ) as location
+      FROM "Property" p
+      JOIN "Location" l ON p."locationId" = l.id
+      ${whereConditions.length > 0 ? Prisma.sql`WHERE ${Prisma.join(whereConditions, ' AND ')}` : Prisma.empty}
+      ORDER BY p.id DESC
+    `;
+
+    const properties = await prisma.$queryRaw(query);
 
     return NextResponse.json(properties);
   } catch (err: any) {

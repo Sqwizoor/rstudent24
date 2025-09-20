@@ -26,6 +26,7 @@ interface PropertyCardCompactProps {
     kitchens?: number
     squareFeet?: number
     pricePerMonth?: number
+  minRoomPrice?: number
     price?: number
     averageRating?: number
     numberOfReviews: number
@@ -69,7 +70,7 @@ export default function PropertyCardCompact({
   const displayBaths = property.baths || 0;
   const displayKitchens = property.kitchens || 0;
   const displaySquareFeet = property.squareFeet || 0;
-  const displayPrice = roomStats.minPrice || property.price || property.pricePerMonth || 0;
+  const displayPrice = (property as any).minRoomPrice ?? roomStats.minPrice ?? property.price ?? property.pricePerMonth ?? 0;
 
   return (
     <Card 

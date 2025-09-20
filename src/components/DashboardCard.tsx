@@ -78,7 +78,8 @@ export default function PropertyCardDashboard({
   const displayBaths = property.baths || 0;
   const displayKitchens = property.kitchens || 0;
   const displaySquareFeet = property.squareFeet || 0;
-  const displayPrice = roomStats.minPrice || property.pricePerMonth || 0;
+  // Prefer minRoomPrice when available, fallback to room stats then property price
+  const displayPrice = (property as any).minRoomPrice ?? roomStats.minPrice ?? property.pricePerMonth ?? 0;
 
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();

@@ -43,7 +43,7 @@ import {
 import { type PropertyFormData, propertySchema } from "@/lib/schemas";
 import { processImageFiles } from "@/lib/imageUtils";
 import { useCreatePropertyMutation, useCreateRoomMutation, useGetAuthUserQuery } from "@/state/api";
-import { AmenityEnum, HighlightEnum, PropertyTypeEnum, UNIVERSITY_OPTIONS, PROVINCES, getUniversityOptionsByProvince, getCampusOptionsByProvince } from "@/lib/constants";
+import { AmenityEnum, HighlightEnum, PropertyTypeEnum, UNIVERSITY_OPTIONS, PROVINCES, getUniversityOptionsByProvince, getCampusOptionsByProvince, getCampusOptionsByUniversity } from "@/lib/constants";
 
 
 // Form step component for slider form
@@ -199,14 +199,18 @@ const NewProperty = () => {
       suburb: "",
   closestUniversities: [],
   closestCampuses: [],
+  closestUniversity: "",
     },
     mode: "onChange", // Validate on change for better UX
   });
   
   // Filtered university options based on selected province
   const watchedProvince = form.watch("province");
+  const watchedClosestUniversity = form.watch("closestUniversity");
   const filteredUniversityOptions = getUniversityOptionsByProvince(watchedProvince);
-  const filteredCampusOptions = getCampusOptionsByProvince(watchedProvince as any);
+  const filteredCampusOptions = watchedClosestUniversity
+    ? getCampusOptionsByUniversity(watchedClosestUniversity as any)
+    : getCampusOptionsByProvince(watchedProvince as any);
   
   // Step validation functions
   const validateStep = (step: number): boolean => {
@@ -1163,8 +1167,18 @@ const NewProperty = () => {
                     placeholder="South Africa"
                   />
 
-                  {/* Filtered universities by province */}
-                  {/* Closest campuses (predefined) */}
+                  {/* Closest University (filters campuses) */}
+                  <CreateFormField
+                    name="closestUniversity"
+                    label="Closest University"
+                    type="select"
+                    options={filteredUniversityOptions}
+                    labelClassName={labelStyle}
+                    inputClassName={`${inputStyle}`}
+                    placeholder="Select a university"
+                  />
+
+                  {/* Closest campuses (filtered by selected university or province) */}
                   <CreateFormField
                     name="closestCampuses"
                     label="Closest Campuses"

@@ -80,7 +80,11 @@ const Properties = () => {
 
   // Sort properties based on sort selection
   const sortedProperties = [...(filteredProperties || [])].sort((a, b) => {
-    if (sortBy === "price") return (a as any).pricePerMonth - (b as any).pricePerMonth;
+    if (sortBy === "price") {
+      const aPrice = (a as any).minRoomPrice ?? (a as any).pricePerMonth ?? 0;
+      const bPrice = (b as any).minRoomPrice ?? (b as any).pricePerMonth ?? 0;
+      return aPrice - bPrice;
+    }
     if (sortBy === "name") return a.name.localeCompare(b.name);
     // Default sort by name
     return a.name.localeCompare(b.name);
@@ -301,7 +305,7 @@ const PropertyCard = ({ property, onEdit, onManagePhotos, onDelete }: {
   const displayBeds = roomStats.totalBeds || property.beds || 0;
   const displayBaths = roomStats.totalBaths || property.baths || 0;
   const displaySquareFeet = roomStats.totalSquareFeet || property.squareFeet || 0;
-  const displayPrice = roomStats.minPrice || property.pricePerMonth || 0;
+  const displayPrice = (property as any).minRoomPrice ?? roomStats.minPrice ?? property.pricePerMonth ?? 0;
   return (
     <Card className="overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-800 hover:shadow-md transition-all duration-200 w-full min-w-[400px] max-w-[800px] mx-auto">
       <div className="flex flex-col lg:flex-row">
