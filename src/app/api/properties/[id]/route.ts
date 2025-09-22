@@ -317,7 +317,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Extract and parse property data from form (support repeated keys for arrays)
-  const arrayFieldNames = new Set(['amenities','highlights','closestUniversities','closestCampuses']);
+  const arrayFieldNames = new Set(['amenities','highlights','closestUniversities','closestCampuses','accreditedBy']);
     const propertyData: any = {};
     for (const [key, value] of formData.entries()) {
       if (
@@ -368,6 +368,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
               : typeof propertyData.closestUniversities === 'string'
                 ? propertyData.closestUniversities.split(',')
                 : undefined
+          }),
+          // Parse accreditedBy if present
+          ...(propertyData.accreditedBy && {
+            accreditedBy: Array.isArray(propertyData.accreditedBy)
+              ? propertyData.accreditedBy
+              : typeof propertyData.accreditedBy === 'string'
+                ? propertyData.accreditedBy.split(',')
+                : undefined
+          }),
+          // Set closestUniversity if present
+          ...(propertyData.closestUniversity !== undefined && {
+            closestUniversity: propertyData.closestUniversity || null
           }),
           // Parse closestCampuses if present
           ...(propertyData.closestCampuses && {
@@ -446,6 +458,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                 : typeof propertyData.closestUniversities === 'string'
                   ? propertyData.closestUniversities.split(',')
                   : undefined
+            }),
+            // Parse accreditedBy if present (retry path)
+            ...(propertyData.accreditedBy && {
+              accreditedBy: Array.isArray(propertyData.accreditedBy)
+                ? propertyData.accreditedBy
+                : typeof propertyData.accreditedBy === 'string'
+                  ? propertyData.accreditedBy.split(',')
+                  : undefined
+            }),
+            // Set closestUniversity if present (retry path)
+            ...(propertyData.closestUniversity !== undefined && {
+              closestUniversity: propertyData.closestUniversity || null
             }),
             ...(propertyData.closestCampuses && {
               closestCampuses: Array.isArray(propertyData.closestCampuses)

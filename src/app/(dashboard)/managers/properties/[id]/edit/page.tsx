@@ -41,7 +41,7 @@ import {
 import { PropertyFormData, propertySchema } from "@/lib/schemas";
 import { processImageFiles } from '@/lib/imageUtils';
 import { RoomFormData } from "@/lib/schemas"; // Use for typing
-import { PropertyTypeEnum, AmenityEnum, HighlightEnum, CAMPUS_OPTIONS } from "@/lib/constants";
+import { PropertyTypeEnum, AmenityEnum, HighlightEnum, PROVINCES, UNIVERSITY_OPTIONS, getUniversityOptionsByProvince, getCampusOptionsByProvince, getCampusOptionsByUniversity } from "@/lib/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ApiProperty, ApiRoom } from "@/lib/schemas"; // Use defined API types
 import { useGetPropertyQuery, useUpdatePropertyMutation, useDeletePropertyMutation, useGetRoomsQuery, useDeleteRoomMutation } from "@/state/api"; // Use the re-exported hooks
@@ -305,6 +305,14 @@ export default function EditPropertyPage() {
     defaultValues: { /* Populated in useEffect */ },
   });
 
+  // Watch province and closestUniversity to filter dependent selects
+  const watchedProvince = propertyForm.watch("province");
+  const watchedClosestUniversity = propertyForm.watch("closestUniversity");
+  const filteredUniversityOptions = getUniversityOptionsByProvince(watchedProvince as any);
+  const filteredCampusOptions = watchedClosestUniversity
+    ? getCampusOptionsByUniversity(watchedClosestUniversity as any)
+    : getCampusOptionsByProvince(watchedProvince as any);
+
   // Coerce API string arrays to enum arrays for form types
   const coerceAmenityArray = (vals: unknown): AmenityEnum[] => {
     if (!Array.isArray(vals)) return [];
@@ -329,8 +337,10 @@ export default function EditPropertyPage() {
         isNsfassAccredited: fetchedPropertyData.isNsfassAccredited || false,
         amenities: coerceAmenityArray(fetchedPropertyData.amenities),
         highlights: coerceHighlightArray(fetchedPropertyData.highlights),
-  closestUniversities: (fetchedPropertyData as any).closestUniversities || [],
-  closestCampuses: (fetchedPropertyData as any).closestCampuses || [],
+        closestUniversities: (fetchedPropertyData as any).closestUniversities || [],
+        closestCampuses: (fetchedPropertyData as any).closestCampuses || [],
+        closestUniversity: (fetchedPropertyData as any).closestUniversity || "",
+        accreditedBy: (fetchedPropertyData as any).accreditedBy || [],
         propertyType: fetchedPropertyData.propertyType ? (fetchedPropertyData.propertyType as PropertyTypeEnum) : PropertyTypeEnum.Apartment,
         beds: fetchedPropertyData.beds || 0,
         baths: fetchedPropertyData.baths || 0,
@@ -339,6 +349,8 @@ export default function EditPropertyPage() {
         address: fetchedPropertyData.location?.address || "",
         city: fetchedPropertyData.location?.city || "",
         state: fetchedPropertyData.location?.state || "",
+        province: fetchedPropertyData.location?.state || "",
+        suburb: "",
         country: fetchedPropertyData.location?.country || "",
         postalCode: fetchedPropertyData.location?.postalCode || "",
         locationId: fetchedPropertyData.locationId,
@@ -375,11 +387,19 @@ export default function EditPropertyPage() {
     
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-        const isArrayField = ['amenities', 'highlights', 'closestUniversities', 'closestCampuses'].includes(key);
+        const isArrayField = ['amenities', 'highlights', 'closestUniversities', 'closestCampuses', 'accreditedBy'].includes(key);
         if (isArrayField) {
           if (Array.isArray(value)) {
             value.forEach(v => formData.append(key, v));
           }
+          return;
+        }
+        if (key === 'province') {
+          if (value) formData.append('state', String(value));
+          return; // do not send unsupported 'province' key
+        }
+        if (key === 'suburb') {
+          // Not persisted in schema on update; omit to avoid server error
           return;
         }
         if (typeof value === 'boolean') {
@@ -819,48 +839,58 @@ export default function EditPropertyPage() {
             </FormSection>
 
             {/* Location Information */}
-            <FormSection title="Location Information" icon={<MapPin size={20} />}>
+            <FormSection title="Location Information" icon={<MapPin size={20} />}> 
               <div className="space-y-6">
                 <CreateFormFieldt name="address" label="Street Address" control={propertyForm.control} placeholder="123 Main St, Apt 4B" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-5">
                   <CreateFormFieldt name="city" label="City" control={propertyForm.control} placeholder="e.g., Cape Town" />
-                  <CreateFormFieldt name="state" label="State/Province (Optional)" control={propertyForm.control} placeholder="e.g., Western Cape" />
+                  <CreateFormFieldt name="suburb" label="Suburb" control={propertyForm.control} placeholder="e.g., Rondebosch" />
+                  <CreateFormFieldt name="province" label="Province" type="select" control={propertyForm.control} options={PROVINCES.map((p) => ({ value: p, label: p }))} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                   <CreateFormFieldt name="postalCode" label="Postal Code (Optional)" control={propertyForm.control} placeholder="e.g., 8001" />
                   <CreateFormFieldt name="country" label="Country" control={propertyForm.control} placeholder="e.g., South Africa" />
                 </div>
-                 <p className="text-xs text-muted-foreground dark:text-gray-400">Note: Changing address details will re-geocode the location and update its coordinates on the map upon saving.</p>
+                <p className="text-xs text-muted-foreground dark:text-gray-400">Note: Changing address details will re-geocode the location and update its coordinates on the map upon saving.</p>
 
-                   {/* Closest campus selection (single-select, stored as array[0]) */}
-                   <div className="space-y-1.5 w-full">
-                     <UILabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Closest Compaus</UILabel>
-                     <Controller
-                       name="closestCampuses"
-                       control={propertyForm.control}
-                       render={({ field, fieldState: { error } }) => (
-                         <>
-                           <Select
-                             value={Array.isArray(field.value) ? (field.value[0] ?? "") : ""}
-                             onValueChange={(val) => field.onChange(val ? [val] : [])}
-                           >
-                             <SelectTrigger className={`w-full dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 ${error ? 'border-destructive' : 'border-border dark:border-gray-600'}`}>
-                               <SelectValue placeholder="Select campus" />
-                             </SelectTrigger>
-                             <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                               {CAMPUS_OPTIONS.map((opt) => (
-                                 <SelectItem key={opt.value} value={String(opt.value)} className="dark:text-gray-200 dark:focus:bg-gray-700">
-                                   {opt.label}
-                                 </SelectItem>
-                               ))}
-                             </SelectContent>
-                           </Select>
-                           <p className="text-xs text-muted-foreground dark:text-gray-400 pt-1">Pick the single closest campus.</p>
-                           {error && <p className="text-xs text-destructive pt-1">{error.message}</p>}
-                         </>
-                       )}
-                     />
-                   </div>
+                {/* Closest University */}
+                <div className="space-y-1.5 w-full">
+                  <UILabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Closest University</UILabel>
+                  <CreateFormFieldt name="closestUniversity" label="" type="select" control={propertyForm.control} options={filteredUniversityOptions} />
+                </div>
+
+                {/* Closest campus selection (single-select, stored as array[0]) */}
+                <div className="space-y-1.5 w-full">
+                  <UILabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Closest Compaus</UILabel>
+                  <Controller
+                    name="closestCampuses"
+                    control={propertyForm.control}
+                    render={({ field, fieldState: { error } }) => (
+                      <>
+                        <Select
+                          value={Array.isArray(field.value) ? (field.value[0] ?? "") : ""}
+                          onValueChange={(val) => field.onChange(val ? [val] : [])}
+                        >
+                          <SelectTrigger className={`w-full dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 ${error ? 'border-destructive' : 'border-border dark:border-gray-600'}`}>
+                            <SelectValue placeholder="Select campus" />
+                          </SelectTrigger>
+                          <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                            {filteredCampusOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={String(opt.value)} className="dark:text-gray-200 dark:focus:bg-gray-700">
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground dark:text-gray-400 pt-1">Pick the single closest campus.</p>
+                        {error && <p className="text-xs text-destructive pt-1">{error.message}</p>}
+                      </>
+                    )}
+                  />
+                </div>
+
+                {/* Accredited by (multi-select) */}
+                <CreateFormFieldt name="accreditedBy" label="Accredited by University" type="multi-select" control={propertyForm.control} options={filteredUniversityOptions} />
               </div>
             </FormSection>
 
