@@ -23,6 +23,7 @@ export const roomSchema = z.object({
   name: z.string().min(1, "Room name is required"),
   pricePerMonth: z.number().min(0, "Price must be a positive number"),
   securityDeposit: z.number().min(0, "Security deposit must be a positive number"),
+  topUp: z.number().min(0, "Top up must be a positive number").default(0),
   squareFeet: z.number().min(0, "Square feet must be a positive number").optional(),
   isAvailable: z.boolean().default(true),
   availableFrom: z.date().optional().nullable(),
@@ -51,6 +52,7 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
       name: "",
       pricePerMonth: 0,
       securityDeposit: 0,
+      topUp: 0,
       capacity: 1,
       isAvailable: true,
       roomType: "PRIVATE",
@@ -129,6 +131,17 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                   <CreateFormField
                     name="securityDeposit"
                     label="Security Deposit"
+                    type="number"
+                    labelClassName={labelStyle}
+                    inputClassName={`${inputStyle} pl-7`}
+                    min={0}
+                  />
+                  <span className="absolute top-9 left-3 text-slate-500 dark:text-gray-400">R</span>
+                </div>
+                <div className="relative">
+                  <CreateFormField
+                    name="topUp"
+                    label="Top-up"
                     type="number"
                     labelClassName={labelStyle}
                     inputClassName={`${inputStyle} pl-7`}
@@ -306,6 +319,10 @@ export const RoomList = ({ rooms, onRemoveRoom }: RoomListProps) => {
                 <div className="flex items-center gap-2">
                   <CircleDollarSign className="h-4 w-4 text-gray-400" />
                   <span className="text-sm text-gray-300">R{room.pricePerMonth}/month</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CircleDollarSign className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-300">Top-up: R{(room as any).topUp ?? 0}</span>
                 </div>
                 {room.squareFeet && (
                   <div className="flex items-center gap-2">

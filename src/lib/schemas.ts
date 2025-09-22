@@ -65,6 +65,7 @@ export const roomSchema = z.object({
   pricePerMonth: z.number().min(1, "Price is required")
     .or(z.string().transform(val => parseFloat(val)).refine(val => val >= 1, { message: "Price is required" })),
   securityDeposit: z.number().or(z.string().transform(val => parseFloat(val))).default(0),
+  topUp: z.number().or(z.string().transform(val => parseFloat(val))).default(0),
   squareFeet: z.number().or(z.string().transform(val => parseInt(val))).optional().nullable(),
   isAvailable: z.boolean().or(z.string().transform(val => val === "true")).default(true),
   availableFrom: z.date().or(z.string().transform(val => new Date(val))).optional().nullable(),
@@ -129,6 +130,7 @@ export interface ApiRoom {
   photoUrls: string[];
   pricePerMonth: number;
   securityDeposit?: number | null;
+  topUp?: number | null;
   squareFeet?: number | null;
   isAvailable: boolean;
   availableFrom?: string | null;

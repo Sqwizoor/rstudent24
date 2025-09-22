@@ -576,6 +576,7 @@ const NewProperty = () => {
               name: string;
               pricePerMonth: number;
               securityDeposit: number;
+              topUp: number;
               squareFeet: number;
               roomType: 'PRIVATE' | 'SHARED';
               capacity: number;
@@ -588,6 +589,7 @@ const NewProperty = () => {
               name: room.name || 'Unnamed Room',
               pricePerMonth: Math.min(Math.max(0, Number(room.pricePerMonth || 0)), 100000),
               securityDeposit: Math.min(Math.max(0, Number(room.securityDeposit || 0)), 100000),
+              topUp: Math.min(Math.max(0, Number((room as any).topUp || 0)), 100000),
               squareFeet: Math.min(Math.max(0, Number(room.squareFeet || 0)), 10000),
               roomType: room.roomType || 'PRIVATE',
               capacity: Math.max(1, Number(room.capacity || 1)),

@@ -130,6 +130,7 @@ export interface Room {
   roomType: string;
   pricePerMonth: number;
   securityDeposit?: number;
+  topUp?: number;
   squareFeet?: number;
   isAvailable: boolean;
   availableFrom?: Date | string | null;

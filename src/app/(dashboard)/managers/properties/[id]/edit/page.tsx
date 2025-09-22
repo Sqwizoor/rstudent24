@@ -563,8 +563,8 @@ export default function EditPropertyPage() {
     const features = Array.isArray(roomFromApi.features) ? roomFromApi.features : [];
     const bathroomFeature = features.find((f: string) => f.startsWith("Bathroom:"));
     const kitchenFeature = features.find((f: string) => f.startsWith("Kitchen:"));
-    const bathroomPrivacy = (bathroomFeature?.split(":")[1] as 'PRIVATE' | 'SHARED') || 'SHARED';
-    const kitchenPrivacy = (kitchenFeature?.split(":")[1] as 'PRIVATE' | 'SHARED') || 'SHARED';
+    const bathroomPrivacy = ((bathroomFeature?.split(":")[1] || '').toUpperCase() as 'PRIVATE' | 'SHARED') || 'SHARED';
+    const kitchenPrivacy = ((kitchenFeature?.split(":")[1] || '').toUpperCase() as 'PRIVATE' | 'SHARED') || 'SHARED';
 
     const roomFormDataForModal: Partial<RoomFormData> = {
         id: roomFromApi.id,

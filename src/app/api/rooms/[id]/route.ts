@@ -79,18 +79,27 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const descriptionRaw = formData.get('description');
     const pricePerMonth = parseFloat(formData.get('pricePerMonth') as string);
     const securityDeposit = parseFloat(formData.get('securityDeposit') as string) || 0;
+    const topUp = parseFloat(formData.get('topUp') as string) || existingRoom.topUp || 0;
     const squareFeet = parseInt(formData.get('squareFeet') as string) || null;
     const roomType = formData.get('roomType') as string;
     const capacity = parseInt(formData.get('capacity') as string) || 1;
     const isAvailable = formData.get('isAvailable') === 'true';
     const availableFromStr = formData.get('availableFrom') as string;
-  const bathroomPrivacy = formData.get('bathroomPrivacy') as ('PRIVATE' | 'SHARED' | null);
-  const kitchenPrivacy = formData.get('kitchenPrivacy') as ('PRIVATE' | 'SHARED' | null);
+  const bathroomPrivacyRaw = formData.get('bathroomPrivacy');
+  const kitchenPrivacyRaw = formData.get('kitchenPrivacy');
+  const normalizePrivacy = (val: any): 'PRIVATE' | 'SHARED' | null => {
+    if (typeof val !== 'string') return null;
+    const up = val.toUpperCase();
+    return up === 'PRIVATE' || up === 'SHARED' ? (up as 'PRIVATE' | 'SHARED') : null;
+  };
+  const bathroomPrivacy = normalizePrivacy(bathroomPrivacyRaw);
+  const kitchenPrivacy = normalizePrivacy(kitchenPrivacyRaw);
     
     // Parse amenities and features
     const amenities = formData.has('amenities') ? (formData.getAll('amenities') as string[]) : existingRoom.amenities;
     const featuresBase = formData.has('features') ? (formData.getAll('features') as string[]) : existingRoom.features;
-  const featuresWithoutPrivacy = (featuresBase || []).filter((f: string) => !/^Bathroom:|^Kitchen:/.test(f));
+  const privacyPrefixRegex = /^(Bathroom:|Kitchen:)/i;
+  const featuresWithoutPrivacy = (featuresBase || []).filter((f: string) => !privacyPrefixRegex.test(f));
     const finalFeatures = [...featuresWithoutPrivacy];
     if (bathroomPrivacy) {
       finalFeatures.push(`Bathroom:${bathroomPrivacy}`);
@@ -123,6 +132,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     // Handle photo uploads
     let photoUrls = existingRoom.photoUrls || []; // Keep existing photos by default
+
+  const replacePhotosRaw = formData.get('replacePhotos');
+  const replacePhotos = (typeof replacePhotosRaw === 'string' ? replacePhotosRaw : '').toLowerCase() === 'true';
+    const finalPhotoUrlsToKeepRaw = formData.get('finalPhotoUrlsToKeep');
+    if (!replacePhotos && typeof finalPhotoUrlsToKeepRaw === 'string') {
+      try {
+        const parsed = JSON.parse(finalPhotoUrlsToKeepRaw);
+        if (Array.isArray(parsed)) {
+          photoUrls = parsed as string[];
+        }
+      } catch {}
+    }
     
     const photoFiles = formData.getAll('photos') as File[];
     const singlePhoto = formData.get('photo') as File;
@@ -176,6 +197,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         description: descriptionRaw !== undefined ? ((descriptionRaw as string) || null) : existingRoom.description,
         pricePerMonth,
         securityDeposit,
+        topUp,
         squareFeet,
         roomType: roomType as any,
         capacity,

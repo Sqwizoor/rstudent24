@@ -65,6 +65,7 @@ interface RoomData {
   description: string;
   pricePerMonth: number;
   securityDeposit: number;
+  topUp?: number;
   squareFeet: number;
   beds: number;
   baths: number;
@@ -131,6 +132,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           description: formData.get('description')?.toString() || '',
           pricePerMonth: parseFloat(formData.get('pricePerMonth')?.toString() || '0'),
           securityDeposit: parseFloat(formData.get('securityDeposit')?.toString() || '0'),
+          topUp: parseFloat(formData.get('topUp')?.toString() || '0'),
           squareFeet: parseInt(formData.get('squareFeet')?.toString() || '0'),
           beds: parseInt(formData.get('beds')?.toString() || '1'),
           baths: parseFloat(formData.get('baths')?.toString() || '1'),
@@ -142,8 +144,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           amenities: formData.getAll('amenities') as string[],
           features: formData.getAll('features') as string[],
           photoUrls: [] as string[],
-          bathroomPrivacy: formData.get('bathroomPrivacy')?.toString() as 'PRIVATE' | 'SHARED' | undefined,
-          kitchenPrivacy: formData.get('kitchenPrivacy')?.toString() as 'PRIVATE' | 'SHARED' | undefined,
+          bathroomPrivacy: (() => { const v = formData.get('bathroomPrivacy')?.toString(); return v ? (v.toUpperCase() as 'PRIVATE' | 'SHARED') : undefined; })(),
+          kitchenPrivacy: (() => { const v = formData.get('kitchenPrivacy')?.toString(); return v ? (v.toUpperCase() as 'PRIVATE' | 'SHARED') : undefined; })(),
         };
         
         // Process photo uploads with size validation
@@ -281,6 +283,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           description: roomData.description || '',
           pricePerMonth: roomData.pricePerMonth,
           securityDeposit: roomData.securityDeposit || 0,
+          topUp: roomData.topUp ?? 0,
           squareFeet: roomData.squareFeet || 0,
           roomType: roomData.roomType || 'PRIVATE',
           capacity: roomData.capacity || 1,

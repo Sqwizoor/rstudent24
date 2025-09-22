@@ -83,7 +83,7 @@ export function PropertyEditPageRoomFormModal({
     if (isOpen) {
       const defaults = {
         propertyId: typeof propertyId === "string" ? Number(propertyId) : propertyId,
-        name: "", pricePerMonth: 0, securityDeposit: 0, squareFeet: undefined,
+        name: "", pricePerMonth: 0, securityDeposit: 0, topUp: 0, squareFeet: undefined,
   isAvailable: true, availableFrom: null, roomType: ModalRoomTypeEnum.PRIVATE, capacity: 1,
   bathroomPrivacy: 'SHARED' as const, kitchenPrivacy: 'SHARED' as const, photoUrls: [], newPhotos: null, photosToDelete: [], replacePhotos: false,
         ...initialRoomData, // Apply initial data for editing
@@ -231,6 +231,7 @@ export function PropertyEditPageRoomFormModal({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-slate-900 dark:text-white">
               <ModalCreateFormField name="pricePerMonth" label="Price / Month (R)" type="number" min={1} placeholder="e.g., 4500" />
               <ModalCreateFormField name="securityDeposit" label="Security Deposit (R)" type="number" min={0} placeholder="e.g., 2000" />
+              <ModalCreateFormField name="topUp" label="Top-up (R)" type="number" min={0} placeholder="e.g., 0" />
               <ModalCreateFormField name="capacity" label="Capacity (Persons)" type="number" min={1} placeholder="e.g., 2" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-slate-900 dark:text-white items-end">

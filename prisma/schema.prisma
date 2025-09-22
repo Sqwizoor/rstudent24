@@ -161,6 +161,7 @@ model Room {
   description       String?      @db.Text
   pricePerMonth     Float
   securityDeposit   Float        @default(0)
+  topUp             Float        @default(0)
   squareFeet        Int?
   beds              Int          @default(1)
   baths             Float        @default(1)
