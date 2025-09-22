@@ -6,7 +6,7 @@ import { PropertyCardSkeleton } from "@/components/ui/skeletons";
 import { HelpCircle } from "lucide-react";
 import React from "react";
 
-const PropertyDetails = ({ propertyId }: PropertyDetailsProps) => {
+const PropertyDetails = ({ propertyId, deposit, topUp }: PropertyDetailsProps) => {
   const {
     data: property,
     isError,
@@ -88,9 +88,18 @@ const PropertyDetails = ({ propertyId }: PropertyDetailsProps) => {
                 Security Deposit
               </span>
               <span className="text-primary-700">
-                R {property.securityDeposit || 0}
+                R {(typeof deposit === 'number' ? deposit : (property.securityDeposit || 0))}
               </span>
             </div>
+            {typeof topUp === 'number' && (
+              <>
+                <hr />
+                <div className="flex justify-between py-2 bg-secondary-50">
+                  <span className="text-primary-700 font-medium">Top-up</span>
+                  <span className="text-primary-700">R {topUp}</span>
+                </div>
+              </>
+            )}
             <hr />
           </TabsContent>
           <TabsContent value="nsfas">

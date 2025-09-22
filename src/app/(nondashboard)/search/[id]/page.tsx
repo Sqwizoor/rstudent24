@@ -249,9 +249,30 @@ const SingleListing = () => {
   const displayBeds = roomStats.totalBeds || property?.beds || 0;
   const displayBaths = roomStats.totalBaths || property?.baths || 0;
   const displaySquareFeet = roomStats.totalSquareFeet || property?.squareFeet || 0;
+  // Determine deposit and top-up from the earliest created room (first created)
+  const firstCreatedRoom = React.useMemo(() => {
+    if (!Array.isArray(rooms) || rooms.length === 0) return null;
+    // API returns rooms ordered desc by createdAt; revert to find earliest
+    const ordered = [...rooms].sort((a: any, b: any) => {
+      const da = new Date(a.createdAt || 0).getTime();
+      const db = new Date(b.createdAt || 0).getTime();
+      return da - db; // earliest first
+    });
+    return ordered[0] || null;
+  }, [rooms]);
 
-  // Top-up calculation removed (env cap not needed). Set to 0 for now.
-  const topUpAmount = 0;
+  const displayDeposit = (() => {
+    // Prefer first room's securityDeposit if present, else property's
+    const roomDep = firstCreatedRoom?.securityDeposit;
+    if (typeof roomDep === 'number') return roomDep;
+    const propDep = (property as any)?.securityDeposit;
+    return typeof propDep === 'number' ? propDep : 0;
+  })();
+
+  const topUpAmount = (() => {
+    const roomTopUp = (firstCreatedRoom as any)?.topUp;
+    return typeof roomTopUp === 'number' ? roomTopUp : 0;
+  })();
 
   if (isLoading || roomsLoading) return <div><Loading/></div>;
   if (isError || !property || !processedProperty) return <div>Property not found</div>;
@@ -516,19 +537,19 @@ const SingleListing = () => {
                   )}
                 </div>
 
-                {/* Deposit Info - Only show if data exists */}
-                {property.securityDeposit !== undefined && (
+                {/* Deposit + Top-up: prefer first room values; fallback to property deposit */}
+                {(displayDeposit !== undefined && displayDeposit !== null) && (
                   <div className="py-4 border-t border-gray-100">
                     <div className="flex items-start justify-between gap-6">
                       <div>
                         <p className="text-sm text-gray-600">Security Deposit</p>
                         <p className="font-semibold">
-                          {property.securityDeposit === 0 ? 'None' : `R${property.securityDeposit.toLocaleString('en-ZA')}`}
+                          {displayDeposit === 0 ? 'None' : `R${displayDeposit.toLocaleString('en-ZA')}`}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-gray-600">Top-up</p>
-                        <p className="font-semibold">R0,00</p>
+                        <p className="font-semibold">{`R${(topUpAmount || 0).toLocaleString('en-ZA')}`}</p>
                       </div>
                     </div>
                   </div>
@@ -661,7 +682,7 @@ const SingleListing = () => {
             
             {/* Property Details */}
             <div className="bg-white shadow-sm rounded-xl p-6">
-              <PropertyDetails propertyId={propertyId} />
+              <PropertyDetails propertyId={propertyId} deposit={displayDeposit} topUp={topUpAmount} />
             </div>
             
             {/* Property Reviews */}

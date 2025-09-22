@@ -102,6 +102,8 @@ declare global {
 
   interface PropertyDetailsProps {
     propertyId: number;
+    deposit?: number;
+    topUp?: number;
   }
 
   interface PropertyOverviewProps {
