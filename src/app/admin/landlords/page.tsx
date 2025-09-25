@@ -24,7 +24,7 @@ export default function LandlordsPage() {
   const searchParams = useSearchParams();
   const statusFilter = searchParams.get("status") || "";
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState(statusFilter || "all");
+  const [selectedStatus, setSelectedStatus] = useState(statusFilter || "Active");
   // Define Manager type for TypeScript
   type Manager = {
     id: number;
