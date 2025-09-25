@@ -50,7 +50,7 @@ export default function LandlordsPage() {
 
   const { data: managers, isLoading, refetch } = useGetAllManagersQuery({ 
     status: selectedStatus !== "all" ? selectedStatus : undefined,
-    includeDemo: true
+    includeDemo: false
   }, {
     skip: !authUser?.cognitoInfo?.userId || normalizedRole !== "admin"
   });

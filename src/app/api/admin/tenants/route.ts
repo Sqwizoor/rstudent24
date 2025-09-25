@@ -34,10 +34,6 @@ export async function GET(request: NextRequest) {
       tenantFilters.push({ cognitoId: { notIn: managerIdList } });
     }
 
-    if (managerEmailList.length > 0) {
-      tenantFilters.push({ email: { notIn: managerEmailList } });
-    }
-
     const tenantWhereClause = tenantFilters.length > 0
       ? { AND: tenantFilters }
       : undefined;
@@ -85,7 +81,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Format the response to include counts
-    const formattedTenants = tenants.map((tenant: TenantWithRelations) => {
+  // Exclude any tenant whose email matches a manager email (case-insensitive)
+  const managerEmailSet = new Set(managerEmailList.map((e: string) => e.toLowerCase()));
+
+  const filteredTenants = tenants.filter((t: TenantWithRelations) => !managerEmailSet.has(t.email.toLowerCase()));
+
+  const formattedTenants = filteredTenants.map((tenant: TenantWithRelations) => {
       const nameParts = (tenant.name ?? "")
         .trim()
         .split(/\s+/)
