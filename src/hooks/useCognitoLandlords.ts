@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-// import { listUsers } from "aws-amplify/auth"; // Not available client-side
+import { fetchAuthSession } from "aws-amplify/auth";
 import type { ExtendedAuthUser } from "@/types/cognito";
 
 export interface CognitoLandlord {
@@ -21,7 +21,16 @@ export function useCognitoLandlords() {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch("/api/admin/cognito-landlords");
+        let headers: HeadersInit = {};
+        try {
+          const session = await fetchAuthSession();
+          const idToken = session.tokens?.idToken?.toString();
+          if (idToken) {
+            headers = { ...headers, Authorization: `Bearer ${idToken}` };
+          }
+        } catch {}
+
+        const res = await fetch("/api/admin/cognito-landlords", { headers });
         if (!res.ok) throw new Error("Failed to fetch landlords from Cognito");
         const data = await res.json();
         setLandlords(data);
