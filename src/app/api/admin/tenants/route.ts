@@ -108,7 +108,10 @@ export async function GET(request: NextRequest) {
       };
     });
     
-    console.log(`Admin tenants - GET: Successfully fetched ${formattedTenants.length} tenants`);
+    console.log(`Admin tenants - GET: Found ${tenants.length} total records, ${managerIdList.length} manager IDs to exclude, ${managerEmailList.length} manager emails to exclude`);
+    console.log(`Admin tenants - GET: After filtering, returning ${formattedTenants.length} tenants`);
+    console.log(`Admin tenants - GET: Manager emails being excluded:`, managerEmailList);
+    console.log(`Admin tenants - GET: Sample tenant emails:`, filteredTenants.slice(0, 3).map((t: TenantWithRelations) => t.email));
     
     return NextResponse.json(formattedTenants);
   } catch (error) {
