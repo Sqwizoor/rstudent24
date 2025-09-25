@@ -13,8 +13,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
     
-    // Get all tenants from the database
+    // Fetch manager cognito IDs to exclude them from tenant results
+    const managerCognitoIds = await prisma.manager.findMany({
+      select: { cognitoId: true }
+    });
+
+    const managerIdList = managerCognitoIds.map(({ cognitoId }: { cognitoId: string }) => cognitoId);
+
+    const tenantWhereClause = managerIdList.length > 0
+      ? { cognitoId: { notIn: managerIdList } }
+      : undefined;
+
+    // Get all tenants from the database (excluding managers)
     const tenants = await prisma.tenant.findMany({
+      where: tenantWhereClause,
       select: {
         id: true,
         cognitoId: true,

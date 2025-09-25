@@ -46,19 +46,23 @@ export default function LandlordsPage() {
   const itemsPerPage = 10;
 
   const { data: authUser } = useGetAuthUserQuery();
+  const normalizedRole = typeof authUser?.userRole === "string" ? authUser.userRole.toLowerCase() : undefined;
+
   const { data: managers, isLoading, refetch } = useGetAllManagersQuery({ 
     status: selectedStatus !== "all" ? selectedStatus : undefined,
     includeDemo: false
   }, {
-    skip: !authUser?.cognitoInfo?.userId || authUser?.userRole !== "admin"
+    skip: !authUser?.cognitoInfo?.userId || normalizedRole !== "admin"
   });
   const [updateManagerStatus] = useUpdateManagerStatusMutation();
   const [deleteManager] = useDeleteManagerMutation();
 
-  const filteredManagers = managers?.filter(manager => {
-    const matchesSearch = manager.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         manager.email.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+  const filteredManagers = managers?.filter((manager) => {
+    const search = searchTerm.toLowerCase();
+    const name = typeof manager.name === "string" ? manager.name.toLowerCase() : "";
+    const email = typeof manager.email === "string" ? manager.email.toLowerCase() : "";
+
+    return name.includes(search) || email.includes(search);
   });
 
   // Pagination logic
