@@ -1,6 +1,7 @@
 "use client";
 
-import { useGetAllManagersQuery, useUpdateManagerStatusMutation, useDeleteManagerMutation, useGetAuthUserQuery } from "@/state/api";
+import { useUpdateManagerStatusMutation, useDeleteManagerMutation, useGetAuthUserQuery } from "@/state/api";
+import { useCognitoLandlords } from "@/hooks/useCognitoLandlords";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
@@ -48,20 +49,14 @@ export default function LandlordsPage() {
   const { data: authUser } = useGetAuthUserQuery();
   const normalizedRole = typeof authUser?.userRole === "string" ? authUser.userRole.toLowerCase() : undefined;
 
-  const { data: managers, isLoading, refetch } = useGetAllManagersQuery({ 
-    status: selectedStatus !== "all" ? selectedStatus : undefined,
-    includeDemo: false
-  }, {
-    skip: !authUser?.cognitoInfo?.userId || normalizedRole !== "admin"
-  });
+  const { landlords, isLoading, error } = useCognitoLandlords();
   const [updateManagerStatus] = useUpdateManagerStatusMutation();
   const [deleteManager] = useDeleteManagerMutation();
 
-  const filteredManagers = managers?.filter((manager) => {
+  const filteredManagers = landlords?.filter((manager) => {
     const search = searchTerm.toLowerCase();
-    const name = typeof manager.name === "string" ? manager.name.toLowerCase() : "";
+    const name = typeof manager.username === "string" ? manager.username.toLowerCase() : "";
     const email = typeof manager.email === "string" ? manager.email.toLowerCase() : "";
-
     return name.includes(search) || email.includes(search);
   });
 
@@ -86,7 +81,7 @@ export default function LandlordsPage() {
       setSelectedManager(null);
       setNewStatus("");
       setNotes("");
-      refetch();
+  // refetch(); // Not needed for Cognito API
     } catch (error) {
       console.error("Failed to update manager status:", error);
     }
@@ -110,7 +105,7 @@ export default function LandlordsPage() {
       await deleteManager(selectedManager.cognitoId).unwrap();
       setIsDeleteDialogOpen(false);
       setSelectedManager(null);
-      refetch();
+  // refetch(); // Not needed for Cognito API
     } catch (error) {
       console.error("Failed to delete manager:", error);
     }
@@ -164,87 +159,32 @@ export default function LandlordsPage() {
       {isLoading ? (
         <div className="flex justify-center py-8">
           <div className="h-12 w-12 bg-blue-200 dark:bg-blue-800 rounded-full animate-pulse"></div>
-          <p className="ml-4 text-sm text-gray-500">Loading landlords/managers from manager table...</p>
+          <p className="ml-4 text-sm text-gray-500">Loading landlords from Cognito...</p>
         </div>
+      ) : error ? (
+        <Card className="p-8 text-center">
+          <p className="text-red-500">{error}</p>
+        </Card>
       ) : filteredManagers?.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="text-gray-500 dark:text-gray-400">No landlords found matching your criteria.</p>
-          <p className="text-sm text-gray-400 mt-2">This page shows ONLY data from the Manager model</p>
+          <p className="text-sm text-gray-400 mt-2">This page shows ONLY data from Cognito</p>
         </Card>
       ) : (
         <div className="grid gap-4">
           {paginatedManagers?.map((manager) => (
-            <Card key={manager.id} className="p-4 bg-white dark:bg-gray-800">
+            <Card key={manager.userId} className="p-4 bg-white dark:bg-gray-800">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium">{manager.name}</h3>
+                    <h3 className="font-medium">{manager.username}</h3>
                     <Badge variant="outline" className="text-xs bg-green-50 text-green-600">LANDLORD/MANAGER</Badge>
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{manager.email}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{manager.phoneNumber}</p>
-                  <div className="mt-2">{getStatusBadge(manager.status)}</div>
+                  <div className="mt-2">{getStatusBadge(manager.status || "Active")}</div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {/* Status change buttons - with conditional rendering based on current status */}
-                  {/* For Pending accounts - show Approve button */}
-                  {manager.status === "Pending" && (
-                    <Button 
-                      variant="outline" 
-                      className="bg-green-50 text-green-600 border-green-200 hover:bg-green-100"
-                      onClick={() => openStatusDialog(manager, "Active")}
-                    >
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      Approve
-                    </Button>
-                  )}
-                  
-                  {/* For Disabled and Banned accounts - show Reactivate button */}
-                  {(manager.status === "Disabled" || manager.status === "Banned") && (
-                    <Button 
-                      variant="outline" 
-                      className="bg-green-50 text-green-600 border-green-200 hover:bg-green-100"
-                      onClick={() => openStatusDialog(manager, "Active")}
-                    >
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      Reactivate
-                    </Button>
-                  )}
-                  
-                  {/* For Active and Pending accounts - show Disable button */}
-                  {(manager.status === "Active" || manager.status === "Pending") && (
-                    <Button 
-                      variant="outline" 
-                      className="bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
-                      onClick={() => openStatusDialog(manager, "Disabled")}
-                    >
-                      <XCircle className="mr-2 h-4 w-4" />
-                      Disable
-                    </Button>
-                  )}
-                  
-                  {/* For all non-banned accounts - show Ban button */}
-                  {manager.status !== "Banned" && (
-                    <Button 
-                      variant="outline" 
-                      className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
-                      onClick={() => openStatusDialog(manager, "Banned")}
-                    >
-                      <Ban className="mr-2 h-4 w-4" />
-                      Ban
-                    </Button>
-                  )}
-                  
-                  {/* Delete button - with special highlight for demo accounts */}
-                  <Button 
-                    variant="outline" 
-                    className={`${manager.email === 'manager@example.com' ? 'bg-red-400 hover:bg-red-500 text-white font-bold' : 'bg-red-50 hover:bg-red-100 text-red-600'} border-red-200`}
-                    onClick={() => openDeleteDialog(manager)}
-                  >
-                    <Ban className="mr-2 h-4 w-4" />
-                    {manager.email === 'manager@example.com' ? 'Delete Demo Account' : 'Delete'}
-                  </Button>
-                </div>
+                {/* You can add buttons for status changes or delete if you implement Cognito admin actions */}
               </div>
             </Card>
           ))}
