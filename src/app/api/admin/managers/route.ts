@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // Fetch managers with filters
+    // Fetch managers ONLY from manager table
     const managers = await prisma.manager.findMany({
       where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
       orderBy: {
@@ -50,6 +50,8 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    console.log(`Admin managers - GET: Found ${managers.length} landlord/manager records`);
+    
     return NextResponse.json(managers);
   } catch (error: any) {
     console.error("Error retrieving managers:", error);

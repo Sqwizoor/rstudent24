@@ -13,38 +13,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
     
-    // Fetch manager identifiers to exclude them from tenant results
-    const managerIdentifiers = await prisma.manager.findMany({
-      select: { cognitoId: true, email: true }
-    });
-
-    type ManagerIdentifier = { cognitoId: string | null; email: string | null };
-
-    const managerIdList = managerIdentifiers
-      .map((manager: ManagerIdentifier) => manager.cognitoId)
-      .filter((id: string | null): id is string => Boolean(id));
-
-    const managerEmailList = managerIdentifiers
-      .map((manager: ManagerIdentifier) => manager.email?.toLowerCase())
-      .filter((email: string | null | undefined): email is string => Boolean(email));
-
-    const tenantFilters: Record<string, unknown>[] = [];
-
-    if (managerIdList.length > 0) {
-      tenantFilters.push({ cognitoId: { notIn: managerIdList } });
-    }
-
-    const tenantWhereClause = tenantFilters.length > 0
-      ? { AND: tenantFilters }
-      : undefined;
-
-    // Get all tenants from the database (excluding managers)
+    // Get all tenants from the database - ONLY from tenant table
     const tenants = await prisma.tenant.findMany({
-      where: tenantWhereClause,
       select: {
         id: true,
         cognitoId: true,
-  name: true,
+        name: true,
         email: true,
         phoneNumber: true,
         favorites: {
@@ -80,13 +54,8 @@ export async function GET(request: NextRequest) {
       leases: { id: number }[];
     }
 
-    // Format the response to include counts
-  // Exclude any tenant whose email matches a manager email (case-insensitive)
-  const managerEmailSet = new Set(managerEmailList.map((e: string) => e.toLowerCase()));
-
-  const filteredTenants = tenants.filter((t: TenantWithRelations) => !managerEmailSet.has(t.email.toLowerCase()));
-
-  const formattedTenants = filteredTenants.map((tenant: TenantWithRelations) => {
+    // Format the response to include counts - no filtering needed, only get from tenant table
+    const formattedTenants = tenants.map((tenant: TenantWithRelations) => {
       const nameParts = (tenant.name ?? "")
         .trim()
         .split(/\s+/)
@@ -108,10 +77,8 @@ export async function GET(request: NextRequest) {
       };
     });
     
-    console.log(`Admin tenants - GET: Found ${tenants.length} total records, ${managerIdList.length} manager IDs to exclude, ${managerEmailList.length} manager emails to exclude`);
-    console.log(`Admin tenants - GET: After filtering, returning ${formattedTenants.length} tenants`);
-    console.log(`Admin tenants - GET: Manager emails being excluded:`, managerEmailList);
-    console.log(`Admin tenants - GET: Sample tenant emails:`, filteredTenants.slice(0, 3).map((t: TenantWithRelations) => t.email));
+    console.log(`Admin tenants - GET: Found ${tenants.length} total tenant records`);
+    console.log(`Admin tenants - GET: Returning ${formattedTenants.length} students/tenants`);
     
     return NextResponse.json(formattedTenants);
   } catch (error) {

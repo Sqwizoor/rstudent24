@@ -134,7 +134,7 @@ export default function LandlordsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight">Manage Landlords</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Landlord Management - Managers/Landlords Only</h1>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
@@ -164,10 +164,12 @@ export default function LandlordsPage() {
       {isLoading ? (
         <div className="flex justify-center py-8">
           <div className="h-12 w-12 bg-blue-200 dark:bg-blue-800 rounded-full animate-pulse"></div>
+          <p className="ml-4 text-sm text-gray-500">Loading landlords/managers from manager table...</p>
         </div>
       ) : filteredManagers?.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="text-gray-500 dark:text-gray-400">No landlords found matching your criteria.</p>
+          <p className="text-sm text-gray-400 mt-2">This page shows ONLY data from the Manager model</p>
         </Card>
       ) : (
         <div className="grid gap-4">
@@ -175,7 +177,10 @@ export default function LandlordsPage() {
             <Card key={manager.id} className="p-4 bg-white dark:bg-gray-800">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <h3 className="font-medium">{manager.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium">{manager.name}</h3>
+                    <Badge variant="outline" className="text-xs bg-green-50 text-green-600">LANDLORD/MANAGER</Badge>
+                  </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{manager.email}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{manager.phoneNumber}</p>
                   <div className="mt-2">{getStatusBadge(manager.status)}</div>

@@ -113,7 +113,7 @@ export default function StudentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight">Student Management</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Student Management - Students/Tenants Only</h1>
         <Button 
           variant="outline" 
           onClick={() => router.push('/admin')}
@@ -140,11 +140,13 @@ export default function StudentsPage() {
           <div className="flex flex-col items-center space-y-3">
             <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900 rounded-full animate-pulse"></div>
             <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <p className="text-sm text-gray-500">Loading students/tenants from tenant table...</p>
           </div>
         </div>
       ) : tenants && tenants.length === 0 ? (
         <div className="text-center p-8 text-slate-500 dark:text-slate-400">
-          No students found in the database
+          <p>No students/tenants found in the tenant database table</p>
+          <p className="text-sm mt-2">This page shows ONLY data from the Tenant model</p>
         </div>
       ) : filteredTenants.length === 0 ? (
         <Card className="p-8 text-center">
@@ -156,7 +158,10 @@ export default function StudentsPage() {
             <Card key={tenant.id} className="p-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h3 className="font-medium">{tenant.firstName} {tenant.lastName}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium">{tenant.firstName} {tenant.lastName}</h3>
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600">STUDENT/TENANT</Badge>
+                  </div>
                   <div className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1 mt-1">
                     <div className="flex items-center gap-1">
                       <Mail className="h-3.5 w-3.5" />
