@@ -13,15 +13,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
     
-    // Fetch manager cognito IDs to exclude them from tenant results
-    const managerCognitoIds = await prisma.manager.findMany({
-      select: { cognitoId: true }
+    // Fetch manager identifiers to exclude them from tenant results
+    const managerIdentifiers = await prisma.manager.findMany({
+      select: { cognitoId: true, email: true }
     });
 
-    const managerIdList = managerCognitoIds.map(({ cognitoId }: { cognitoId: string }) => cognitoId);
+    type ManagerIdentifier = { cognitoId: string | null; email: string | null };
 
-    const tenantWhereClause = managerIdList.length > 0
-      ? { cognitoId: { notIn: managerIdList } }
+    const managerIdList = managerIdentifiers
+      .map((manager: ManagerIdentifier) => manager.cognitoId)
+      .filter((id: string | null): id is string => Boolean(id));
+
+    const managerEmailList = managerIdentifiers
+      .map((manager: ManagerIdentifier) => manager.email?.toLowerCase())
+      .filter((email: string | null | undefined): email is string => Boolean(email));
+
+    const tenantFilters: Record<string, unknown>[] = [];
+
+    if (managerIdList.length > 0) {
+      tenantFilters.push({ cognitoId: { notIn: managerIdList } });
+    }
+
+    if (managerEmailList.length > 0) {
+      tenantFilters.push({ email: { notIn: managerEmailList } });
+    }
+
+    const tenantWhereClause = tenantFilters.length > 0
+      ? { AND: tenantFilters }
       : undefined;
 
     // Get all tenants from the database (excluding managers)
@@ -30,7 +48,7 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         cognitoId: true,
-        name: true,
+  name: true,
         email: true,
         phoneNumber: true,
         favorites: {
@@ -58,7 +76,7 @@ export async function GET(request: NextRequest) {
     type TenantWithRelations = {
       id: number;
       cognitoId: string;
-      name: string;
+      name: string | null;
       email: string;
       phoneNumber: string | null;
       favorites: { id: number }[];
@@ -67,16 +85,27 @@ export async function GET(request: NextRequest) {
     }
 
     // Format the response to include counts
-    const formattedTenants = tenants.map((tenant: TenantWithRelations) => ({
-      id: tenant.id,
-      cognitoId: tenant.cognitoId,
-      name: tenant.name,
-      email: tenant.email,
-      phoneNumber: tenant.phoneNumber || "",
-      favoriteCount: tenant.favorites.length,
-      applicationCount: tenant.applications.length,
-      leaseCount: tenant.leases.length
-    }));
+    const formattedTenants = tenants.map((tenant: TenantWithRelations) => {
+      const nameParts = (tenant.name ?? "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+      const [firstName = "", ...rest] = nameParts;
+      const lastName = rest.join(" ");
+
+      return {
+        id: tenant.id,
+        cognitoId: tenant.cognitoId,
+        name: tenant.name ?? "",
+        firstName,
+        lastName,
+        email: tenant.email,
+        phoneNumber: tenant.phoneNumber || "",
+        favoriteCount: tenant.favorites.length,
+        applicationCount: tenant.applications.length,
+        leaseCount: tenant.leases.length
+      };
+    });
     
     console.log(`Admin tenants - GET: Successfully fetched ${formattedTenants.length} tenants`);
     
