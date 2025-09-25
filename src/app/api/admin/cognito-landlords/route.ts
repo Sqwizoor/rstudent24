@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     type ManagerRecord = {
       name: string | null;
       email: string | null;
-      phone: string | null;
+      phoneNumber: string | null;
       status: string | null;
       cognitoId: string | null;
     };
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       select: {
         name: true,
         email: true,
-        phone: true,
+        phoneNumber: true,
         status: true,
         cognitoId: true,
       },
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       username: m.email ?? m.cognitoId,
       userId: m.cognitoId,
       email: m.email ?? undefined,
-      phoneNumber: m.phone ?? undefined,
+      phoneNumber: m.phoneNumber ?? undefined,
       status: m.status ?? undefined,
       attributes: {
         email: m.email ?? "",
