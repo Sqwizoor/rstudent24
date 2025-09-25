@@ -13,8 +13,41 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
     
-    // Get all tenants from the database - ONLY from tenant table
+    // First get all manager emails and cognito IDs to exclude them
+    const managers = await prisma.manager.findMany({
+      select: {
+        email: true,
+        cognitoId: true
+      }
+    });
+    
+    type ManagerIdentifier = {
+      email: string;
+      cognitoId: string;
+    };
+    
+    const managerEmails = managers.map((m: ManagerIdentifier) => m.email.toLowerCase());
+    const managerCognitoIds = managers.map((m: ManagerIdentifier) => m.cognitoId);
+    
+    console.log(`Admin tenants - GET: Found ${managers.length} managers to exclude`);
+    console.log(`Admin tenants - GET: Manager emails to exclude:`, managerEmails);
+    
+    // Get all tenants from the database but exclude those who are also managers
     const tenants = await prisma.tenant.findMany({
+      where: {
+        AND: [
+          {
+            email: {
+              notIn: managerEmails
+            }
+          },
+          {
+            cognitoId: {
+              notIn: managerCognitoIds
+            }
+          }
+        ]
+      },
       select: {
         id: true,
         cognitoId: true,
@@ -54,7 +87,7 @@ export async function GET(request: NextRequest) {
       leases: { id: number }[];
     }
 
-    // Format the response to include counts - no filtering needed, only get from tenant table
+    // Format the response to include counts
     const formattedTenants = tenants.map((tenant: TenantWithRelations) => {
       const nameParts = (tenant.name ?? "")
         .trim()
@@ -77,8 +110,7 @@ export async function GET(request: NextRequest) {
       };
     });
     
-    console.log(`Admin tenants - GET: Found ${tenants.length} total tenant records`);
-    console.log(`Admin tenants - GET: Returning ${formattedTenants.length} students/tenants`);
+    console.log(`Admin tenants - GET: After excluding managers, returning ${formattedTenants.length} actual students/tenants`);
     
     return NextResponse.json(formattedTenants);
   } catch (error) {

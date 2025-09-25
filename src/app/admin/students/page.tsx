@@ -72,12 +72,6 @@ type TenantDetails = {
 export default function StudentsPage() {
   const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
-  // No longer need dialog-related state as we're using navigation
-  
-  // Function to navigate to landlord details
-  const viewLandlordDetails = (landlordId: number) => {
-    router.push(`/admin/landlords/${landlordId}`);
-  };
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -86,16 +80,20 @@ export default function StudentsPage() {
   const { data: authUser } = useGetAuthUserQuery();
   const { data: tenants, isLoading: isLoadingTenants } = useGetAllTenantsQuery();
   
-  // No longer need to fetch tenant details in this component
-  // Details are now fetched in the [id]/page.tsx component
-  
   const router = useRouter();
 
+  // Filter tenants and add additional client-side check
   const filteredTenants = tenants ? tenants.filter(tenant => {
     const fullName = `${tenant.firstName} ${tenant.lastName}`.toLowerCase();
     const matchesSearch = fullName.includes(searchTerm.toLowerCase()) || 
                          tenant.email.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+    
+    // Additional safety check - exclude any emails that look like manager accounts
+    const isLikelyManager = tenant.email.includes('sqwizoor') || 
+                           tenant.email.includes('manager') ||
+                           tenant.name?.toLowerCase().includes('manager');
+    
+    return matchesSearch && !isLikelyManager;
   }) : [];
 
   // Pagination logic

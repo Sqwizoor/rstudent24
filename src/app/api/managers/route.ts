@@ -101,17 +101,24 @@ export async function POST(request: NextRequest) {
     
     // Extract manager data - provide fallbacks for everything to ensure it works
     const cognitoId = body.cognitoId;
-    const email = body.email || 'manager@example.com'; // Fallback email
+    // FIX: Don't use fallback email - use the actual email from the request or reject
+    const email = body.email;
     const firstName = body.firstName || '';
     const lastName = body.lastName || '';
     const phone = body.phone || body.phoneNumber || '';
     // Ensure we have a name - derive from email if not provided
     const name = body.name || (email ? email.split('@')[0] : 'Manager') || 'Manager';
     
-    // Validate only the absolute minimum required field
+    // Validate required fields - BOTH cognitoId AND email are required
     if (!cognitoId) {
       return NextResponse.json({ 
         message: "Missing required field: cognitoId"
+      }, { status: 400 });
+    }
+    
+    if (!email || email === 'manager@example.com') {
+      return NextResponse.json({ 
+        message: "Missing required field: valid email address"
       }, { status: 400 });
     }
 

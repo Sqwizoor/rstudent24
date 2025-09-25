@@ -63,15 +63,23 @@ export const createNewUserInDatabase = async (
   const createEndpoint =
     userRole?.toLowerCase() === "manager" ? "/managers" : "/tenants";
 
+  const userData = {
+    cognitoId: user.userId,
+    name: user.username,
+    email: idToken?.payload?.email || user.attributes?.email || "",
+    phoneNumber: user.attributes?.phone_number || "",
+  };
+  
+  console.log(`Store.ts - Creating ${userRole} with data:`, {
+    cognitoId: userData.cognitoId,
+    email: userData.email,
+    endpoint: createEndpoint
+  });
+
   const createUserResponse = await fetchWithBQ({
     url: createEndpoint,
     method: "POST",
-    body: {
-      cognitoId: user.userId,
-      name: user.username,
-      email: idToken?.payload?.email || "",
-      phoneNumber: "",
-    },
+    body: userData,
   });
 
   if (createUserResponse.error) {

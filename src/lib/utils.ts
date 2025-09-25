@@ -82,8 +82,8 @@ export const createNewUserInDatabase = async (
   const userData = {
     cognitoId: user.userId,
     name: user.username || '',
-    email: idToken?.payload?.email || '',
-    phoneNumber: '',
+    email: idToken?.payload?.email || user.attributes?.email || '', // Try multiple sources for email
+    phoneNumber: user.attributes?.phone_number || '',
     // For managers, include required fields from the Manager model
     ...(userRole?.toLowerCase() === "manager" && {
       firstName: user.attributes?.given_name || '',
@@ -91,6 +91,12 @@ export const createNewUserInDatabase = async (
       companyName: ''
     })
   };
+  
+  console.log(`Creating ${userRole} with data:`, {
+    cognitoId: userData.cognitoId,
+    email: userData.email,
+    name: userData.name
+  });
 
   // Creating user in database
 
