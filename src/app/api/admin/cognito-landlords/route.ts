@@ -1,56 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CognitoIdentityProviderClient, ListUsersCommand } from "@aws-sdk/client-cognito-identity-provider";
-
-// You should store these securely in environment variables
-const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID!;
-const AWS_REGION = process.env.AWS_REGION!;
-const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID!;
-const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY!;
+import { verifyAuth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
-    type CognitoAttribute = { Name: string; Value?: string };
-    type CognitoUser = {
-      Username: string;
-      UserStatus?: string;
-      Attributes?: CognitoAttribute[];
+    // Require admin role, consistent with other admin routes
+    const auth = await verifyAuth(request, ["admin"]);
+    if (!auth.isAuthenticated) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    type ManagerRecord = {
+      name: string | null;
+      email: string | null;
+      phone: string | null;
+      status: string | null;
+      cognitoId: string | null;
     };
 
-    const client = new CognitoIdentityProviderClient({
-      region: AWS_REGION,
-      credentials: {
-        accessKeyId: AWS_ACCESS_KEY_ID,
-        secretAccessKey: AWS_SECRET_ACCESS_KEY,
+    // Use DB to list managers/landlords; avoid direct SDK dependency
+    const managers: ManagerRecord[] = await prisma.manager.findMany({
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        status: true,
+        cognitoId: true,
       },
+      orderBy: { createdAt: "desc" },
     });
-    const command = new ListUsersCommand({
-      UserPoolId: USER_POOL_ID,
-      // Optionally filter by landlord/manager role
-      // Filter: "custom:role = \"manager\""
-    });
-    const response = await client.send(command) as { Users?: CognitoUser[] };
-    const landlords = (response.Users || [])
-      .filter((user: CognitoUser) =>
-        user.Attributes?.some(
-          (attr: CognitoAttribute) => attr.Name === "custom:role" && ["manager", "landlord"].includes(attr.Value || "")
-        )
-      )
-      .map((user: CognitoUser) => {
-        const attributes: Record<string, string> = {};
-        user.Attributes?.forEach((attr: CognitoAttribute) => {
-          attributes[attr.Name] = attr.Value || "";
-        });
-        return {
-          username: user.Username,
-          userId: attributes["sub"] || user.Username,
-          email: attributes["email"],
-          phoneNumber: attributes["phone_number"],
-          status: user.UserStatus,
-          attributes,
-        };
-      });
+
+    const landlords = managers.map((m: ManagerRecord) => ({
+      username: m.email ?? m.cognitoId,
+      userId: m.cognitoId,
+      email: m.email ?? undefined,
+      phoneNumber: m.phone ?? undefined,
+      status: m.status ?? undefined,
+      attributes: {
+        email: m.email ?? "",
+        name: m.name ?? "",
+        role: "manager",
+        sub: m.cognitoId ?? "",
+      },
+    }));
+
     return NextResponse.json(landlords);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to fetch landlords from Cognito" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to fetch landlords" }, { status: 500 });
   }
 }
