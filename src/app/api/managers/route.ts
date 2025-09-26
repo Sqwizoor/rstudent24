@@ -56,58 +56,46 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // If we couldn't get body data, try to extract from auth token
-    if (!bodyReadSuccess) {
-      console.log('Attempting to extract user info from auth token...');
-      const authHeader = request.headers.get('authorization');
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        try {
-          const token = authHeader.split(' ')[1];
-          const tokenParts = token.split('.');
-          if (tokenParts.length === 3) {
-            // Base64 decode the payload
-            const payloadBase64 = tokenParts[1].replace(/-/g, '+').replace(/_/g, '/');
-            const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
-            
-            if (payload.sub) {
-              body = {
-                cognitoId: payload.sub,
-                email: payload.email || 'unknown@example.com',
-                name: payload['cognito:username']
-              };
-              bodyReadSuccess = true;
-              console.log('Successfully extracted user data from token');
-            }
-          }
-        } catch (tokenError) {
-          console.error('Failed to extract user data from token:', tokenError);
+    // Attempt to enrich or fill missing fields from the Authorization token
+    console.log('Attempting to enrich request data from auth token (if available)...');
+    const authHeader = request.headers.get('authorization');
+    let tokenPayload: any = null;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const tokenParts = token.split('.');
+        if (tokenParts.length === 3) {
+          const payloadBase64 = tokenParts[1].replace(/-/g, '+').replace(/_/g, '/');
+          tokenPayload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
         }
+      } catch (e) {
+        console.warn('Could not decode JWT payload:', e);
       }
     }
+
+    // Normalize to an object
+    body = body || {};
     
-    // If we still don't have body data, return error
-    if (!bodyReadSuccess || !body) {
-      return NextResponse.json({
-        message: "Could not read request data from any source"
-      }, { status: 400 });
+    // If fields are missing, pull from token payload when possible
+    if (!body.cognitoId && tokenPayload?.sub) body.cognitoId = tokenPayload.sub;
+    if (!body.email && tokenPayload?.email) body.email = tokenPayload.email;
+    if (!body.name) {
+      body.name = tokenPayload?.['cognito:username'] || (body.email ? String(body.email).split('@')[0] : undefined);
     }
     
-    // Ensure we have a valid body object
-    if (!body || Object.keys(body).length === 0) {
-      return NextResponse.json({
-        message: "Empty request body and no fallback data available"
-      }, { status: 400 });
+    // If we still have no meaningful data, return error
+    if (!body || (Object.keys(body).length === 0)) {
+      return NextResponse.json({ message: 'Empty request body and no fallback data available' }, { status: 400 });
     }
     
     // Extract manager data - provide fallbacks for everything to ensure it works
-    const cognitoId = body.cognitoId;
-    // FIX: Don't use fallback email - use the actual email from the request or reject
-    const email = body.email;
+  const cognitoId = body.cognitoId;
+  const email = body.email;
     const firstName = body.firstName || '';
     const lastName = body.lastName || '';
     const phone = body.phone || body.phoneNumber || '';
     // Ensure we have a name - derive from email if not provided
-    const name = body.name || (email ? email.split('@')[0] : 'Manager') || 'Manager';
+  const name = body.name || (email ? email.split('@')[0] : 'Manager') || 'Manager';
     
     // Validate required fields - BOTH cognitoId AND email are required
     if (!cognitoId) {
