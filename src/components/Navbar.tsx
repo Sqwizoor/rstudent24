@@ -39,10 +39,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
 const Navbar = () => {
-  const { user: authUser, isAuthenticated, provider } = useUnifiedAuth()
+  const { user: authUser, isAuthenticated, provider, isLoading: authLoading } = useUnifiedAuth()
   const router = useRouter()
   const pathname = usePathname()
-  const [isLoading, setIsLoading] = useState(true)
+  // Use auth loading to avoid UI flicker when session is still resolving
+  const [isLoading, setIsLoading] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
   const isDashboardPage = pathname.includes("/managers") || pathname.includes("/tenants") || pathname.includes("/admin")
@@ -50,15 +51,10 @@ const Navbar = () => {
   // Check if current page is the home page (which has a dark background image)
   const isHomePage = pathname === "/"
 
-  // Loading state management
+  // Sync component loading state with auth loading to avoid showing wrong UI briefly
   useEffect(() => {
-    // Simulate loading state for initial render
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [])
+    setIsLoading(!!authLoading)
+  }, [authLoading])
 
   // For Next.js App Router, we need to handle route changes differently
   const handleRouteChangeComplete = () => {
@@ -135,6 +131,16 @@ const Navbar = () => {
     }
     return 'User';
   };
+
+  const handlePrimaryAuthAction = () => {
+    if (isAuthenticated && authUser?.role) {
+      const role = authUser.role.toLowerCase();
+      if (role === "admin") return router.push("/admin");
+      if (role === "manager") return router.push("/managers/properties");
+      return router.push("/tenants/favorites");
+    }
+    router.push("/signin");
+  }
 
   const getUserInitial = () => {
     const display = getDisplayName();
@@ -231,7 +237,13 @@ const Navbar = () => {
 
           {/* Right section: User actions */}
           <div className="flex items-center gap-6">
-            {authUser ? (
+            {/* While loading auth, avoid rendering auth-dependent UI to prevent flicker */}
+            {isLoading ? (
+              <div className="flex items-center gap-4">
+                <div className="h-9 w-32 rounded-full bg-slate-200 animate-pulse" />
+                <div className="h-9 w-9 rounded-full bg-slate-200 animate-pulse" />
+              </div>
+            ) : authUser ? (
               <>
                 {/* Theme toggle - only show on dashboard pages */}
                 {isDashboardPage && <ThemeToggle />}
@@ -380,10 +392,10 @@ const Navbar = () => {
                   
                   {/* Auth buttons */}
                   <div className="flex items-center gap-8 mr-5">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => router.push("/signup")}
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={() => router.push("/signup")}
                     className={cn(
                       "transition-colors bg-transparent border-2 px-7 py-4 rounded-full text-l shadow-md",
                       scrolled 
@@ -398,10 +410,10 @@ const Navbar = () => {
                   
                   <Button
                     size="lg"
-                    onClick={() => router.push("/signin")}
+                        onClick={handlePrimaryAuthAction}
                     className="bg-[#00acee] hover:bg-[#00acee] text-white  text-l px-7 py-5 rounded-full shadow-full hover:shadow-xl transition-all duration-300"
                   >
-                    Login
+                        {isAuthenticated ? 'Go to dashboard' : 'Login'}
                   </Button>
                   </div>
                 </div>
