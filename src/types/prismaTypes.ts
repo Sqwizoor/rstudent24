@@ -81,6 +81,7 @@ export interface Property {
   amenities?: string[];
   highlights?: string[];
   closestUniversities?: string[];
+  closestCampuses?: string[];
   // Related models
   location?: any;
   leases?: any[];

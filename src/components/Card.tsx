@@ -39,6 +39,7 @@ interface PropertyCardProps {
     availableRooms?: number
     rooms?: Room[] // Add rooms data for calculation
     closestUniversities?: string[]
+    closestCampuses?: string[]
   }
   isFavorite?: boolean
   onFavoriteToggle?: () => void
@@ -308,8 +309,8 @@ function PropertyCard({
             </p>
           </div>
           
-          {/* Closest University */}
-          {property.closestUniversities && property.closestUniversities.length > 0 && (
+          {/* Closest Campus */}
+          {property.closestCampuses && property.closestCampuses.length > 0 && (
             <div className="flex items-center text-sm text-[#536167]">
               <div className="flex items-center justify-center w-7 h-7 bg-gray-50 rounded-full mr-2 flex-shrink-0">
                 <svg className="h-3.5 w-3.5 text-[#00acee]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -317,8 +318,8 @@ function PropertyCard({
                 </svg>
               </div>
               <p className="line-clamp-1 font-normal">
-                Close to {property.closestUniversities.slice(0, 2).join(", ")}
-                {property.closestUniversities.length > 2 && ` +${property.closestUniversities.length - 2} more`}
+                Close to {property.closestCampuses.slice(0, 2).join(", ")}
+                {property.closestCampuses.length > 2 && ` +${property.closestCampuses.length - 2} more`}
               </p>
             </div>
           )}

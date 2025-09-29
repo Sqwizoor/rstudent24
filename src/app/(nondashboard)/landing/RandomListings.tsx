@@ -110,6 +110,7 @@ const RandomListings = () => {
         numberOfReviews: typeof property.numberOfReviews === 'number' ? property.numberOfReviews : 0,
         description: property.description || '',
         closestUniversities: property.closestUniversities || [],
+        closestCampuses: property.closestCampuses || [],
         location: property.location || {
           address: 'No address provided',
           city: 'Unknown location',
@@ -132,6 +133,7 @@ const RandomListings = () => {
         numberOfReviews: typeof property.numberOfReviews === 'number' ? property.numberOfReviews : 0,
         description: property.description || '',
         closestUniversities: property.closestUniversities || [],
+        closestCampuses: property.closestCampuses || [],
         location: property.location || {
           address: 'No address provided',
           city: 'Unknown location',
@@ -300,6 +302,7 @@ const RandomListings = () => {
       numberOfReviews: typeof property.numberOfReviews === 'number' ? property.numberOfReviews : 0,
       description: property.description || '',
       closestUniversities: property.closestUniversities || [],
+      closestCampuses: property.closestCampuses || [],
       location: property.location || {
         address: 'No address provided',
         city: 'Unknown location',
