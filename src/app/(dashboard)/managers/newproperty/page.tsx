@@ -1012,54 +1012,16 @@ const NewProperty = () => {
                 onStepClick={goToStep}
               >
                 <div>
-                  <CustomFormField
-                    name="photoUrls" // This is for react-hook-form
-                    label="Upload Photos"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    labelClassName={labelStyle}
-                    inputClassName="hidden" // The actual input is hidden, styled by the label
-                    onChange={handleFileChange} // Updates `uploadedFiles` for preview AND calls field.onChange
-                    render={({ field }) => ( // field.onChange is crucial for react-hook-form
-                      <div className="mt-2">
-                        <label
-                          htmlFor={`${field.name}-input`}
-                          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-[#1E2A45] rounded-lg cursor-pointer bg-white dark:bg-[#0B1120]/50 hover:bg-slate-50 dark:hover:bg-[#0B1120] transition-colors"
-                        >
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <Upload className="w-8 h-8 mb-3 text-[#4F9CF9]" />
-                            <p className="mb-2 text-sm text-slate-600 dark:text-gray-400">
-                              <span className="font-semibold">Click to upload</span> or drag and drop
-                            </p>
-                            <p className="text-xs text-slate-500 dark:text-gray-500">PNG, JPG, GIF up to 10MB</p>
-                          </div>
-                          <input
-                            id={`${field.name}-input`}
-                            type="file"
-                            className="hidden"
-                            multiple
-                            accept="image/*"
-                            onChange={(e) => {
-                              field.onChange(e.target.files); // This updates react-hook-form's state for "photoUrls"
-                              handleFileChange(e);             // This updates your local `uploadedFiles` state for previews
-                            }}
-                          />
-                        </label>
-                      </div>
-                    )}
-                  />
-
-                  {/* File preview for property photos */}
+                  {/* File preview for property photos - Moved above upload area */}
                   {(() => {
                     const watched = form.watch('photoUrls') as unknown as File[] | undefined;
                     const previewFiles: File[] = (Array.isArray(watched) && watched.length > 0)
                       ? watched
                       : uploadedFiles;
                     return previewFiles.length > 0 ? (
-                    <div className="mt-4">
-                      <p className="text-sm text-slate-700 dark:text-gray-400 mb-2">Selected property files ({previewFiles.length}):</p>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    <div className="mb-6">
+                      <p className="text-sm text-slate-700 dark:text-gray-400 mb-3">Selected property files ({previewFiles.length}):</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         {previewFiles.map((file, index) => {
                           const isFeatured = index === featuredImageIndex;
                           return (
@@ -1087,10 +1049,48 @@ const NewProperty = () => {
                           );
                         })}
                       </div>
-                      <p className="mt-2 text-xs text-slate-600 dark:text-gray-500">The featured image appears first in listings. Click a thumbnail label to change.</p>
+                      <p className="mt-3 text-xs text-slate-600 dark:text-gray-500">The featured image appears first in listings. Click a thumbnail label to change.</p>
                     </div>
                     ) : null;
                   })()}
+
+                  <CustomFormField
+                    name="photoUrls" // This is for react-hook-form
+                    label="Upload Photos"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    labelClassName={labelStyle}
+                    inputClassName="hidden" // The actual input is hidden, styled by the label
+                    onChange={handleFileChange} // Updates `uploadedFiles` for preview AND calls field.onChange
+                    render={({ field }) => ( // field.onChange is crucial for react-hook-form
+                      <div className="mt-2">
+                        <label
+                          htmlFor={`${field.name}-input`}
+                          className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-slate-300 dark:border-[#1E2A45] rounded-lg cursor-pointer bg-white dark:bg-[#0B1120]/50 hover:bg-slate-50 dark:hover:bg-[#0B1120] transition-colors shadow-sm"
+                        >
+                          <div className="flex flex-col items-center justify-center pt-6 pb-6">
+                            <Upload className="w-10 h-10 mb-4 text-[#4F9CF9]" />
+                            <p className="mb-2 text-sm text-slate-600 dark:text-gray-400">
+                              <span className="font-semibold">Click to upload more photos</span> or drag and drop
+                            </p>
+                            <p className="text-xs text-slate-500 dark:text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                          </div>
+                          <input
+                            id={`${field.name}-input`}
+                            type="file"
+                            className="hidden"
+                            multiple
+                            accept="image/*"
+                            onChange={(e) => {
+                              field.onChange(e.target.files); // This updates react-hook-form's state for "photoUrls"
+                              handleFileChange(e);             // This updates your local `uploadedFiles` state for previews
+                            }}
+                          />
+                        </label>
+                      </div>
+                    )}
+                  />
                 </div>
                 
                 <StepNavigation

@@ -16,6 +16,7 @@ import PropertyReviews from "@/components/PropertyReviews";
 import { Building2, Bed, Bath, Users, Home } from "lucide-react";
 import { getRoomStats } from "@/lib/roomUtils";
 import Card from "@/components/Card";
+import { NAVBAR_HEIGHT } from "@/lib/constants";
 
 // Define interfaces for type safety
 interface Room {
@@ -709,11 +710,15 @@ const SingleListing = () => {
 
       {/* Image Gallery Modal */}
       {isImageModalOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+        <div
+          className="fixed left-0 w-full bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          style={{
+            top: `${NAVBAR_HEIGHT}px`,
+            height: `calc(100vh - ${NAVBAR_HEIGHT}px)`
+          }}
           onClick={() => setIsImageModalOpen(false)}
         >
-          <div 
+          <div
             className="relative bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
@@ -729,7 +734,6 @@ const SingleListing = () => {
                 </svg>
               </button>
             </div>
-            
             {/* Image Preview Component */}
             <div className="p-4">
               <ImagePreviews images={processedProperty.images || []} />
