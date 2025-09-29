@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { getRoomStats } from "@/lib/roomUtils"
+import { getCampusLabelsByIds } from "@/lib/constants"
 import type { Room } from "@/types/prismaTypes"
 
 interface PropertyCardProps {
@@ -318,8 +319,11 @@ function PropertyCard({
                 </svg>
               </div>
               <p className="line-clamp-1 font-normal">
-                Close to {property.closestCampuses.slice(0, 2).join(", ")}
-                {property.closestCampuses.length > 2 && ` +${property.closestCampuses.length - 2} more`}
+                {(() => {
+                  const campusLabels = getCampusLabelsByIds(property.closestCampuses);
+                  const displayLabels = campusLabels.slice(0, 2);
+                  return displayLabels.join(", ") + (campusLabels.length > 2 ? ` +${campusLabels.length - 2} more` : "");
+                })()}
               </p>
             </div>
           )}

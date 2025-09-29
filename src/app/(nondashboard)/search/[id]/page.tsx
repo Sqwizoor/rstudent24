@@ -16,7 +16,7 @@ import PropertyReviews from "@/components/PropertyReviews";
 import { Building2, Bed, Bath, Users, Home } from "lucide-react";
 import { getRoomStats } from "@/lib/roomUtils";
 import Card from "@/components/Card";
-import { NAVBAR_HEIGHT } from "@/lib/constants";
+import { NAVBAR_HEIGHT, getCampusLabelById } from "@/lib/constants";
 
 // Define interfaces for type safety
 interface Room {
@@ -448,7 +448,7 @@ const SingleListing = () => {
                               </svg>
                             </div>
                             <span className="text-gray-700 font-medium whitespace-nowrap">
-                              Close to {property.closestCampuses[0]}
+                              {getCampusLabelById(property.closestCampuses[0])}
                             </span>
                           </div>
                         )}

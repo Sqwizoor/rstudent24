@@ -444,3 +444,14 @@ export const getCampusOptionsByProvince = (province?: (typeof PROVINCES)[number]
     .map(c => ({ value: String(c.campusID), label: c.websiteLabel }));
 };
 
+// Helper: convert campus ID to readable campus name
+export const getCampusLabelById = (campusId: string | number): string => {
+  const campus = CAMPUSES.find(c => c.campusID === Number(campusId));
+  return campus ? campus.websiteLabel : `Campus ${campusId}`;
+};
+
+// Helper: convert array of campus IDs to readable campus names
+export const getCampusLabelsByIds = (campusIds: (string | number)[]): string[] => {
+  return campusIds.map(id => getCampusLabelById(id));
+};
+
