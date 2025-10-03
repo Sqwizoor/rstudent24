@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 // Icons
 import { Bed, Upload, X, Trash2, CircleDollarSign, SquareUser, Home } from "lucide-react"
+import { RedirectTypeEnum } from "@/lib/constants"
 
 // Room schema
 export const roomSchema = z.object({
@@ -63,7 +64,7 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
       roomType: "PRIVATE",
       bathroomPrivacy: "SHARED",
       kitchenPrivacy: "SHARED",
-      redirectType: "NONE",
+      redirectType: RedirectTypeEnum.NONE,
       whatsappNumber: "",
       customLink: "",
     },
@@ -230,16 +231,16 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                 label="Redirect students to:"
                 type="select"
                 options={[
-                  { value: "NONE", label: "No redirect (default)" },
-                  { value: "WHATSAPP", label: "WhatsApp only" },
-                  { value: "CUSTOM_LINK", label: "Custom link only" },
-                  { value: "BOTH", label: "Both WhatsApp and custom link" },
+                  { value: RedirectTypeEnum.NONE, label: "No redirect (default)" },
+                  { value: RedirectTypeEnum.WHATSAPP, label: "WhatsApp only" },
+                  { value: RedirectTypeEnum.CUSTOM_LINK, label: "Custom link only" },
+                  { value: RedirectTypeEnum.BOTH, label: "Both WhatsApp and custom link" },
                 ]}
                 labelClassName={labelStyle}
                 inputClassName={inputStyle}
               />
 
-              {(form.watch("redirectType") === "WHATSAPP" || form.watch("redirectType") === "BOTH") && (
+              {(form.watch("redirectType") === RedirectTypeEnum.WHATSAPP || form.watch("redirectType") === RedirectTypeEnum.BOTH) && (
                 <CreateFormField
                   name="whatsappNumber"
                   label="WhatsApp Number"
@@ -249,7 +250,7 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                 />
               )}
 
-              {(form.watch("redirectType") === "CUSTOM_LINK" || form.watch("redirectType") === "BOTH") && (
+              {(form.watch("redirectType") === RedirectTypeEnum.CUSTOM_LINK || form.watch("redirectType") === RedirectTypeEnum.BOTH) && (
                 <CreateFormField
                   name="customLink"
                   label="Custom Link"

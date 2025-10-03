@@ -23,7 +23,7 @@ import { RoomFormData as ModalRoomFormDataBase, roomSchema as modalRoomSchema } 
 
 // Extend the form data type to include optional id for editing
 type ModalRoomFormData = ModalRoomFormDataBase & { id?: number };
-import { RoomTypeEnum as ModalRoomTypeEnum } from '@/lib/constants';
+import { RoomTypeEnum as ModalRoomTypeEnum, RedirectTypeEnum } from '@/lib/constants';
 import { CreateFormField as ModalCreateFormField } from '@/components/CreateFormField';
 import { cn } from '@/lib/utils';
 import { DatePickerDemo as UIDatePicker } from '@/components/ui/date-picker';
@@ -86,7 +86,7 @@ export function PropertyEditPageRoomFormModal({
         name: "", pricePerMonth: 0, securityDeposit: 0, topUp: 0, squareFeet: undefined,
   isAvailable: true, availableFrom: null, roomType: ModalRoomTypeEnum.PRIVATE, capacity: 1,
   bathroomPrivacy: 'SHARED' as const, kitchenPrivacy: 'SHARED' as const, photoUrls: [], newPhotos: null, photosToDelete: [], replacePhotos: false,
-        redirectType: "NONE", whatsappNumber: "", customLink: "",
+        redirectType: RedirectTypeEnum.NONE, whatsappNumber: "", customLink: "",
         ...initialRoomData, // Apply initial data for editing
       };
       // Ensure date is a Date object if present
@@ -278,14 +278,14 @@ export function PropertyEditPageRoomFormModal({
                 label="Redirect students to:" 
                 type="select" 
                 options={[
-                  { value: "NONE", label: "No redirect (default)" },
-                  { value: "WHATSAPP", label: "WhatsApp only" },
-                  { value: "CUSTOM_LINK", label: "Custom link only" },
-                  { value: "BOTH", label: "Both WhatsApp and custom link" },
+                  { value: RedirectTypeEnum.NONE, label: "No redirect (default)" },
+                  { value: RedirectTypeEnum.WHATSAPP, label: "WhatsApp only" },
+                  { value: RedirectTypeEnum.CUSTOM_LINK, label: "Custom link only" },
+                  { value: RedirectTypeEnum.BOTH, label: "Both WhatsApp and custom link" },
                 ]} 
               />
 
-              {(watchRoomForm("redirectType") === "WHATSAPP" || watchRoomForm("redirectType") === "BOTH") && (
+              {(watchRoomForm("redirectType") === RedirectTypeEnum.WHATSAPP || watchRoomForm("redirectType") === RedirectTypeEnum.BOTH) && (
                 <ModalCreateFormField
                   name="whatsappNumber"
                   label="WhatsApp Number"
@@ -293,7 +293,7 @@ export function PropertyEditPageRoomFormModal({
                 />
               )}
 
-              {(watchRoomForm("redirectType") === "CUSTOM_LINK" || watchRoomForm("redirectType") === "BOTH") && (
+              {(watchRoomForm("redirectType") === RedirectTypeEnum.CUSTOM_LINK || watchRoomForm("redirectType") === RedirectTypeEnum.BOTH) && (
                 <ModalCreateFormField
                   name="customLink"
                   label="Custom Link"
