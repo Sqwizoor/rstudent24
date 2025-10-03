@@ -34,7 +34,7 @@ export const roomSchema = z.object({
   photoUrls: z.any().optional(),
   
   // Redirect settings for applications
-  redirectType: z.enum(["WHATSAPP", "CUSTOM_LINK", "BOTH"]).optional(),
+  redirectType: z.enum(["NONE", "WHATSAPP", "CUSTOM_LINK", "BOTH"]).optional(),
   whatsappNumber: z.string().optional(),
   customLink: z.string().optional(),
 })
@@ -63,7 +63,7 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
       roomType: "PRIVATE",
       bathroomPrivacy: "SHARED",
       kitchenPrivacy: "SHARED",
-      redirectType: undefined,
+      redirectType: "NONE",
       whatsappNumber: "",
       customLink: "",
     },
@@ -230,7 +230,7 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                 label="Redirect students to:"
                 type="select"
                 options={[
-                  { value: "", label: "No redirect (default)" },
+                  { value: "NONE", label: "No redirect (default)" },
                   { value: "WHATSAPP", label: "WhatsApp only" },
                   { value: "CUSTOM_LINK", label: "Custom link only" },
                   { value: "BOTH", label: "Both WhatsApp and custom link" },
@@ -307,50 +307,6 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                     ))}
                   </div>
                 </div>
-              )}
-            </div>
-
-            {/* Application Redirect Settings */}
-            <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-[#1E2A45]">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>Application Redirect Settings</span>
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-gray-400">
-                Choose where students should be redirected after submitting an application for this room.
-              </p>
-              
-              <CreateFormField
-                name="redirectType"
-                label="Redirect students to:"
-                type="select"
-                options={[
-                  { value: "", label: "No redirect (default)" },
-                  { value: "WHATSAPP", label: "WhatsApp only" },
-                  { value: "CUSTOM_LINK", label: "Custom link only" },
-                  { value: "BOTH", label: "Both WhatsApp and custom link" },
-                ]}
-                labelClassName={labelStyle}
-                inputClassName={inputStyle}
-              />
-
-              {(form.watch("redirectType") === "WHATSAPP" || form.watch("redirectType") === "BOTH") && (
-                <CreateFormField
-                  name="whatsappNumber"
-                  label="WhatsApp Number"
-                  placeholder="e.g., +27123456789"
-                  labelClassName={labelStyle}
-                  inputClassName={inputStyle}
-                />
-              )}
-
-              {(form.watch("redirectType") === "CUSTOM_LINK" || form.watch("redirectType") === "BOTH") && (
-                <CreateFormField
-                  name="customLink"
-                  label="Custom Link"
-                  placeholder="e.g., https://your-website.com/contact"
-                  labelClassName={labelStyle}
-                  inputClassName={inputStyle}
-                />
               )}
             </div>
 

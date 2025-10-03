@@ -78,7 +78,7 @@ interface RoomData {
   photoUrls: string[];
   bathroomPrivacy?: 'PRIVATE' | 'SHARED';
   kitchenPrivacy?: 'PRIVATE' | 'SHARED';
-  redirectType?: 'WHATSAPP' | 'CUSTOM_LINK' | 'BOTH';
+  redirectType?: 'NONE' | 'WHATSAPP' | 'CUSTOM_LINK' | 'BOTH';
   whatsappNumber?: string;
   customLink?: string;
 }
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           photoUrls: [] as string[],
           bathroomPrivacy: (() => { const v = formData.get('bathroomPrivacy')?.toString(); return v ? (v.toUpperCase() as 'PRIVATE' | 'SHARED') : undefined; })(),
           kitchenPrivacy: (() => { const v = formData.get('kitchenPrivacy')?.toString(); return v ? (v.toUpperCase() as 'PRIVATE' | 'SHARED') : undefined; })(),
-          redirectType: (() => { const v = formData.get('redirectType')?.toString(); return v && v !== "" ? (v.toUpperCase() as 'WHATSAPP' | 'CUSTOM_LINK' | 'BOTH') : undefined; })(),
+          redirectType: (() => { const v = formData.get('redirectType')?.toString(); return v && v !== "" ? (v.toUpperCase() as 'NONE' | 'WHATSAPP' | 'CUSTOM_LINK' | 'BOTH') : undefined; })(),
           whatsappNumber: formData.get('whatsappNumber')?.toString(),
           customLink: formData.get('customLink')?.toString(),
         };

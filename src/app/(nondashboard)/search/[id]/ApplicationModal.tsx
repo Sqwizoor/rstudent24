@@ -79,7 +79,7 @@ const ApplicationModal = ({
 
     const { redirectType, whatsappNumber, customLink } = roomData;
 
-    if (!redirectType) {
+    if (!redirectType || redirectType === 'NONE') {
       return; // No redirect configured
     }
 
@@ -252,7 +252,7 @@ const ApplicationModal = ({
       console.log('Application submission successful:', responseData);
       
       // Handle redirect based on room settings
-      const hasRedirect = roomData?.redirectType;
+      const hasRedirect = roomData?.redirectType && roomData.redirectType !== 'NONE';
       
       if (hasRedirect) {
         toast.success("Application Submitted Successfully!", {

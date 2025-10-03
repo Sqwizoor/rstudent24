@@ -117,6 +117,7 @@ enum RoomType {
 }
 
 enum RedirectType {
+  NONE
   WHATSAPP
   CUSTOM_LINK
   BOTH

@@ -86,7 +86,7 @@ export function PropertyEditPageRoomFormModal({
         name: "", pricePerMonth: 0, securityDeposit: 0, topUp: 0, squareFeet: undefined,
   isAvailable: true, availableFrom: null, roomType: ModalRoomTypeEnum.PRIVATE, capacity: 1,
   bathroomPrivacy: 'SHARED' as const, kitchenPrivacy: 'SHARED' as const, photoUrls: [], newPhotos: null, photosToDelete: [], replacePhotos: false,
-        redirectType: undefined, whatsappNumber: "", customLink: "",
+        redirectType: "NONE", whatsappNumber: "", customLink: "",
         ...initialRoomData, // Apply initial data for editing
       };
       // Ensure date is a Date object if present
@@ -278,7 +278,7 @@ export function PropertyEditPageRoomFormModal({
                 label="Redirect students to:" 
                 type="select" 
                 options={[
-                  { value: "", label: "No redirect (default)" },
+                  { value: "NONE", label: "No redirect (default)" },
                   { value: "WHATSAPP", label: "WhatsApp only" },
                   { value: "CUSTOM_LINK", label: "Custom link only" },
                   { value: "BOTH", label: "Both WhatsApp and custom link" },

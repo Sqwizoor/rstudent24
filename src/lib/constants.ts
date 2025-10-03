@@ -205,6 +205,7 @@ export enum RoomTypeEnum {
 
 // Redirect type enum for room applications
 export enum RedirectTypeEnum {
+  NONE = "NONE",
   WHATSAPP = "WHATSAPP",
   CUSTOM_LINK = "CUSTOM_LINK",
   BOTH = "BOTH",
