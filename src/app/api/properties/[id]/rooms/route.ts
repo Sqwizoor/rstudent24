@@ -116,6 +116,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
               amenities: processArrayField(formData.get('amenities')),
               features: processArrayField(formData.get('features')),
               photoUrls: [] as string[],  // This will be handled separately with uploaded files
+              
+              // Redirect settings
+              redirectType: (() => { const v = formData.get('redirectType')?.toString(); return v && v !== "" ? v : undefined; })(),
+              whatsappNumber: formData.get('whatsappNumber')?.toString(),
+              customLink: formData.get('customLink')?.toString(),
             };
             
             console.log('Processed room data from FormData:', roomData);
@@ -254,6 +259,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           features: Array.isArray(roomData.features) ? roomData.features : [],
           photoUrls: Array.isArray(roomData.photoUrls) ? roomData.photoUrls : [],
           propertyId: propertyId,
+          redirectType: roomData.redirectType || null,
+          whatsappNumber: roomData.whatsappNumber || null,
+          customLink: roomData.customLink || null,
         }
       });
 

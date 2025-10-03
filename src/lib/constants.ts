@@ -203,6 +203,13 @@ export enum RoomTypeEnum {
   ENTIRE_UNIT = "ENTIRE_UNIT",
 }
 
+// Redirect type enum for room applications
+export enum RedirectTypeEnum {
+  WHATSAPP = "WHATSAPP",
+  CUSTOM_LINK = "CUSTOM_LINK",
+  BOTH = "BOTH",
+}
+
 // Room amenities enum
 export enum RoomAmenityEnum {
   PRIVATE_BATHROOM = "PRIVATE_BATHROOM",

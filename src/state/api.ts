@@ -940,7 +940,7 @@ export const api = createApi({
     }),
 
     getRoom: build.query<Room, { propertyId: number, roomId: number }>({
-      query: ({ propertyId, roomId }) => `rooms/${roomId}?propertyId=${propertyId}`,
+      query: ({ roomId }) => `rooms/${roomId}`,
       
       providesTags: (result, error, { roomId }) => [{ type: "Rooms", id: roomId }],
       async onQueryStarted(_, { queryFulfilled }) {

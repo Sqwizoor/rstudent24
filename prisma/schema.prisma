@@ -116,6 +116,12 @@ enum RoomType {
   ENTIRE_UNIT
 }
 
+enum RedirectType {
+  WHATSAPP
+  CUSTOM_LINK
+  BOTH
+}
+
 model Property {
   id                Int          @id @default(autoincrement())
   name              String
@@ -172,6 +178,11 @@ model Room {
   roomType          RoomType     @default(PRIVATE)
   capacity          Int          @default(1)
   features          String[]     @default([])
+  
+  // Redirect settings for applications
+  redirectType      RedirectType? 
+  whatsappNumber    String?
+  customLink        String?
 
   // Relations
   property          Property     @relation("PropertyRooms", fields: [propertyId], references: [id], onDelete: Cascade)

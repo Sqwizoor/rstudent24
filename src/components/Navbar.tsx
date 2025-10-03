@@ -301,6 +301,17 @@ const Navbar = () => {
                       <span>Dashboard</span>
                     </DropdownMenuItem>
                     
+                    {/* Manager-specific Add Property menu item */}
+                    {authUser.role?.toLowerCase() === "manager" && (
+                      <DropdownMenuItem
+                        className={`cursor-pointer py-2.5 px-3 my-1 rounded-md text-slate-700 ${isDashboardPage ? 'dark:text-slate-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' : 'hover:text-green-600 hover:bg-green-50'} transition-colors duration-200 flex items-center gap-2 text-sm`}
+                        onClick={() => router.push('/managers/newproperty', { scroll: false })}
+                      >
+                        <Building2 className="w-4 h-4" />
+                        <span>Add Property</span>
+                      </DropdownMenuItem>
+                    )}
+                    
                     {/* Admin-specific menu item */}
                     {authUser.role?.toLowerCase() === "admin" && (
                       <DropdownMenuItem

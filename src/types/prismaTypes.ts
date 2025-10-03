@@ -139,6 +139,9 @@ export interface Room {
   amenities?: string[];
   features?: string[];
   photoUrls?: string[];
+  redirectType?: string | null;
+  whatsappNumber?: string | null;
+  customLink?: string | null;
   createdAt: Date;
   updatedAt: Date;
   // Related models

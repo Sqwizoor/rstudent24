@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { PropertyTypeEnum, RoomTypeEnum, AmenityEnum, HighlightEnum } from "@/lib/constants";
+import { PropertyTypeEnum, RoomTypeEnum, AmenityEnum, HighlightEnum, RedirectTypeEnum } from "@/lib/constants";
 
 export const propertySchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -74,6 +74,11 @@ export const roomSchema = z.object({
   bathroomPrivacy: z.enum(["PRIVATE", "SHARED"]).default("SHARED"),
   kitchenPrivacy: z.enum(["PRIVATE", "SHARED"]).default("SHARED"),
   photoUrls: z.any().optional(), // handles File objects for upload
+  
+  // Redirect settings for applications
+  redirectType: z.nativeEnum(RedirectTypeEnum).optional(),
+  whatsappNumber: z.string().optional(),
+  customLink: z.string().optional(),
 });
 
 // Type for room form data

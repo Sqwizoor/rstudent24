@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { ApplicationFormData, applicationSchema } from "@/lib/schemas";
-import { useCreateApplicationMutation, useGetAuthUserQuery } from "@/state/api";
+import { useCreateApplicationMutation, useGetAuthUserQuery, useGetRoomQuery, useGetPropertyQuery } from "@/state/api";
 import { ApplicationStatus } from "@/types/prismaTypes";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 // Used for direct token import in the fallback authentication path
@@ -34,7 +34,98 @@ const ApplicationModal = ({
 }: ApplicationModalProps) => {
   const [createApplication] = useCreateApplicationMutation();
   const { data: authUser } = useGetAuthUserQuery();
+  const { data: roomData } = useGetRoomQuery({ propertyId, roomId: roomId! }, { skip: !roomId });
+  const { data: propertyData } = useGetPropertyQuery(propertyId);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Function to generate WhatsApp message with property and room info
+  const generateWhatsAppMessage = () => {
+    const property = propertyData;
+    const room = roomData;
+    
+    let message = `Hi! I just submitted an application for `;
+    
+    if (room) {
+      message += `${room.name} at ${property?.name || 'your property'}. `;
+      message += `\n\nRoom Details:\n`;
+      message += `- Price: R${room.pricePerMonth}/month\n`;
+      if (room.securityDeposit && room.securityDeposit > 0) {
+        message += `- Security Deposit: R${room.securityDeposit}\n`;
+      }
+      if (room.topUp && room.topUp > 0) {
+        message += `- Top-up: R${room.topUp}\n`;
+      }
+      message += `- Room Type: ${room.roomType}\n`;
+      message += `- Capacity: ${room.capacity} person(s)\n`;
+    } else {
+      message += `${property?.name || 'your property'}. `;
+      message += `\n\nProperty Price: R${property?.price}/month\n`;
+    }
+    
+    if (property?.location) {
+      message += `- Location: ${property.location.address}, ${property.location.city}\n`;
+    }
+    
+    message += `\nI'm interested in viewing the property and would like to discuss the application process. Thank you!`;
+    
+    return encodeURIComponent(message);
+  };
+
+  // Function to handle redirect after successful application
+  const handlePostApplicationRedirect = () => {
+    if (!roomId || !roomData) {
+      return; // No redirect if no room data
+    }
+
+    const { redirectType, whatsappNumber, customLink } = roomData;
+
+    if (!redirectType) {
+      return; // No redirect configured
+    }
+
+    const message = generateWhatsAppMessage();
+
+    if (redirectType === 'WHATSAPP' && whatsappNumber) {
+      // Redirect to WhatsApp
+      const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`;
+      window.open(whatsappUrl, '_blank');
+    } else if (redirectType === 'CUSTOM_LINK' && customLink) {
+      // Redirect to custom link
+      window.open(customLink, '_blank');
+    } else if (redirectType === 'BOTH') {
+      // Show both options in the success toast
+      if (whatsappNumber && customLink) {
+        toast.success("Application Submitted Successfully!", {
+          description: "Choose how you'd like to continue:",
+          action: {
+            label: "WhatsApp",
+            onClick: () => {
+              const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`;
+              window.open(whatsappUrl, '_blank');
+            }
+          },
+          // Add custom link button through DOM manipulation or use a custom toast
+          duration: 10000, // Keep toast longer for user to make choice
+        });
+        
+        // Create a secondary action for the custom link
+        setTimeout(() => {
+          toast.info("Or visit the landlord's website:", {
+            action: {
+              label: "Visit Website",
+              onClick: () => window.open(customLink, '_blank')
+            },
+            duration: 8000,
+          });
+        }, 1000);
+      } else if (whatsappNumber) {
+        const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`;
+        window.open(whatsappUrl, '_blank');
+      } else if (customLink) {
+        window.open(customLink, '_blank');
+      }
+    }
+  };
 
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
@@ -160,10 +251,27 @@ const ApplicationModal = ({
       const responseData = await response.json();
       console.log('Application submission successful:', responseData);
       
-      toast.success("Application Submitted", {
-        description: "Your application has been successfully submitted."
-      });
+      // Handle redirect based on room settings
+      const hasRedirect = roomData?.redirectType;
+      
+      if (hasRedirect) {
+        toast.success("Application Submitted Successfully!", {
+          description: "Redirecting you to contact the landlord..."
+        });
+      } else {
+        toast.success("Application Submitted", {
+          description: "Your application has been successfully submitted."
+        });
+      }
+      
       onClose();
+      
+      // Delay redirect slightly to allow modal to close
+      if (hasRedirect) {
+        setTimeout(() => {
+          handlePostApplicationRedirect();
+        }, 500);
+      }
     } catch (error) {
       console.error('Application submission error:', error);
       toast.error("Submission Failed", {

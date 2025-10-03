@@ -86,6 +86,7 @@ export function PropertyEditPageRoomFormModal({
         name: "", pricePerMonth: 0, securityDeposit: 0, topUp: 0, squareFeet: undefined,
   isAvailable: true, availableFrom: null, roomType: ModalRoomTypeEnum.PRIVATE, capacity: 1,
   bathroomPrivacy: 'SHARED' as const, kitchenPrivacy: 'SHARED' as const, photoUrls: [], newPhotos: null, photosToDelete: [], replacePhotos: false,
+        redirectType: undefined, whatsappNumber: "", customLink: "",
         ...initialRoomData, // Apply initial data for editing
       };
       // Ensure date is a Date object if present
@@ -264,6 +265,42 @@ export function PropertyEditPageRoomFormModal({
               <p className="text-[10px] text-slate-500 dark:text-gray-400">Leave empty if immediately available.</p>
             </div>
             {/* Amenities and Features removed for simplified room form */}
+
+            {/* Application Redirect Settings */}
+            <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-gray-700">
+              <UILabel className="text-base font-semibold text-slate-900 dark:text-gray-100">Application Redirect Settings</UILabel>
+              <p className="text-xs text-slate-600 dark:text-gray-400">
+                Choose where students should be redirected after submitting an application for this room.
+              </p>
+              
+              <ModalCreateFormField 
+                name="redirectType" 
+                label="Redirect students to:" 
+                type="select" 
+                options={[
+                  { value: "", label: "No redirect (default)" },
+                  { value: "WHATSAPP", label: "WhatsApp only" },
+                  { value: "CUSTOM_LINK", label: "Custom link only" },
+                  { value: "BOTH", label: "Both WhatsApp and custom link" },
+                ]} 
+              />
+
+              {(watchRoomForm("redirectType") === "WHATSAPP" || watchRoomForm("redirectType") === "BOTH") && (
+                <ModalCreateFormField
+                  name="whatsappNumber"
+                  label="WhatsApp Number"
+                  placeholder="e.g., +27123456789"
+                />
+              )}
+
+              {(watchRoomForm("redirectType") === "CUSTOM_LINK" || watchRoomForm("redirectType") === "BOTH") && (
+                <ModalCreateFormField
+                  name="customLink"
+                  label="Custom Link"
+                  placeholder="e.g., https://your-website.com/contact"
+                />
+              )}
+            </div>
 
             {/* Photo Management for Room */}
       <div className="space-y-3 border-t border-slate-200 dark:border-gray-700 pt-4 mt-4">
