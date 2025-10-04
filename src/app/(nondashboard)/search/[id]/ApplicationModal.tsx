@@ -11,6 +11,7 @@ import { ApplicationFormData, applicationSchema } from "@/lib/schemas";
 import { useCreateApplicationMutation, useGetRoomQuery, useGetPropertyQuery, useGetRoomsQuery } from "@/state/api";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { ApplicationStatus } from "@/types/prismaTypes";
+import { RedirectTypeEnum } from "@/lib/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -75,6 +76,13 @@ const ApplicationModal = ({
 
   // Function to handle redirect after successful application
   const handlePostApplicationRedirect = () => {
+    console.log('=== REDIRECT DEBUG START ===');
+    console.log('Room Data:', roomData);
+    console.log('Property Data:', propertyData);
+    console.log('Rooms Data:', roomsData);
+    console.log('Room ID from props:', roomId);
+    console.log('Property ID from props:', propertyId);
+    
     console.log('Starting redirect process with data:', {
       hasRoomData: !!roomData,
       hasPropertyData: !!propertyData,
@@ -91,23 +99,42 @@ const ApplicationModal = ({
     
     // For specific room applications, use room data directly
     if (roomData) {
+      console.log('FOUND ROOM DATA - checking redirect settings');
       redirectData = roomData;
-      console.log('Using room redirect data:', { 
+      console.log('Room redirect data details:', { 
         redirectType: roomData.redirectType, 
         whatsappNumber: roomData.whatsappNumber,
-        customLink: roomData.customLink 
+        customLink: roomData.customLink,
+        redirectTypeType: typeof roomData.redirectType,
+        hasWhatsappNumber: !!roomData.whatsappNumber,
+        hasCustomLink: !!roomData.customLink
       });
     } 
     // For property-level applications, try to use the first available room's redirect settings
     else if (propertyData && roomsData && roomsData.length > 0) {
-      console.log('Property application - looking for redirect settings from available rooms');
+      console.log('PROPERTY APPLICATION - looking for redirect settings from available rooms');
+      console.log('All rooms data:', roomsData.map(r => ({ 
+        id: r.id, 
+        name: r.name, 
+        redirectType: r.redirectType, 
+        whatsappNumber: r.whatsappNumber,
+        customLink: r.customLink,
+        hasWhatsapp: !!r.whatsappNumber,
+        hasCustomLink: !!r.customLink 
+      })));
       
       // Find the first room that has redirect settings
-      const roomWithRedirect = roomsData.find(room => 
-        room.redirectType && (room.whatsappNumber || room.customLink)
-      );
+      const roomWithRedirect = roomsData.find(room => {
+        console.log(`Checking room ${room.name}:`, {
+          redirectType: room.redirectType,
+          hasWhatsapp: !!room.whatsappNumber,
+          hasCustomLink: !!room.customLink
+        });
+        return room.redirectType && room.redirectType !== RedirectTypeEnum.NONE && (room.whatsappNumber || room.customLink);
+      });
       
       if (roomWithRedirect) {
+        console.log('FOUND ROOM WITH REDIRECT:', roomWithRedirect.name);
         redirectData = roomWithRedirect;
         console.log('Using redirect data from room:', roomWithRedirect.name, {
           redirectType: roomWithRedirect.redirectType,
@@ -115,46 +142,51 @@ const ApplicationModal = ({
           customLink: roomWithRedirect.customLink
         });
       } else {
-        console.log('No rooms with redirect settings found for property application');
-        console.log('Available rooms:', roomsData?.map(r => ({ 
-          id: r.id, 
-          name: r.name, 
-          redirectType: r.redirectType, 
-          hasWhatsapp: !!r.whatsappNumber,
-          hasCustomLink: !!r.customLink 
-        })));
+        console.log('NO ROOMS WITH REDIRECT SETTINGS FOUND');
         // Show a message to the user that they should contact the property directly
         toast.success("Application submitted successfully! The property manager will contact you soon. Please also check your email for further instructions.");
         return;
       }
+    } else {
+      console.log('NO PROPERTY DATA OR ROOMS DATA AVAILABLE');
+      toast.success("Application submitted successfully! The property manager will contact you soon. Please also check your email for further instructions.");
+      return;
     }
 
-    if (!redirectData || !redirectData.redirectType) {
-      console.log('No redirect data available - showing success message instead');
+    if (!redirectData) {
+      console.log('NO REDIRECT DATA AVAILABLE - showing fallback message');
       toast.success("Application submitted successfully! The property manager will contact you soon. Please also check your email for further instructions.");
       return;
     }
 
     const { redirectType, whatsappNumber, customLink } = redirectData;
 
-    if (!redirectType || redirectType === 'NONE') {
-      console.log('No redirect configured or redirect type is NONE');
-      return; // No redirect configured
+    console.log('REDIRECT DATA FOUND:', { 
+      redirectType, 
+      whatsappNumber, 
+      customLink,
+      redirectTypeCheck: redirectType && redirectType !== RedirectTypeEnum.NONE
+    });
+
+    if (!redirectType || redirectType === RedirectTypeEnum.NONE) {
+      console.log('REDIRECT TYPE IS NONE OR MISSING - showing fallback message');
+      toast.success("Application submitted successfully! The property manager will contact you soon. Please also check your email for further instructions.");
+      return;
     }
 
-    console.log('Redirect configured:', { redirectType, whatsappNumber: !!whatsappNumber, customLink: !!customLink });
+    console.log('PROCEEDING WITH REDIRECT - Type:', redirectType);
     const message = generateWhatsAppMessage();
 
-    if (redirectType === 'WHATSAPP' && whatsappNumber) {
+    if (redirectType === RedirectTypeEnum.WHATSAPP && whatsappNumber) {
       // Redirect to WhatsApp
       const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`;
-      console.log('Opening WhatsApp URL:', whatsappUrl);
+      console.log('REDIRECTING TO WHATSAPP:', whatsappUrl);
       window.open(whatsappUrl, '_blank');
-    } else if (redirectType === 'CUSTOM_LINK' && customLink) {
+    } else if (redirectType === RedirectTypeEnum.CUSTOM_LINK && customLink) {
       // Redirect to custom link
-      console.log('Opening custom link:', customLink);
+      console.log('REDIRECTING TO CUSTOM LINK:', customLink);
       window.open(customLink, '_blank');
-    } else if (redirectType === 'BOTH') {
+    } else if (redirectType === RedirectTypeEnum.BOTH) {
       // Show both options in the success toast
       if (whatsappNumber && customLink) {
         toast.success("Application Submitted Successfully!", {
@@ -189,8 +221,16 @@ const ApplicationModal = ({
         window.open(customLink, '_blank');
       }
     } else {
-      console.log('No valid redirect configuration found:', { redirectType, whatsappNumber: !!whatsappNumber, customLink: !!customLink });
+      console.log('REDIRECT TYPE SET BUT NO VALID URLs FOUND:', { 
+        redirectType, 
+        whatsappNumber: !!whatsappNumber, 
+        customLink: !!customLink 
+      });
+      // Show fallback message if redirect type exists but URLs are missing
+      toast.success("Application submitted successfully! The property manager will contact you soon. Please also check your email for further instructions.");
     }
+    
+    console.log('=== REDIRECT DEBUG END ===');
   };
 
   const form = useForm<ApplicationFormData>({
