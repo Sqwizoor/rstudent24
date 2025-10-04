@@ -551,8 +551,11 @@ const SingleListing = () => {
                   >
                     View Available Rooms
                   </button>
-                  <button className="w-full border border-gray-300 hover:border-gray-400 text-gray-700 py-3 px-4 rounded-lg font-medium transition-colors">
-                    Contact Property
+                  <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="w-full border border-gray-300 hover:border-gray-400 text-gray-700 py-3 px-4 rounded-lg font-medium transition-colors"
+                  >
+                    Apply for Property
                   </button>
                 </div>
               </div>
@@ -755,8 +758,8 @@ const SingleListing = () => {
         </div>
       )}
 
-      {/* Application Modal - Single instance with proper authentication check */}
-      {authUser && isModalOpen && selectedRoom && (
+      {/* Application Modal - Works for both property and room applications */}
+      {isModalOpen && (
         <ApplicationModal
           isOpen={isModalOpen}
           onClose={() => {

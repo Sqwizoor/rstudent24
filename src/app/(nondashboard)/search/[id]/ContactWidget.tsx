@@ -12,9 +12,13 @@ const ContactWidget = ({ onOpenModal }: ContactWidgetProps) => {
   const router = useRouter();
 
   const handleButtonClick = () => {
+    console.log('ContactWidget button clicked', { isAuthenticated, authUser: authUser ? { id: authUser.id, role: authUser.role } : null });
+    
     if (isAuthenticated && authUser) {
+      console.log('Opening modal from ContactWidget');
       onOpenModal();
     } else {
+      console.log('Redirecting to signin');
       router.push("/signin");
     }
   };

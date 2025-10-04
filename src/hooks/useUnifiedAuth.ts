@@ -7,7 +7,7 @@ export interface UnifiedUser {
   id: string;
   name: string;
   email: string;
-  role: "tenant" | "manager" | "admin";
+  role: "tenant" | "student" | "manager" | "admin";
   provider: "cognito" | "google";
   userInfo?: any;
   cognitoInfo?: any;

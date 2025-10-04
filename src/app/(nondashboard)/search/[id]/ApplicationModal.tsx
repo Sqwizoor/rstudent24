@@ -153,7 +153,7 @@ const ApplicationModal = ({
       } : null
     });
 
-    if (!isAuthenticated || !authUser || authUser.role !== "tenant") {
+    if (!isAuthenticated || !authUser) {
       console.error('Authentication failed:', {
         isAuthenticated,
         hasAuthUser: !!authUser,
@@ -161,9 +161,23 @@ const ApplicationModal = ({
       });
       
       toast.error("Authentication Required", {
-        description: "You must be logged in as a student to submit an application",
+        description: "You must be logged in to submit an application",
         action: {
           label: "Login",
+          onClick: () => window.location.href = "/signin"
+        }
+      });
+      return;
+    }
+
+    // Allow tenants and students to apply (reject managers and admins)
+    if (authUser.role === "manager" || authUser.role === "admin") {
+      console.error('Invalid user role for application:', authUser.role);
+      
+      toast.error("Access Denied", {
+        description: "Only students can submit applications",
+        action: {
+          label: "Login as Student",
           onClick: () => window.location.href = "/signin"
         }
       });
