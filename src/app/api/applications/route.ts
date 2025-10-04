@@ -38,7 +38,16 @@ export async function GET(request: NextRequest) {
     // Filter by user type and ID
     if (userId && userType) {
       if (userType === 'tenant') {
-        query.where.tenantCognitoId = userId;
+        // For Google auth users, we might need to search by email as well
+        if (authResult.provider === 'google') {
+          query.where.OR = [
+            { tenantCognitoId: userId },
+            { tenant: { email: userId } },
+            { tenant: { cognitoId: userId } }
+          ];
+        } else {
+          query.where.tenantCognitoId = userId;
+        }
         
         // Tenants can only see their own applications
         if (authResult.userRole !== 'admin' && authResult.userId !== userId) {
@@ -123,22 +132,48 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
     
+    // Handle tenant ID based on authentication provider
+    let tenantCognitoId: string;
+    
+    if (authResult.provider === 'google') {
+      // For Google auth, use the email as the tenant ID, or get it from the body
+      tenantCognitoId = body.tenantCognitoId || authResult.userId || '';
+    } else {
+      // For Cognito auth, use the standard tenantCognitoId from body
+      tenantCognitoId = body.tenantCognitoId || '';
+    }
+    
     // Validate required fields
-    if (!body.propertyId || !body.tenantCognitoId) {
+    if (!body.propertyId || !tenantCognitoId) {
       return NextResponse.json(
-        { message: 'Missing required fields: propertyId and tenantCognitoId are required' },
+        { message: 'Missing required fields: propertyId and tenant identification are required' },
         { status: 400 }
       );
     }
     
-    // Check if tenant exists
-    const tenant = await prisma.tenant.findUnique({
-      where: { cognitoId: body.tenantCognitoId }
-    });
+    // Check if tenant exists - for Google auth users, search by email or cognitoId
+    let tenant;
+    if (authResult.provider === 'google') {
+      // For Google auth, try to find tenant by cognitoId (which might be email) or email field
+      tenant = await prisma.tenant.findFirst({
+        where: {
+          OR: [
+            { cognitoId: tenantCognitoId },
+            { email: tenantCognitoId },
+            { email: authResult.userId }
+          ]
+        }
+      });
+    } else {
+      // For Cognito auth, use standard lookup
+      tenant = await prisma.tenant.findUnique({
+        where: { cognitoId: tenantCognitoId }
+      });
+    }
     
     if (!tenant) {
       return NextResponse.json(
-        { message: 'Tenant not found' },
+        { message: 'Tenant not found. Please make sure you have a valid account.' },
         { status: 404 }
       );
     }
@@ -178,12 +213,12 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Create the application
+    // Create the application using the found tenant's cognitoId
     const application = await prisma.application.create({
       data: {
         propertyId: parseInt(body.propertyId),
         roomId: body.roomId ? parseInt(body.roomId) : null,
-        tenantCognitoId: body.tenantCognitoId,
+        tenantCognitoId: tenant.cognitoId, // Use the tenant's actual cognitoId from the database
         applicationDate: new Date(),
         status: 'Pending',
         name: body.name || tenant.name,

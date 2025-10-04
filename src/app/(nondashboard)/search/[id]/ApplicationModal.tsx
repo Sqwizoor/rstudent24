@@ -160,7 +160,7 @@ const ApplicationModal = ({
         status: ApplicationStatus.Pending,
         // Always ensure propertyId is a number
         propertyId: typeof propertyId === 'string' ? parseInt(propertyId) : Number(propertyId),
-        tenantCognitoId: authUser.cognitoInfo.userId,
+        tenantCognitoId: authUser.cognitoInfo?.userId || authUser.userInfo?.email || '',
       };
       
       // Detailed logging for debugging
@@ -179,30 +179,23 @@ const ApplicationModal = ({
       // Debug log to verify data
       console.log('Preparing to submit application:', applicationData);
       
-      const submitted = false;
-      
-      // Submitting application via direct fetch
-      console.log('Submitting application via direct fetch...');
-      
-      // Get a fresh token from Amplify Auth
+      // Try to get Cognito token for managers, but don't fail for students
       let token = '';
+      let headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      
       try {
         const session = await fetchAuthSession();
         token = session.tokens?.idToken?.toString() || '';
-        console.log('Successfully retrieved token from Amplify');
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+          console.log('Using Cognito token for authentication');
+        }
       } catch (authError) {
-        console.error('Error fetching auth token:', authError);
-        toast.error("Authentication Error", {
-          description: "Failed to retrieve authentication token. Please log in again."
-        });
-        return;
-      }
-      
-      if (!token) {
-        toast.error("Authentication Error", {
-          description: "You need to be logged in to submit an application. Please log in and try again."
-        });
-        return;
+        console.log('No Cognito token available, using session-based auth for students');
+        // For students using Google auth, don't need to set Authorization header
+        // The server will check NextAuth session automatically
       }
       
       // Prepare the application data with proper types
@@ -217,7 +210,7 @@ const ApplicationModal = ({
         status: ApplicationStatus.Pending,
         propertyId: Number(propertyId),
         roomId: roomId ? Number(roomId) : undefined,
-        tenantCognitoId: authUser.cognitoInfo.userId,
+        tenantCognitoId: applicationData.tenantCognitoId,
       };
       
       console.log('Application data being submitted:', finalFormattedData);
@@ -225,12 +218,9 @@ const ApplicationModal = ({
       // Send the application data to the server
       const response = await fetch('/api/applications', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers,
         body: JSON.stringify(finalFormattedData),
-        credentials: 'include'
+        credentials: 'include' // Important for NextAuth session cookies
       });
       
       if (!response.ok) {
