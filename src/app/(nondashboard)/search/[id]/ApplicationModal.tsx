@@ -181,7 +181,7 @@ const ApplicationModal = ({
       
       // Try to get Cognito token for managers, but don't fail for students
       let token = '';
-      let headers: Record<string, string> = {
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json'
       };
       
