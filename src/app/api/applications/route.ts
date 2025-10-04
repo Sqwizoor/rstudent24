@@ -92,11 +92,22 @@ export async function GET(request: NextRequest) {
 // POST handler for creating a new application
 export async function POST(request: NextRequest) {
   try {
-    // Verify authentication
+    // Verify authentication - REQUIRED for students
+    // Only Google (NextAuth) authenticated users can submit applications
     const authResult = await verifyAuth(request);
+    
     if (!authResult.isAuthenticated) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      console.log('Unauthorized application attempt - user not authenticated');
+      return NextResponse.json({ message: 'Unauthorized. You must be logged in to submit an application.' }, { status: 401 });
     }
+    
+    // Only allow students/tenants to submit applications (reject managers and admins)
+    if (authResult.userRole && (authResult.userRole === 'manager' || authResult.userRole === 'admin')) {
+      console.log('Forbidden - managers and admins cannot submit applications');
+      return NextResponse.json({ message: 'Forbidden. Managers and admins cannot submit applications.' }, { status: 403 });
+    }
+    
+    console.log('Application submission - Authenticated user:', authResult.userId, 'Provider:', authResult.provider);
     
     // Safely parse the request body with error handling
     let body;
@@ -132,28 +143,22 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
     
-    // Handle tenant ID based on authentication provider
-    let tenantCognitoId: string;
-    
-    if (authResult.provider === 'google') {
-      // For Google auth, use the email as the tenant ID, or get it from the body
-      tenantCognitoId = body.tenantCognitoId || authResult.userId || '';
-    } else {
-      // For Cognito auth, use the standard tenantCognitoId from body
-      tenantCognitoId = body.tenantCognitoId || '';
-    }
-    
-    // Validate required fields
-    if (!body.propertyId || !tenantCognitoId) {
+    // Validate required fields for authenticated users
+    if (!body.propertyId || !body.name || !body.email || !body.phoneNumber) {
       return NextResponse.json(
-        { message: 'Missing required fields: propertyId and tenant identification are required' },
+        { message: 'Missing required fields: propertyId, name, email, and phoneNumber are required' },
         { status: 400 }
       );
     }
     
-    // Check if tenant exists - for Google auth users, search by email or cognitoId
-    let tenant;
+    // Handle tenant ID - try to link to tenant account if exists
+    let tenantCognitoId: string | null = null;
+    let tenant = null;
+    
     if (authResult.provider === 'google') {
+      // For Google auth, use the email as the tenant ID, or get it from the body
+      tenantCognitoId = body.tenantCognitoId || authResult.userId || '';
+      
       // For Google auth, try to find tenant by cognitoId (which might be email) or email field
       tenant = await prisma.tenant.findFirst({
         where: {
@@ -164,18 +169,30 @@ export async function POST(request: NextRequest) {
           ]
         }
       });
+      
+      // If Google user but tenant not found, log warning but allow submission
+      if (!tenant) {
+        console.warn('Google authenticated user but tenant record not found:', tenantCognitoId);
+        tenantCognitoId = null;
+      } else {
+        tenantCognitoId = tenant.cognitoId;
+      }
     } else {
+      // For Cognito auth, use the standard tenantCognitoId from body
+      tenantCognitoId = body.tenantCognitoId || '';
+      
       // For Cognito auth, use standard lookup
       tenant = await prisma.tenant.findUnique({
         where: { cognitoId: tenantCognitoId }
       });
-    }
-    
-    if (!tenant) {
-      return NextResponse.json(
-        { message: 'Tenant not found. Please make sure you have a valid account.' },
-        { status: 404 }
-      );
+      
+      // If authenticated but tenant not found, log warning but allow submission
+      if (!tenant) {
+        console.warn('Cognito authenticated user but tenant record not found:', tenantCognitoId);
+        tenantCognitoId = null;
+      } else {
+        tenantCognitoId = tenant.cognitoId;
+      }
     }
     
     // Check if property exists
@@ -213,17 +230,18 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Create the application using the found tenant's cognitoId
+    // Create the application using the form data
+    // For unauthenticated users, tenantCognitoId will be null
     const application = await prisma.application.create({
       data: {
         propertyId: parseInt(body.propertyId),
         roomId: body.roomId ? parseInt(body.roomId) : null,
-        tenantCognitoId: tenant.cognitoId, // Use the tenant's actual cognitoId from the database
+        tenantCognitoId: tenantCognitoId, // Can be null for unauthenticated users
         applicationDate: new Date(),
         status: 'Pending',
-        name: body.name || tenant.name,
-        email: body.email || tenant.email,
-        phoneNumber: body.phoneNumber || tenant.phoneNumber,
+        name: body.name,
+        email: body.email,
+        phoneNumber: body.phoneNumber,
         message: body.message || ''
       },
       include: {
@@ -236,6 +254,8 @@ export async function POST(request: NextRequest) {
         tenant: true
       }
     });
+    
+    console.log('Application created successfully:', application.id);
     
     return NextResponse.json(application, { status: 201 });
   } catch (err: any) {

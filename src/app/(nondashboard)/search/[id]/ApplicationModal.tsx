@@ -83,79 +83,31 @@ const ApplicationModal = ({
     console.log('Room ID from props:', roomId);
     console.log('Property ID from props:', propertyId);
     
-    console.log('Starting redirect process with data:', {
-      hasRoomData: !!roomData,
-      hasPropertyData: !!propertyData,
-      hasRoomsData: !!roomsData,
-      roomsCount: roomsData?.length || 0,
-      roomDataRedirect: roomData ? { 
-        redirectType: roomData.redirectType, 
-        whatsappNumber: roomData.whatsappNumber,
-        customLink: roomData.customLink 
-      } : null
-    });
-    
     let redirectData = null;
     
     // For specific room applications, use room data directly
     if (roomData) {
       console.log('FOUND ROOM DATA - checking redirect settings');
       redirectData = roomData;
-      console.log('Room redirect data details:', { 
-        redirectType: roomData.redirectType, 
-        whatsappNumber: roomData.whatsappNumber,
-        customLink: roomData.customLink,
-        redirectTypeType: typeof roomData.redirectType,
-        hasWhatsappNumber: !!roomData.whatsappNumber,
-        hasCustomLink: !!roomData.customLink
-      });
     } 
     // For property-level applications, try to use the first available room's redirect settings
     else if (propertyData && roomsData && roomsData.length > 0) {
       console.log('PROPERTY APPLICATION - looking for redirect settings from available rooms');
-      console.log('All rooms data:', roomsData.map(r => ({ 
-        id: r.id, 
-        name: r.name, 
-        redirectType: r.redirectType, 
-        whatsappNumber: r.whatsappNumber,
-        customLink: r.customLink,
-        hasWhatsapp: !!r.whatsappNumber,
-        hasCustomLink: !!r.customLink 
-      })));
       
       // Find the first room that has redirect settings
       const roomWithRedirect = roomsData.find(room => {
-        console.log(`Checking room ${room.name}:`, {
-          redirectType: room.redirectType,
-          hasWhatsapp: !!room.whatsappNumber,
-          hasCustomLink: !!room.customLink
-        });
         return room.redirectType && room.redirectType !== RedirectTypeEnum.NONE && (room.whatsappNumber || room.customLink);
       });
       
       if (roomWithRedirect) {
         console.log('FOUND ROOM WITH REDIRECT:', roomWithRedirect.name);
         redirectData = roomWithRedirect;
-        console.log('Using redirect data from room:', roomWithRedirect.name, {
-          redirectType: roomWithRedirect.redirectType,
-          whatsappNumber: roomWithRedirect.whatsappNumber,
-          customLink: roomWithRedirect.customLink
-        });
-      } else {
-        console.log('NO ROOMS WITH REDIRECT SETTINGS FOUND');
-        // Show a message to the user that they should contact the property directly
-        toast.success("Application submitted successfully! The property manager will contact you soon. Please also check your email for further instructions.");
-        return;
       }
-    } else {
-      console.log('NO PROPERTY DATA OR ROOMS DATA AVAILABLE');
-      toast.success("Application submitted successfully! The property manager will contact you soon. Please also check your email for further instructions.");
-      return;
     }
 
     if (!redirectData) {
       console.log('NO REDIRECT DATA AVAILABLE - showing fallback message');
-      toast.success("Application submitted successfully! The property manager will contact you soon. Please also check your email for further instructions.");
+      toast.success("Application submitted successfully! The property manager will contact you soon.");
       return;
     }
 
@@ -164,70 +116,75 @@ const ApplicationModal = ({
     console.log('REDIRECT DATA FOUND:', { 
       redirectType, 
       whatsappNumber, 
-      customLink,
-      redirectTypeCheck: redirectType && redirectType !== RedirectTypeEnum.NONE
+      customLink
     });
 
     if (!redirectType || redirectType === RedirectTypeEnum.NONE) {
       console.log('REDIRECT TYPE IS NONE OR MISSING - showing fallback message');
-      toast.success("Application submitted successfully! The property manager will contact you soon. Please also check your email for further instructions.");
+      toast.success("Application submitted successfully! The property manager will contact you soon.");
       return;
     }
 
     console.log('PROCEEDING WITH REDIRECT - Type:', redirectType);
     const message = generateWhatsAppMessage();
 
+    // Priority: WhatsApp if number exists, otherwise custom link
     if (redirectType === RedirectTypeEnum.WHATSAPP && whatsappNumber) {
       // Redirect to WhatsApp
       const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`;
       console.log('REDIRECTING TO WHATSAPP:', whatsappUrl);
-      window.open(whatsappUrl, '_blank');
+      toast.success("Redirecting to WhatsApp...");
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+      }, 500);
     } else if (redirectType === RedirectTypeEnum.CUSTOM_LINK && customLink) {
       // Redirect to custom link
       console.log('REDIRECTING TO CUSTOM LINK:', customLink);
-      window.open(customLink, '_blank');
+      toast.success("Redirecting to property contact...");
+      setTimeout(() => {
+        window.open(customLink, '_blank');
+      }, 500);
     } else if (redirectType === RedirectTypeEnum.BOTH) {
-      // Show both options in the success toast
-      if (whatsappNumber && customLink) {
-        toast.success("Application Submitted Successfully!", {
-          description: "Choose how you'd like to continue:",
-          action: {
-            label: "WhatsApp",
-            onClick: () => {
-              const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`;
-              window.open(whatsappUrl, '_blank');
-            }
-          },
-          // Add custom link button through DOM manipulation or use a custom toast
-          duration: 10000, // Keep toast longer for user to make choice
-        });
-        
-        // Create a secondary action for the custom link
-        setTimeout(() => {
-          toast.info("Or visit the landlord's website:", {
-            action: {
-              label: "Visit Website",
-              onClick: () => window.open(customLink, '_blank')
-            },
-            duration: 8000,
-          });
-        }, 1000);
-      } else if (whatsappNumber) {
+      // Check which options are available and prioritize WhatsApp
+      if (whatsappNumber) {
         const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`;
         console.log('Opening WhatsApp URL from BOTH option:', whatsappUrl);
-        window.open(whatsappUrl, '_blank');
+        toast.success("Redirecting to WhatsApp...");
+        setTimeout(() => {
+          window.open(whatsappUrl, '_blank');
+        }, 500);
+        
+        // Also show option for custom link if available
+        if (customLink) {
+          setTimeout(() => {
+            toast.info("Or visit the landlord's website:", {
+              action: {
+                label: "Visit Website",
+                onClick: () => window.open(customLink, '_blank')
+              },
+              duration: 8000,
+            });
+          }, 1500);
+        }
       } else if (customLink) {
         console.log('Opening custom link from BOTH option:', customLink);
-        window.open(customLink, '_blank');
+        toast.success("Redirecting to property contact...");
+        setTimeout(() => {
+          window.open(customLink, '_blank');
+        }, 500);
+      } else {
+        // No valid URLs found
+        console.log('BOTH option set but no valid URLs');
+        toast.success("Application submitted successfully! The property manager will contact you soon.");
       }
     } else {
       console.log('REDIRECT TYPE SET BUT NO VALID URLs FOUND:', { 
         redirectType, 
-        whatsappNumber: !!whatsappNumber, 
-        customLink: !!customLink 
+        hasWhatsappNumber: !!whatsappNumber, 
+        hasCustomLink: !!customLink 
       });
       // Show fallback message if redirect type exists but URLs are missing
-      toast.success("Application submitted successfully! The property manager will contact you soon. Please also check your email for further instructions.");
+      toast.success("Application submitted successfully! The property manager will contact you soon.");
     }
     
     console.log('=== REDIRECT DEBUG END ===');
@@ -258,33 +215,29 @@ const ApplicationModal = ({
       } : null
     });
 
+    // REQUIRE authentication - only logged in students can submit applications
     if (!isAuthenticated || !authUser) {
-      console.error('Authentication failed:', {
+      console.error('Authentication required:', {
         isAuthenticated,
-        hasAuthUser: !!authUser,
-        userRole: authUser?.role
+        hasAuthUser: !!authUser
       });
       
       toast.error("Authentication Required", {
-        description: "You must be logged in to submit an application",
+        description: "You must be logged in as a student to submit an application",
         action: {
-          label: "Login",
+          label: "Sign In",
           onClick: () => window.location.href = "/signin"
         }
       });
       return;
     }
 
-    // Allow tenants and students to apply (reject managers and admins)
+    // Only allow students/tenants to submit (block managers and admins)
     if (authUser.role === "manager" || authUser.role === "admin") {
       console.error('Invalid user role for application:', authUser.role);
       
       toast.error("Access Denied", {
-        description: "Only students can submit applications",
-        action: {
-          label: "Login as Student",
-          onClick: () => window.location.href = "/signin"
-        }
+        description: "Only students can submit applications. Please sign in with a student account.",
       });
       return;
     }
@@ -292,21 +245,19 @@ const ApplicationModal = ({
     try {
       setIsSubmitting(true);
       
-      // Prepare application data with explicit typing
+      // Prepare application data
       const applicationData = {
         ...data,
         applicationDate: new Date().toISOString(),
-        // Use the enum value directly - this is what the API expects
         status: ApplicationStatus.Pending,
-        // Always ensure propertyId is a number
         propertyId: typeof propertyId === 'string' ? parseInt(propertyId) : Number(propertyId),
+        roomId: roomId ? Number(roomId) : undefined,
+        // Include tenantCognitoId from authenticated user
         tenantCognitoId: authUser.cognitoInfo?.userId || authUser.id || authUser.email || '',
       };
       
       // Detailed logging for debugging
       console.log('Application data structure:', JSON.stringify(applicationData, null, 2));
-      console.log('Property ID type:', typeof applicationData.propertyId);
-      console.log('tenantCognitoId present:', !!applicationData.tenantCognitoId);
       
       // Ensure propertyId is a number
       if (isNaN(applicationData.propertyId as number)) {
@@ -316,34 +267,28 @@ const ApplicationModal = ({
         return;
       }
       
-      // Debug log to verify data
-      console.log('Preparing to submit application:', applicationData);
-      
-      // Try to get Cognito token for managers, but don't fail for students
-      let token = '';
+      // Prepare headers
       const headers: Record<string, string> = {
         'Content-Type': 'application/json'
       };
       
-      // Only try to get Cognito token if user is authenticated via Cognito
+      // Try to get Cognito token if user is authenticated via Cognito
       if (authUser.provider === 'cognito') {
         try {
           const session = await fetchAuthSession();
-          token = session.tokens?.idToken?.toString() || '';
+          const token = session.tokens?.idToken?.toString() || '';
           if (token) {
             headers['Authorization'] = `Bearer ${token}`;
             console.log('Using Cognito token for authentication');
           }
         } catch (authError) {
-          console.error('Failed to get Cognito token for manager:', authError);
+          console.error('Failed to get Cognito token:', authError);
         }
       } else {
-        console.log('Using session-based auth for students (NextAuth/Google)');
-        // For students using NextAuth/Google, don't need to set Authorization header
-        // The server will check NextAuth session automatically
+        console.log('Using NextAuth session for Google authentication');
       }
       
-      // Prepare the application data with proper types
+      // Prepare the final application data
       const currentDate = new Date().toISOString();
       const finalFormattedData = {
         name: data.name,
@@ -351,7 +296,7 @@ const ApplicationModal = ({
         phoneNumber: data.phoneNumber,
         message: data.message,
         applicationDate: currentDate,
-        createdAt: currentDate, // Add createdAt for display in applications page
+        createdAt: currentDate,
         status: ApplicationStatus.Pending,
         propertyId: Number(propertyId),
         roomId: roomId ? Number(roomId) : undefined,
@@ -370,16 +315,14 @@ const ApplicationModal = ({
       });
       
       console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
         let errorMessage = `Failed with status ${response.status}`;
         try {
           const errorData = await response.json();
           console.error('Application submission failed:', response.status, errorData);
-          errorMessage = `${errorMessage}: ${errorData.message || JSON.stringify(errorData)}`;
+          errorMessage = errorData.message || `${errorMessage}: ${JSON.stringify(errorData)}`;
         } catch (e) {
-          // If not JSON, try to get text
           const errorText = await response.text();
           console.error('Application submission failed (non-JSON):', response.status, errorText);
           errorMessage = `${errorMessage}: ${errorText}`;
@@ -390,45 +333,15 @@ const ApplicationModal = ({
       const responseData = await response.json();
       console.log('Application submission successful:', responseData);
       
-      // Handle redirect - check if we have redirect data from either room or property
-      let hasRedirectData = false;
-      
-      // For room applications
-      if (roomData?.redirectType && roomData.redirectType !== 'NONE') {
-        hasRedirectData = true;
-      }
-      // For property applications, check if any room has redirect settings
-      else if (!roomData && roomsData && roomsData.length > 0) {
-        const roomWithRedirect = roomsData.find(room => 
-          room.redirectType && room.redirectType !== 'NONE' && (room.whatsappNumber || room.customLink)
-        );
-        hasRedirectData = !!roomWithRedirect;
-      }
-      
-      console.log('Checking for redirect:', { 
-        hasRoomData: !!roomData, 
-        hasPropertyData: !!propertyData, 
-        hasRoomsData: !!roomsData,
-        redirectType: roomData?.redirectType,
-        whatsappNumber: roomData?.whatsappNumber,
-        customLink: roomData?.customLink,
-        hasRedirectData,
-        roomDataFull: roomData
+      // Show success message
+      toast.success("Application Submitted Successfully!", {
+        description: "Processing your request..."
       });
       
-      if (hasRedirectData) {
-        toast.success("Application Submitted Successfully!", {
-          description: "Redirecting you to contact the landlord..."
-        });
-      } else {
-        toast.success("Application Submitted", {
-          description: "Your application has been successfully submitted."
-        });
-      }
-      
+      // Close modal
       onClose();
       
-      // Always try to handle redirect - the function will determine what to do
+      // Handle redirect after a short delay
       console.log('Starting redirect process in 500ms');
       setTimeout(() => {
         handlePostApplicationRedirect();
@@ -437,7 +350,7 @@ const ApplicationModal = ({
       console.error('Application submission error:', error);
       toast.error("Submission Failed", {
         description: `There was an error submitting your application: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        duration: 10000, // Keep error visible longer
+        duration: 10000,
       });
     } finally {
       setIsSubmitting(false);

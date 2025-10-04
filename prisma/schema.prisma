@@ -255,7 +255,7 @@ model Application {
   status          ApplicationStatus
   propertyId      Int
   roomId          Int?
-  tenantCognitoId String
+  tenantCognitoId String?
   name            String
   email           String
   phoneNumber     String
@@ -264,7 +264,7 @@ model Application {
 
   property    Property     @relation(fields: [propertyId], references: [id])
   room        Room?        @relation(fields: [roomId], references: [id])
-  tenant      Tenant       @relation(fields: [tenantCognitoId], references: [cognitoId])
+  tenant      Tenant?      @relation(fields: [tenantCognitoId], references: [cognitoId])
   lease       Lease?       @relation(fields: [leaseId], references: [id])
 }
 
