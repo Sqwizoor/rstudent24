@@ -96,17 +96,18 @@ const ApplicationModal = ({
       redirectData = roomData;
     } 
     // For property-level applications, try to use the first available room's redirect settings
-    else if (propertyData && roomsData && roomsData.length > 0) {
+    else if (roomsData && roomsData.length > 0) {
       console.log('PROPERTY APPLICATION - looking for redirect settings from available rooms');
       
-      // Find the first room that has redirect settings
+      // Find the first room that has ANY redirect settings (WhatsApp or custom link)
       const roomWithRedirect = roomsData.find(room => {
         console.log(`Checking room ${room.name}:`, {
           redirectType: room.redirectType,
           hasWhatsapp: !!room.whatsappNumber,
           hasCustomLink: !!room.customLink
         });
-        return room.redirectType && room.redirectType !== RedirectTypeEnum.NONE && (room.whatsappNumber || room.customLink);
+        // Accept ANY room that has a WhatsApp number or custom link, regardless of redirectType
+        return room.whatsappNumber || room.customLink;
       });
       
       if (roomWithRedirect) {
@@ -131,81 +132,62 @@ const ApplicationModal = ({
       hasCustomLink: !!customLink
     });
 
-    if (!redirectType || redirectType === RedirectTypeEnum.NONE) {
-      console.log('REDIRECT TYPE IS NONE OR MISSING - showing fallback message');
-      toast.success("Application submitted successfully! The property manager will contact you soon.");
+    // Generate WhatsApp message
+    const message = generateWhatsAppMessage();
+
+    // TRY TO REDIRECT - Priority: WhatsApp first, then custom link
+    // Check if WhatsApp number exists regardless of redirectType
+    if (whatsappNumber) {
+      const cleanNumber = whatsappNumber.replace(/[^0-9]/g, '');
+      const whatsappUrl = `https://wa.me/${cleanNumber}?text=${message}`;
+      console.log('🚀 REDIRECTING TO WHATSAPP:', whatsappUrl);
+      console.log('📱 Clean WhatsApp number:', cleanNumber);
+      toast.success("Redirecting to WhatsApp...", { duration: 2000 });
+      
+      // Open WhatsApp immediately
+      setTimeout(() => {
+        console.log('🔥 Opening WhatsApp window NOW');
+        const opened = window.open(whatsappUrl, '_blank');
+        if (!opened) {
+          console.error('❌ Failed to open WhatsApp - popup blocked?');
+          // Try direct navigation as fallback
+          window.location.href = whatsappUrl;
+        }
+      }, 300);
+      
+      // Also show custom link option if available
+      if (customLink) {
+        setTimeout(() => {
+          toast.info("Or visit the landlord's website:", {
+            action: {
+              label: "Visit Website",
+              onClick: () => window.open(customLink, '_blank')
+            },
+            duration: 8000,
+          });
+        }, 1500);
+      }
+      return;
+    }
+    
+    // If no WhatsApp but has custom link
+    if (customLink) {
+      console.log('🔗 REDIRECTING TO CUSTOM LINK:', customLink);
+      toast.success("Redirecting to property contact...", { duration: 2000 });
+      setTimeout(() => {
+        console.log('🔥 Opening custom link NOW');
+        const opened = window.open(customLink, '_blank');
+        if (!opened) {
+          console.error('❌ Failed to open link - popup blocked?');
+          window.location.href = customLink;
+        }
+      }, 300);
       return;
     }
 
-    console.log('PROCEEDING WITH REDIRECT - Type:', redirectType);
-    const message = generateWhatsAppMessage();
-
-    // Priority: WhatsApp if number exists, otherwise custom link
-    if (redirectType === RedirectTypeEnum.WHATSAPP && whatsappNumber) {
-      // Redirect to WhatsApp
-      const cleanNumber = whatsappNumber.replace(/[^0-9]/g, '');
-      const whatsappUrl = `https://wa.me/${cleanNumber}?text=${message}`;
-      console.log('REDIRECTING TO WHATSAPP:', whatsappUrl);
-      console.log('Clean WhatsApp number:', cleanNumber);
-      toast.success("Redirecting to WhatsApp...");
-      setTimeout(() => {
-        console.log('Opening WhatsApp window NOW');
-        window.open(whatsappUrl, '_blank');
-      }, 500);
-    } else if (redirectType === RedirectTypeEnum.CUSTOM_LINK && customLink) {
-      // Redirect to custom link
-      console.log('REDIRECTING TO CUSTOM LINK:', customLink);
-      toast.success("Redirecting to property contact...");
-      setTimeout(() => {
-        window.open(customLink, '_blank');
-      }, 500);
-    } else if (redirectType === RedirectTypeEnum.BOTH) {
-      // Check which options are available and prioritize WhatsApp
-      if (whatsappNumber) {
-        const cleanNumber = whatsappNumber.replace(/[^0-9]/g, '');
-        const whatsappUrl = `https://wa.me/${cleanNumber}?text=${message}`;
-        console.log('Opening WhatsApp URL from BOTH option:', whatsappUrl);
-        console.log('Clean WhatsApp number:', cleanNumber);
-        toast.success("Redirecting to WhatsApp...");
-        setTimeout(() => {
-          console.log('Opening WhatsApp window NOW');
-          window.open(whatsappUrl, '_blank');
-        }, 500);
-        
-        // Also show option for custom link if available
-        if (customLink) {
-          setTimeout(() => {
-            toast.info("Or visit the landlord's website:", {
-              action: {
-                label: "Visit Website",
-                onClick: () => window.open(customLink, '_blank')
-              },
-              duration: 8000,
-            });
-          }, 1500);
-        }
-      } else if (customLink) {
-        console.log('Opening custom link from BOTH option:', customLink);
-        toast.success("Redirecting to property contact...");
-        setTimeout(() => {
-          window.open(customLink, '_blank');
-        }, 500);
-      } else {
-        // No valid URLs found
-        console.log('BOTH option set but no valid URLs');
-        toast.success("Application submitted successfully! The property manager will contact you soon.");
-      }
-    } else {
-      console.log('REDIRECT TYPE SET BUT NO VALID URLs FOUND:', { 
-        redirectType, 
-        hasWhatsappNumber: !!whatsappNumber, 
-        hasCustomLink: !!customLink 
-      });
-      // Show fallback message if redirect type exists but URLs are missing
-      toast.success("Application submitted successfully! The property manager will contact you soon.");
-    }
-    
-    console.log('=== REDIRECT DEBUG END ===');
+    // No redirect available
+    console.log('❌ NO VALID REDIRECT URLs FOUND');
+    toast.success("Application submitted successfully! The property manager will contact you soon.");
   };
 
   const form = useForm<ApplicationFormData>({
