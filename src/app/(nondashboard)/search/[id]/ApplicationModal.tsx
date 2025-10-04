@@ -74,24 +74,30 @@ const ApplicationModal = ({
 
   // Function to handle redirect after successful application
   const handlePostApplicationRedirect = () => {
-    if (!roomId || !roomData) {
-      return; // No redirect if no room data
+    // Only rooms have redirect settings, not properties
+    if (!roomData) {
+      console.log('No room data available - redirect only works for room applications');
+      return; // No redirect data available for property-level applications
     }
 
     const { redirectType, whatsappNumber, customLink } = roomData;
 
     if (!redirectType || redirectType === 'NONE') {
+      console.log('No redirect configured or redirect type is NONE');
       return; // No redirect configured
     }
 
+    console.log('Redirect configured:', { redirectType, whatsappNumber: !!whatsappNumber, customLink: !!customLink });
     const message = generateWhatsAppMessage();
 
     if (redirectType === 'WHATSAPP' && whatsappNumber) {
       // Redirect to WhatsApp
       const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`;
+      console.log('Opening WhatsApp URL:', whatsappUrl);
       window.open(whatsappUrl, '_blank');
     } else if (redirectType === 'CUSTOM_LINK' && customLink) {
       // Redirect to custom link
+      console.log('Opening custom link:', customLink);
       window.open(customLink, '_blank');
     } else if (redirectType === 'BOTH') {
       // Show both options in the success toast
@@ -121,10 +127,14 @@ const ApplicationModal = ({
         }, 1000);
       } else if (whatsappNumber) {
         const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`;
+        console.log('Opening WhatsApp URL from BOTH option:', whatsappUrl);
         window.open(whatsappUrl, '_blank');
       } else if (customLink) {
+        console.log('Opening custom link from BOTH option:', customLink);
         window.open(customLink, '_blank');
       }
+    } else {
+      console.log('No valid redirect configuration found:', { redirectType, whatsappNumber: !!whatsappNumber, customLink: !!customLink });
     }
   };
 
@@ -285,8 +295,15 @@ const ApplicationModal = ({
       const responseData = await response.json();
       console.log('Application submission successful:', responseData);
       
-      // Handle redirect based on room settings
+      // Handle redirect based on room settings (only rooms have redirect settings)
       const hasRedirect = roomData?.redirectType && roomData.redirectType !== 'NONE';
+      
+      console.log('Checking for redirect:', { 
+        hasRoomData: !!roomData, 
+        hasPropertyData: !!propertyData, 
+        redirectType: roomData?.redirectType,
+        hasRedirect 
+      });
       
       if (hasRedirect) {
         toast.success("Application Submitted Successfully!", {
@@ -302,9 +319,12 @@ const ApplicationModal = ({
       
       // Delay redirect slightly to allow modal to close
       if (hasRedirect) {
+        console.log('Starting redirect in 500ms');
         setTimeout(() => {
           handlePostApplicationRedirect();
         }, 500);
+      } else {
+        console.log('No redirect configured');
       }
     } catch (error) {
       console.error('Application submission error:', error);
