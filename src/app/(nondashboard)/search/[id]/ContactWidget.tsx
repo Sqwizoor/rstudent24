@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useGetAuthUserQuery } from "@/state/api";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { useRouter } from "next/navigation";
 import React from "react";
 
@@ -8,11 +8,11 @@ interface ContactWidgetProps {
 }
 
 const ContactWidget = ({ onOpenModal }: ContactWidgetProps) => {
-  const { data: authUser } = useGetAuthUserQuery();
+  const { user: authUser, isAuthenticated } = useUnifiedAuth();
   const router = useRouter();
 
   const handleButtonClick = () => {
-    if (authUser) {
+    if (isAuthenticated && authUser) {
       onOpenModal();
     } else {
       router.push("/signin");
@@ -31,7 +31,7 @@ const ContactWidget = ({ onOpenModal }: ContactWidgetProps) => {
         className="w-full bg-primary-700 text-white hover:bg-primary-600"
         onClick={handleButtonClick}
       >
-        {authUser ? "Submit Application" : "Sign In to Apply"}
+        {isAuthenticated && authUser ? "Submit Application" : "Sign In to Apply"}
       </Button>
 
       <hr className="my-4" />

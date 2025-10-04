@@ -8,7 +8,8 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { ApplicationFormData, applicationSchema } from "@/lib/schemas";
-import { useCreateApplicationMutation, useGetAuthUserQuery, useGetRoomQuery, useGetPropertyQuery } from "@/state/api";
+import { useCreateApplicationMutation, useGetRoomQuery, useGetPropertyQuery } from "@/state/api";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { ApplicationStatus } from "@/types/prismaTypes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState, useEffect } from "react";
@@ -33,7 +34,7 @@ const ApplicationModal = ({
   roomName,
 }: ApplicationModalProps) => {
   const [createApplication] = useCreateApplicationMutation();
-  const { data: authUser } = useGetAuthUserQuery();
+  const { user: authUser, isAuthenticated } = useUnifiedAuth();
   const { data: roomData } = useGetRoomQuery({ propertyId, roomId: roomId! }, { skip: !roomId });
   const { data: propertyData } = useGetPropertyQuery(propertyId);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -138,9 +139,9 @@ const ApplicationModal = ({
   });
 
   const onSubmit = async (data: ApplicationFormData) => {
-    if (!authUser || authUser.userRole !== "tenant") {
+    if (!isAuthenticated || !authUser || authUser.role !== "tenant") {
       toast.error("Authentication Required", {
-        description: "You must be logged in as a tenant to submit an application",
+        description: "You must be logged in as a student to submit an application",
         action: {
           label: "Login",
           onClick: () => window.location.href = "/signin"
@@ -160,7 +161,7 @@ const ApplicationModal = ({
         status: ApplicationStatus.Pending,
         // Always ensure propertyId is a number
         propertyId: typeof propertyId === 'string' ? parseInt(propertyId) : Number(propertyId),
-        tenantCognitoId: authUser.cognitoInfo?.userId || authUser.userInfo?.email || '',
+        tenantCognitoId: authUser.cognitoInfo?.userId || authUser.id || authUser.email || '',
       };
       
       // Detailed logging for debugging
@@ -185,16 +186,21 @@ const ApplicationModal = ({
         'Content-Type': 'application/json'
       };
       
-      try {
-        const session = await fetchAuthSession();
-        token = session.tokens?.idToken?.toString() || '';
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-          console.log('Using Cognito token for authentication');
+      // Only try to get Cognito token if user is authenticated via Cognito
+      if (authUser.provider === 'cognito') {
+        try {
+          const session = await fetchAuthSession();
+          token = session.tokens?.idToken?.toString() || '';
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+            console.log('Using Cognito token for authentication');
+          }
+        } catch (authError) {
+          console.error('Failed to get Cognito token for manager:', authError);
         }
-      } catch (authError) {
-        console.log('No Cognito token available, using session-based auth for students');
-        // For students using Google auth, don't need to set Authorization header
+      } else {
+        console.log('Using session-based auth for students (NextAuth/Google)');
+        // For students using NextAuth/Google, don't need to set Authorization header
         // The server will check NextAuth session automatically
       }
       
