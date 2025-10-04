@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { signIn } from "next-auth/react";
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,11 +10,13 @@ import Image from "next/image";
 
 export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
 
   const handleGoogleSignUp = async () => {
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/" });
+      await signIn("google", { callbackUrl });
     } catch (error) {
       console.error("Google sign-up error:", error);
     } finally {
@@ -108,7 +111,7 @@ export default function SignUpPage() {
         <CardFooter className="text-center">
           <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
-            <a href="/signin" className="text-blue-600 hover:underline">
+            <a href={`/signin${callbackUrl !== '/' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`} className="text-blue-600 hover:underline">
               Sign in here
             </a>
           </p>

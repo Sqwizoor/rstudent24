@@ -77,9 +77,9 @@ const ApplicationModal = ({
   // Function to handle redirect after successful application
   const handlePostApplicationRedirect = () => {
     console.log('=== REDIRECT DEBUG START ===');
-    console.log('Room Data:', roomData);
-    console.log('Property Data:', propertyData);
-    console.log('Rooms Data:', roomsData);
+    console.log('Room Data:', JSON.stringify(roomData, null, 2));
+    console.log('Property Data:', JSON.stringify(propertyData, null, 2));
+    console.log('Rooms Data:', JSON.stringify(roomsData, null, 2));
     console.log('Room ID from props:', roomId);
     console.log('Property ID from props:', propertyId);
     
@@ -88,6 +88,11 @@ const ApplicationModal = ({
     // For specific room applications, use room data directly
     if (roomData) {
       console.log('FOUND ROOM DATA - checking redirect settings');
+      console.log('Room redirect details:', {
+        redirectType: roomData.redirectType,
+        whatsappNumber: roomData.whatsappNumber,
+        customLink: roomData.customLink
+      });
       redirectData = roomData;
     } 
     // For property-level applications, try to use the first available room's redirect settings
@@ -96,6 +101,11 @@ const ApplicationModal = ({
       
       // Find the first room that has redirect settings
       const roomWithRedirect = roomsData.find(room => {
+        console.log(`Checking room ${room.name}:`, {
+          redirectType: room.redirectType,
+          hasWhatsapp: !!room.whatsappNumber,
+          hasCustomLink: !!room.customLink
+        });
         return room.redirectType && room.redirectType !== RedirectTypeEnum.NONE && (room.whatsappNumber || room.customLink);
       });
       
@@ -116,7 +126,9 @@ const ApplicationModal = ({
     console.log('REDIRECT DATA FOUND:', { 
       redirectType, 
       whatsappNumber, 
-      customLink
+      customLink,
+      hasWhatsapp: !!whatsappNumber,
+      hasCustomLink: !!customLink
     });
 
     if (!redirectType || redirectType === RedirectTypeEnum.NONE) {
@@ -131,10 +143,13 @@ const ApplicationModal = ({
     // Priority: WhatsApp if number exists, otherwise custom link
     if (redirectType === RedirectTypeEnum.WHATSAPP && whatsappNumber) {
       // Redirect to WhatsApp
-      const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`;
+      const cleanNumber = whatsappNumber.replace(/[^0-9]/g, '');
+      const whatsappUrl = `https://wa.me/${cleanNumber}?text=${message}`;
       console.log('REDIRECTING TO WHATSAPP:', whatsappUrl);
+      console.log('Clean WhatsApp number:', cleanNumber);
       toast.success("Redirecting to WhatsApp...");
       setTimeout(() => {
+        console.log('Opening WhatsApp window NOW');
         window.open(whatsappUrl, '_blank');
       }, 500);
     } else if (redirectType === RedirectTypeEnum.CUSTOM_LINK && customLink) {
@@ -147,10 +162,13 @@ const ApplicationModal = ({
     } else if (redirectType === RedirectTypeEnum.BOTH) {
       // Check which options are available and prioritize WhatsApp
       if (whatsappNumber) {
-        const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`;
+        const cleanNumber = whatsappNumber.replace(/[^0-9]/g, '');
+        const whatsappUrl = `https://wa.me/${cleanNumber}?text=${message}`;
         console.log('Opening WhatsApp URL from BOTH option:', whatsappUrl);
+        console.log('Clean WhatsApp number:', cleanNumber);
         toast.success("Redirecting to WhatsApp...");
         setTimeout(() => {
+          console.log('Opening WhatsApp window NOW');
           window.open(whatsappUrl, '_blank');
         }, 500);
         
@@ -222,11 +240,15 @@ const ApplicationModal = ({
         hasAuthUser: !!authUser
       });
       
+      // Get current page URL to redirect back after sign in
+      const currentUrl = window.location.pathname + window.location.search;
+      const callbackUrl = encodeURIComponent(currentUrl);
+      
       toast.error("Authentication Required", {
         description: "You must be logged in as a student to submit an application",
         action: {
           label: "Sign In",
-          onClick: () => window.location.href = "/signin"
+          onClick: () => window.location.href = `/signin?callbackUrl=${callbackUrl}`
         }
       });
       return;
@@ -338,14 +360,14 @@ const ApplicationModal = ({
         description: "Processing your request..."
       });
       
-      // Close modal
-      onClose();
+      // Handle redirect BEFORE closing modal to ensure data is still available
+      console.log('Calling redirect function NOW (before closing modal)');
+      handlePostApplicationRedirect();
       
-      // Handle redirect after a short delay
-      console.log('Starting redirect process in 500ms');
+      // Close modal after redirect is initiated
       setTimeout(() => {
-        handlePostApplicationRedirect();
-      }, 500);
+        onClose();
+      }, 100);
     } catch (error) {
       console.error('Application submission error:', error);
       toast.error("Submission Failed", {
