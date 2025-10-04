@@ -139,7 +139,27 @@ const ApplicationModal = ({
   });
 
   const onSubmit = async (data: ApplicationFormData) => {
+    console.log('onSubmit called with data:', data);
+    
+    // Debug logging to see authentication state
+    console.log('Debug - Auth state:', {
+      isAuthenticated,
+      authUser: authUser ? {
+        id: authUser.id,
+        name: authUser.name,
+        email: authUser.email,
+        role: authUser.role,
+        provider: authUser.provider
+      } : null
+    });
+
     if (!isAuthenticated || !authUser || authUser.role !== "tenant") {
+      console.error('Authentication failed:', {
+        isAuthenticated,
+        hasAuthUser: !!authUser,
+        userRole: authUser?.role
+      });
+      
       toast.error("Authentication Required", {
         description: "You must be logged in as a student to submit an application",
         action: {
@@ -220,6 +240,7 @@ const ApplicationModal = ({
       };
       
       console.log('Application data being submitted:', finalFormattedData);
+      console.log('Request headers:', headers);
       
       // Send the application data to the server
       const response = await fetch('/api/applications', {
@@ -228,6 +249,9 @@ const ApplicationModal = ({
         body: JSON.stringify(finalFormattedData),
         credentials: 'include' // Important for NextAuth session cookies
       });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
         let errorMessage = `Failed with status ${response.status}`;
@@ -271,7 +295,8 @@ const ApplicationModal = ({
     } catch (error) {
       console.error('Application submission error:', error);
       toast.error("Submission Failed", {
-        description: `There was an error submitting your application: ${error instanceof Error ? error.message : 'Unknown error'}`
+        description: `There was an error submitting your application: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        duration: 10000, // Keep error visible longer
       });
     } finally {
       setIsSubmitting(false);
@@ -287,7 +312,18 @@ const ApplicationModal = ({
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={form.handleSubmit(
+            (data) => {
+              console.log('Form validation passed, calling onSubmit');
+              onSubmit(data);
+            },
+            (errors) => {
+              console.error('Form validation failed:', errors);
+              toast.error("Form Validation Error", {
+                description: "Please check your form inputs and try again."
+              });
+            }
+          )} className="space-y-5">
             <CustomFormField
               name="name"
               label="Name"
