@@ -16,6 +16,10 @@ const nextConfig = {
         pathname: "/**",
       },
     ],
+    // Reduce automatic preloading to minimize warnings
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   // Add file upload size limits
   experimental: {

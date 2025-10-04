@@ -249,6 +249,7 @@ export default function AdminSignup() {
               alt="Student24 Logo" 
               width={120} 
               height={40} 
+              priority
             />
           </div>
           <CardTitle className="text-2xl font-bold text-center">Admin Registration</CardTitle>
@@ -386,7 +387,8 @@ export default function AdminSignup() {
               alt="Student24 Logo" 
               width={120} 
               height={40} 
-              className="opacity-70 dark:opacity-50" 
+              className="opacity-70 dark:opacity-50"
+              loading="lazy" 
             />
           </div>
         </div>

@@ -182,6 +182,7 @@ export default function AdminLogin() {
               width={120} 
               height={40} 
               className="" 
+              priority
             />
           </div>
           <CardTitle className="text-2xl font-bold text-center">Admin Access</CardTitle>
@@ -290,6 +291,7 @@ export default function AdminLogin() {
               width={120} 
               height={40} 
               className="opacity-70 dark:opacity-50" 
+              loading="lazy"
             />
           </div>
         </div>

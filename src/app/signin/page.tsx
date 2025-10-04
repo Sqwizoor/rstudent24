@@ -32,6 +32,7 @@ export default function SignInPage() {
               width={120} 
               height={40} 
               className="" 
+              priority
             />
           </div>
           <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>

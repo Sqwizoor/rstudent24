@@ -350,17 +350,33 @@ const ApplicationModal = ({
       const responseData = await response.json();
       console.log('Application submission successful:', responseData);
       
-      // Handle redirect based on room settings (only rooms have redirect settings)
-      const hasRedirect = roomData?.redirectType && roomData.redirectType !== 'NONE';
+      // Handle redirect - check if we have redirect data from either room or property
+      let hasRedirectData = false;
+      
+      // For room applications
+      if (roomData?.redirectType && roomData.redirectType !== 'NONE') {
+        hasRedirectData = true;
+      }
+      // For property applications, check if any room has redirect settings
+      else if (!roomData && roomsData && roomsData.length > 0) {
+        const roomWithRedirect = roomsData.find(room => 
+          room.redirectType && room.redirectType !== 'NONE' && (room.whatsappNumber || room.customLink)
+        );
+        hasRedirectData = !!roomWithRedirect;
+      }
       
       console.log('Checking for redirect:', { 
         hasRoomData: !!roomData, 
         hasPropertyData: !!propertyData, 
+        hasRoomsData: !!roomsData,
         redirectType: roomData?.redirectType,
-        hasRedirect 
+        whatsappNumber: roomData?.whatsappNumber,
+        customLink: roomData?.customLink,
+        hasRedirectData,
+        roomDataFull: roomData
       });
       
-      if (hasRedirect) {
+      if (hasRedirectData) {
         toast.success("Application Submitted Successfully!", {
           description: "Redirecting you to contact the landlord..."
         });
@@ -372,15 +388,11 @@ const ApplicationModal = ({
       
       onClose();
       
-      // Delay redirect slightly to allow modal to close
-      if (hasRedirect) {
-        console.log('Starting redirect in 500ms');
-        setTimeout(() => {
-          handlePostApplicationRedirect();
-        }, 500);
-      } else {
-        console.log('No redirect configured');
-      }
+      // Always try to handle redirect - the function will determine what to do
+      console.log('Starting redirect process in 500ms');
+      setTimeout(() => {
+        handlePostApplicationRedirect();
+      }, 500);
     } catch (error) {
       console.error('Application submission error:', error);
       toast.error("Submission Failed", {
