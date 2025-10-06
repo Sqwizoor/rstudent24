@@ -43,7 +43,7 @@ import {
 import { type PropertyFormData, propertySchema } from "@/lib/schemas";
 import { processImageFiles } from "@/lib/imageUtils";
 import { useCreatePropertyMutation, useCreateRoomMutation, useGetAuthUserQuery } from "@/state/api";
-import { AmenityEnum, HighlightEnum, PropertyTypeEnum, UNIVERSITY_OPTIONS, PROVINCES, getUniversityOptionsByProvince, getCampusOptionsByProvince, getCampusOptionsByUniversity } from "@/lib/constants";
+import { AmenityEnum, HighlightEnum, PropertyTypeEnum, RedirectTypeEnum, UNIVERSITY_OPTIONS, PROVINCES, getUniversityOptionsByProvince, getCampusOptionsByProvince, getCampusOptionsByUniversity } from "@/lib/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
@@ -201,6 +201,9 @@ const NewProperty = () => {
   closestUniversities: [],
   closestCampuses: [],
   closestUniversity: "",
+  redirectType: RedirectTypeEnum.NONE,
+  whatsappNumber: "",
+  customLink: "",
     },
     mode: "onChange", // Validate on change for better UX
   });
@@ -1214,6 +1217,72 @@ const NewProperty = () => {
                     labelClassName={labelStyle}
                     inputClassName={`${inputStyle}`}
                   />
+
+                  {/* Divider for redirect settings */}
+                  <div className="pt-6 mt-6 border-t border-[#1E2A45]">
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                      <span className="bg-blue-500/20 p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                      </span>
+                      After Application Redirect (Optional)
+                    </h3>
+                    <p className="text-sm text-gray-400 mb-4">
+                      Configure where students are redirected after submitting an application. This helps you connect with applicants faster!
+                    </p>
+                  </div>
+
+                  {/* Redirect Type Selection */}
+                  <CreateFormField
+                    name="redirectType"
+                    label="Redirect Type"
+                    type="select"
+                    options={[
+                      { value: RedirectTypeEnum.NONE, label: "No Redirect (Default)" },
+                      { value: RedirectTypeEnum.WHATSAPP, label: "WhatsApp Message" },
+                      { value: RedirectTypeEnum.CUSTOM_LINK, label: "Custom Website/Link" },
+                    ]}
+                    labelClassName={labelStyle}
+                    inputClassName={`${inputStyle}`}
+                    placeholder="Select redirect type"
+                  />
+
+                  {/* WhatsApp Number (conditional) */}
+                  {form.watch("redirectType") === RedirectTypeEnum.WHATSAPP && (
+                    <div className="space-y-2 bg-green-500/5 border border-green-500/20 rounded-lg p-4">
+                      <CreateFormField
+                        name="whatsappNumber"
+                        label="WhatsApp Number"
+                        type="text"
+                        labelClassName={labelStyle}
+                        inputClassName={`${inputStyle}`}
+                        placeholder="27123456789 (with country code, no + or spaces)"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">
+                        📱 Enter your WhatsApp number with country code (e.g., 27123456789 for South Africa). 
+                        Students will be redirected to WhatsApp after applying.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Custom Link (conditional) */}
+                  {form.watch("redirectType") === RedirectTypeEnum.CUSTOM_LINK && (
+                    <div className="space-y-2 bg-blue-500/5 border border-blue-500/20 rounded-lg p-4">
+                      <CreateFormField
+                        name="customLink"
+                        label="Custom Link/Website"
+                        type="text"
+                        labelClassName={labelStyle}
+                        inputClassName={`${inputStyle}`}
+                        placeholder="https://your-website.com/contact"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">
+                        🔗 Enter the URL where students should be redirected after applying 
+                        (e.g., your website, booking system, or contact form).
+                      </p>
+                    </div>
+                  )}
                   
                 </div>
                 

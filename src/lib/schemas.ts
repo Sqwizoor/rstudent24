@@ -30,6 +30,10 @@ export const propertySchema = z.object({
   postalCode: z.string().min(1, "Postal code is required"),
   suburb: z.string().min(1, "Suburb is required"),
   locationId: z.number().optional(),
+  // Redirect settings for applications (property-level defaults)
+  redirectType: z.nativeEnum(RedirectTypeEnum).optional().default(RedirectTypeEnum.NONE),
+  whatsappNumber: z.string().optional(),
+  customLink: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 });
 
 export type PropertyFormData = z.infer<typeof propertySchema>;
@@ -107,6 +111,11 @@ export interface ApiProperty {
   closestUniversity?: string | null;
   managerCognitoId: string;
   locationId: number;
+  
+  // Redirect settings for applications
+  redirectType?: RedirectTypeEnum;
+  whatsappNumber?: string | null;
+  customLink?: string | null;
   
   // Location fields - may be populated directly or through a nested location object
   address?: string;

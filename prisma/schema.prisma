@@ -149,6 +149,11 @@ model Property {
   numberOfReviews   Int?         @default(0)
   locationId        Int
   managerCognitoId  String
+  
+  // Redirect settings for applications (property-level defaults)
+  redirectType      RedirectType? @default(NONE)
+  whatsappNumber    String?
+  customLink        String?
 
   // Relations
   location     Location      @relation(fields: [locationId], references: [id])

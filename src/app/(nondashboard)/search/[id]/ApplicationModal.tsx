@@ -16,7 +16,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-// Used for direct token import in the fallback authentication path
 import { fetchAuthSession } from "aws-amplify/auth";
 
 interface ApplicationModalProps {
@@ -41,184 +40,89 @@ const ApplicationModal = ({
   const { data: roomsData } = useGetRoomsQuery(propertyId);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Debug: Log when data loads
-  useEffect(() => {
-    if (roomData) {
-      console.log('✅ Room data loaded:', {
-        id: roomData.id,
-        name: roomData.name,
-        redirectType: roomData.redirectType,
-        whatsappNumber: roomData.whatsappNumber,
-        customLink: roomData.customLink
-      });
-    }
-  }, [roomData]);
-
-  useEffect(() => {
-    if (roomsData) {
-      console.log('✅ Rooms data loaded, count:', roomsData.length);
-      roomsData.forEach(room => {
-        console.log(`  Room ${room.name}:`, {
-          redirectType: room.redirectType,
-          whatsappNumber: room.whatsappNumber,
-          customLink: room.customLink
-        });
-      });
-    }
-  }, [roomsData]);
-
-  // Function to generate WhatsApp message with property and room info
   const generateWhatsAppMessage = () => {
     const property = propertyData;
     const room = roomData;
     
-    let message = `Hi! I just submitted an application for `;
+    let message = "Hi! I just submitted an application for ";
     
     if (room) {
-      message += `${room.name} at ${property?.name || 'your property'}. `;
-      message += `\n\nRoom Details:\n`;
-      message += `- Price: R${room.pricePerMonth}/month\n`;
+      message += room.name + " at " + (property?.name || "your property") + ". ";
+      message += "\\n\\nRoom Details:\\n";
+      message += "- Price: R" + room.pricePerMonth + "/month\\n";
       if (room.securityDeposit && room.securityDeposit > 0) {
-        message += `- Security Deposit: R${room.securityDeposit}\n`;
+        message += "- Security Deposit: R" + room.securityDeposit + "\\n";
       }
-      if (room.topUp && room.topUp > 0) {
-        message += `- Top-up: R${room.topUp}\n`;
-      }
-      message += `- Room Type: ${room.roomType}\n`;
-      message += `- Capacity: ${room.capacity} person(s)\n`;
+      message += "- Room Type: " + room.roomType + "\\n";
     } else {
-      message += `${property?.name || 'your property'}. `;
-      message += `\n\nProperty Price: R${property?.price}/month\n`;
+      message += (property?.name || "your property") + ". ";
     }
     
     if (property?.location) {
-      message += `- Location: ${property.location.address}, ${property.location.city}\n`;
+      message += "- Location: " + property.location.address + ", " + property.location.city + "\\n";
     }
     
-    message += `\nI'm interested in viewing the property and would like to discuss the application process. Thank you!`;
+    message += "\\nI'm interested in viewing the property and would like to discuss the application process. Thank you!";
     
     return encodeURIComponent(message);
   };
 
-  // Function to handle redirect after successful application
   const handlePostApplicationRedirect = () => {
-    console.log('=== REDIRECT DEBUG START ===');
-    console.log('🔍 Room Data:', JSON.stringify(roomData, null, 2));
-    console.log('🔍 Property Data:', JSON.stringify(propertyData, null, 2));
-    console.log('🔍 Rooms Data:', JSON.stringify(roomsData, null, 2));
-    console.log('🔍 Room ID from props:', roomId);
-    console.log('🔍 Property ID from props:', propertyId);
-    
-    let redirectData = null;
     let whatsappNumber = null;
     let customLink = null;
     
-    // For specific room applications, use room data directly
-    if (roomData) {
-      console.log('✅ FOUND ROOM DATA - checking redirect settings');
-      console.log('📋 Room redirect details:', {
-        redirectType: roomData.redirectType,
-        whatsappNumber: roomData.whatsappNumber,
-        customLink: roomData.customLink
-      });
+    if (roomData && roomId) {
       whatsappNumber = roomData.whatsappNumber;
       customLink = roomData.customLink;
-      redirectData = roomData;
-    } 
-    // For property-level applications, try to use the first available room's redirect settings
-    else if (roomsData && roomsData.length > 0) {
-      console.log('🏢 PROPERTY APPLICATION - checking all rooms for redirect settings');
-      console.log('📊 Total rooms available:', roomsData.length);
-      
-      // Find the first room that has ANY redirect settings (WhatsApp or custom link)
-      const roomWithRedirect = roomsData.find(room => {
-        const hasWhatsapp = !!room.whatsappNumber;
-        const hasCustomLink = !!room.customLink;
-        console.log(`  🔎 Checking room "${room.name}":`, {
-          id: room.id,
-          redirectType: room.redirectType,
-          hasWhatsapp,
-          hasCustomLink,
-          whatsappNumber: room.whatsappNumber || 'NONE',
-          customLink: room.customLink || 'NONE'
-        });
-        // Accept ANY room that has a WhatsApp number or custom link
-        return hasWhatsapp || hasCustomLink;
-      });
+    }
+    
+    if ((!whatsappNumber && !customLink) && propertyData) {
+      whatsappNumber = (propertyData as any).whatsappNumber;
+      customLink = (propertyData as any).customLink;
+    }
+    
+    if ((!whatsappNumber && !customLink) && roomsData && roomsData.length > 0) {
+      const roomWithRedirect = roomsData.find(room => 
+        room.whatsappNumber || room.customLink
+      );
       
       if (roomWithRedirect) {
-        console.log('✅ FOUND ROOM WITH REDIRECT:', roomWithRedirect.name);
         whatsappNumber = roomWithRedirect.whatsappNumber;
         customLink = roomWithRedirect.customLink;
-        redirectData = roomWithRedirect;
-      } else {
-        console.log('❌ NO ROOMS WITH WHATSAPP OR CUSTOM LINK FOUND');
       }
-    } else {
-      console.log('❌ NO ROOM DATA OR ROOMS DATA AVAILABLE');
-      console.log('   - roomData exists?', !!roomData);
-      console.log('   - roomsData exists?', !!roomsData);
-      console.log('   - roomsData length?', roomsData?.length || 0);
     }
 
-    // Check if we have any redirect information
-    console.log('🎯 Final redirect check:', {
-      hasRedirectData: !!redirectData,
-      hasWhatsappNumber: !!whatsappNumber,
-      hasCustomLink: !!customLink,
-      whatsappNumber: whatsappNumber || 'NONE',
-      customLink: customLink || 'NONE'
-    });
-
-    // Generate WhatsApp message
     const message = generateWhatsAppMessage();
 
-    // TRY TO REDIRECT - Priority: WhatsApp first, then custom link
-    // Check if WhatsApp number exists
     if (whatsappNumber && whatsappNumber.trim()) {
-      const cleanNumber = whatsappNumber.replace(/[^0-9]/g, '');
-      console.log('🎉 WHATSAPP NUMBER FOUND!');
-      console.log('📱 Original number:', whatsappNumber);
-      console.log('📱 Clean number:', cleanNumber);
+      const cleanNumber = whatsappNumber.replace(/[^0-9]/g, "");
       
       if (cleanNumber.length < 10) {
-        console.error('❌ WhatsApp number too short:', cleanNumber);
-        toast.error("Invalid WhatsApp number configured. Please contact support.");
+        toast.error("Invalid WhatsApp number configured.");
         return;
       }
       
-      const whatsappUrl = `https://wa.me/${cleanNumber}?text=${message}`;
-      console.log('🚀 WHATSAPP URL:', whatsappUrl);
-      console.log('� ATTEMPTING TO OPEN WHATSAPP NOW...');
+      const whatsappUrl = "https://wa.me/" + cleanNumber + "?text=" + message;
       
       toast.success("Redirecting to WhatsApp...", { duration: 2000 });
       
-      // Try to open WhatsApp
-      try {
-        const opened = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-        console.log('🔥 window.open returned:', opened);
-        
-        if (!opened || opened.closed || typeof opened.closed === 'undefined') {
-          console.warn('⚠️ Popup might be blocked, trying direct navigation...');
-          setTimeout(() => {
+      setTimeout(() => {
+        try {
+          const opened = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+          if (!opened || opened.closed || typeof opened.closed === "undefined") {
             window.location.href = whatsappUrl;
-          }, 500);
-        } else {
-          console.log('✅ WhatsApp opened successfully!');
+          }
+        } catch (error) {
+          window.location.href = whatsappUrl;
         }
-      } catch (error) {
-        console.error('❌ Error opening WhatsApp:', error);
-        // Fallback to direct navigation
-        window.location.href = whatsappUrl;
-      }
+      }, 300);
       
-      // Also show custom link option if available
       if (customLink && customLink.trim()) {
         setTimeout(() => {
           toast.info("Or visit the landlord's website:", {
             action: {
               label: "Visit Website",
-              onClick: () => window.open(customLink, '_blank')
+              onClick: () => window.open(customLink, "_blank")
             },
             duration: 8000,
           });
@@ -227,27 +131,22 @@ const ApplicationModal = ({
       return;
     }
     
-    // If no WhatsApp but has custom link
     if (customLink && customLink.trim()) {
-      console.log('🔗 CUSTOM LINK FOUND:', customLink);
       toast.success("Redirecting to property contact...", { duration: 2000 });
+      
       setTimeout(() => {
-        console.log('🔥 Opening custom link NOW');
-        const opened = window.open(customLink, '_blank', 'noopener,noreferrer');
-        if (!opened || opened.closed || typeof opened.closed === 'undefined') {
-          console.warn('⚠️ Popup might be blocked, trying direct navigation...');
+        try {
+          const opened = window.open(customLink, "_blank", "noopener,noreferrer");
+          if (!opened || opened.closed || typeof opened.closed === "undefined") {
+            window.location.href = customLink;
+          }
+        } catch (error) {
           window.location.href = customLink;
         }
       }, 300);
       return;
     }
 
-    // No redirect available
-    console.log('❌ NO VALID REDIRECT URLs FOUND - Showing fallback message');
-    console.log('🔍 Debug info:');
-    console.log('   - redirectData:', !!redirectData);
-    console.log('   - whatsappNumber:', whatsappNumber);
-    console.log('   - customLink:', customLink);
     toast.success("Application submitted successfully! The property manager will contact you soon.");
   };
 
@@ -262,28 +161,7 @@ const ApplicationModal = ({
   });
 
   const onSubmit = async (data: ApplicationFormData) => {
-    console.log('onSubmit called with data:', data);
-    
-    // Debug logging to see authentication state
-    console.log('Debug - Auth state:', {
-      isAuthenticated,
-      authUser: authUser ? {
-        id: authUser.id,
-        name: authUser.name,
-        email: authUser.email,
-        role: authUser.role,
-        provider: authUser.provider
-      } : null
-    });
-
-    // REQUIRE authentication - only logged in students can submit applications
     if (!isAuthenticated || !authUser) {
-      console.error('Authentication required:', {
-        isAuthenticated,
-        hasAuthUser: !!authUser
-      });
-      
-      // Get current page URL to redirect back after sign in
       const currentUrl = window.location.pathname + window.location.search;
       const callbackUrl = encodeURIComponent(currentUrl);
       
@@ -291,18 +169,15 @@ const ApplicationModal = ({
         description: "You must be logged in as a student to submit an application",
         action: {
           label: "Sign In",
-          onClick: () => window.location.href = `/signin?callbackUrl=${callbackUrl}`
+          onClick: () => window.location.href = "/signin?callbackUrl=" + callbackUrl
         }
       });
       return;
     }
 
-    // Only allow students/tenants to submit (block managers and admins)
     if (authUser.role === "manager" || authUser.role === "admin") {
-      console.error('Invalid user role for application:', authUser.role);
-      
       toast.error("Access Denied", {
-        description: "Only students can submit applications. Please sign in with a student account.",
+        description: "Only students can submit applications.",
       });
       return;
     }
@@ -310,50 +185,31 @@ const ApplicationModal = ({
     try {
       setIsSubmitting(true);
       
-      // Prepare application data
       const applicationData = {
         ...data,
         applicationDate: new Date().toISOString(),
         status: ApplicationStatus.Pending,
-        propertyId: typeof propertyId === 'string' ? parseInt(propertyId) : Number(propertyId),
+        propertyId: Number(propertyId),
         roomId: roomId ? Number(roomId) : undefined,
-        // Include tenantCognitoId from authenticated user
-        tenantCognitoId: authUser.cognitoInfo?.userId || authUser.id || authUser.email || '',
+        tenantCognitoId: authUser.cognitoInfo?.userId || authUser.id || authUser.email || "",
       };
       
-      // Detailed logging for debugging
-      console.log('Application data structure:', JSON.stringify(applicationData, null, 2));
-      
-      // Ensure propertyId is a number
-      if (isNaN(applicationData.propertyId as number)) {
-        toast.error("Invalid Property", {
-          description: "Failed to identify property. Please try again."
-        });
-        return;
-      }
-      
-      // Prepare headers
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json"
       };
       
-      // Try to get Cognito token if user is authenticated via Cognito
-      if (authUser.provider === 'cognito') {
+      if (authUser.provider === "cognito") {
         try {
           const session = await fetchAuthSession();
-          const token = session.tokens?.idToken?.toString() || '';
+          const token = session.tokens?.idToken?.toString() || "";
           if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-            console.log('Using Cognito token for authentication');
+            headers["Authorization"] = "Bearer " + token;
           }
         } catch (authError) {
-          console.error('Failed to get Cognito token:', authError);
+          console.error("Failed to get Cognito token:", authError);
         }
-      } else {
-        console.log('Using NextAuth session for Google authentication');
       }
       
-      // Prepare the final application data
       const currentDate = new Date().toISOString();
       const finalFormattedData = {
         name: data.name,
@@ -368,53 +224,37 @@ const ApplicationModal = ({
         tenantCognitoId: applicationData.tenantCognitoId,
       };
       
-      console.log('Application data being submitted:', finalFormattedData);
-      console.log('Request headers:', headers);
-      
-      // Send the application data to the server
-      const response = await fetch('/api/applications', {
-        method: 'POST',
+      const response = await fetch("/api/applications", {
+        method: "POST",
         headers,
         body: JSON.stringify(finalFormattedData),
-        credentials: 'include' // Important for NextAuth session cookies
+        credentials: "include"
       });
       
-      console.log('Response status:', response.status);
-      
       if (!response.ok) {
-        let errorMessage = `Failed with status ${response.status}`;
+        let errorMessage = "Failed with status " + response.status;
         try {
           const errorData = await response.json();
-          console.error('Application submission failed:', response.status, errorData);
-          errorMessage = errorData.message || `${errorMessage}: ${JSON.stringify(errorData)}`;
+          errorMessage = errorData.message || errorMessage;
         } catch (e) {
           const errorText = await response.text();
-          console.error('Application submission failed (non-JSON):', response.status, errorText);
-          errorMessage = `${errorMessage}: ${errorText}`;
+          errorMessage = errorMessage + ": " + errorText;
         }
         throw new Error(errorMessage);
       }
       
-      const responseData = await response.json();
-      console.log('Application submission successful:', responseData);
-      
-      // Show success message
       toast.success("Application Submitted Successfully!", {
         description: "Processing your request..."
       });
       
-      // Handle redirect BEFORE closing modal to ensure data is still available
-      console.log('Calling redirect function NOW (before closing modal)');
       handlePostApplicationRedirect();
       
-      // Close modal after redirect is initiated
       setTimeout(() => {
         onClose();
       }, 100);
     } catch (error) {
-      console.error('Application submission error:', error);
       toast.error("Submission Failed", {
-        description: `There was an error submitting your application: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: "There was an error submitting your application: " + (error instanceof Error ? error.message : "Unknown error"),
         duration: 10000,
       });
     } finally {
@@ -427,22 +267,11 @@ const ApplicationModal = ({
       <DialogContent className="bg-white">
         <DialogHeader className="mb-4">
           <DialogTitle>
-            {roomName ? `Apply for ${roomName}` : 'Submit Application for this Property'}
+            {roomName ? "Apply for " + roomName : "Submit Application for this Property"}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(
-            (data) => {
-              console.log('Form validation passed, calling onSubmit');
-              onSubmit(data);
-            },
-            (errors) => {
-              console.error('Form validation failed:', errors);
-              toast.error("Form Validation Error", {
-                description: "Please check your form inputs and try again."
-              });
-            }
-          )} className="space-y-5">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <CustomFormField
               name="name"
               label="Name"
