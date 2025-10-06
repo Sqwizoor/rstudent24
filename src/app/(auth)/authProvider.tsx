@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import { Amplify } from "aws-amplify";
 import {
   Authenticator,
@@ -238,10 +238,13 @@ const formFields = {
   },
 };
 
-const Auth = ({ children }: { children: React.ReactNode }) => {
+// Inner component that uses searchParams
+function AuthContent({ children }: { children: React.ReactNode }) {
   const { user } = useAuthenticator((context) => [context.user]);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl');
 
   const isAuthPage = pathname.match(/^\/(signin|signup|cognito-signin|cognito-signup)$/);
   const isCognitoAuthPage = pathname.match(/^\/(cognito-signin|cognito-signup)$/);
@@ -251,17 +254,22 @@ const Auth = ({ children }: { children: React.ReactNode }) => {
   // Redirect authenticated users away from auth pages
   useEffect(() => {
     if (user && isAuthPage) {
-      // Check for callbackUrl in URL params
-      const params = new URLSearchParams(window.location.search);
-      const callbackUrl = params.get('callbackUrl');
+      console.log('🔄 Auth redirect triggered:', {
+        hasUser: !!user,
+        isAuthPage,
+        callbackUrl,
+        pathname
+      });
       
       if (callbackUrl) {
+        console.log('✅ Redirecting to callback URL:', callbackUrl);
         router.push(decodeURIComponent(callbackUrl));
       } else {
+        console.log('ℹ️ No callback URL, redirecting to home');
         router.push("/");
       }
     }
-  }, [user, isAuthPage, router]);
+  }, [user, isAuthPage, router, callbackUrl, pathname]);
 
   // Allow access to public pages without authentication
   if (!isAuthPage && !isDashboardPage) {
@@ -285,6 +293,14 @@ const Auth = ({ children }: { children: React.ReactNode }) => {
 
   // For regular signin and signup, just show the content (which will be the new pages with tabs)
   return <>{children}</>;
+}
+
+const Auth = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthContent>{children}</AuthContent>
+    </Suspense>
+  );
 };
 
 export default Auth;

@@ -154,11 +154,21 @@ const ApplicationModal = ({
       const currentUrl = window.location.pathname + window.location.search;
       const callbackUrl = encodeURIComponent(currentUrl);
       
+      console.log('🔐 Authentication required:', {
+        currentUrl,
+        callbackUrl,
+        fullRedirectUrl: "/signin?callbackUrl=" + callbackUrl
+      });
+      
       toast.error("Authentication Required", {
         description: "You must be logged in as a student to submit an application",
         action: {
           label: "Sign In",
-          onClick: () => window.location.href = "/signin?callbackUrl=" + callbackUrl
+          onClick: () => {
+            const redirectUrl = "/signin?callbackUrl=" + callbackUrl;
+            console.log('🚀 Redirecting to:', redirectUrl);
+            window.location.href = redirectUrl;
+          }
         }
       });
       return;

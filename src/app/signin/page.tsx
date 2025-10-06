@@ -13,8 +13,15 @@ function SignInContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
 
+  console.log('🔍 SignIn page loaded:', {
+    callbackUrl,
+    rawCallbackUrl: searchParams.get('callbackUrl'),
+    allParams: Array.from(searchParams.entries())
+  });
+
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    console.log('🔐 Google sign-in triggered with callbackUrl:', callbackUrl);
     try {
       await signIn("google", { callbackUrl });
     } catch (error) {
