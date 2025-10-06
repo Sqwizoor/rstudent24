@@ -11,11 +11,17 @@ import Image from "next/image";
 function SignUpContent() {
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
+  const rawCallbackUrl = searchParams.get('callbackUrl') || '/';
+  
+  // Ensure we have an absolute URL for NextAuth
+  const callbackUrl = rawCallbackUrl.startsWith('http') 
+    ? rawCallbackUrl 
+    : `${window.location.origin}${rawCallbackUrl}`;
 
   const handleGoogleSignUp = async () => {
     setIsLoading(true);
     try {
+      // NextAuth expects an absolute URL for callbackUrl
       await signIn("google", { callbackUrl });
     } catch (error) {
       console.error("Google sign-up error:", error);
@@ -99,7 +105,12 @@ function SignUpContent() {
                   Create a landlord account with Cognito
                 </p>
                 <Button
-                  onClick={() => window.location.href = '/cognito-signup'}
+                  onClick={() => {
+                    const url = callbackUrl !== window.location.origin + '/' 
+                      ? `/cognito-signup?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                      : '/cognito-signup';
+                    window.location.href = url;
+                  }}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Continue with Cognito

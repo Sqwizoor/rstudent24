@@ -151,7 +151,8 @@ const ApplicationModal = ({
 
   const onSubmit = async (data: ApplicationFormData) => {
     if (!isAuthenticated || !authUser) {
-      const currentUrl = window.location.pathname + window.location.search;
+      // Capture the full absolute URL for proper redirect after sign-in
+      const currentUrl = window.location.href;
       const callbackUrl = encodeURIComponent(currentUrl);
       
       console.log('🔐 Authentication required:', {

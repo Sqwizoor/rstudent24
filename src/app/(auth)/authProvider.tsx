@@ -262,8 +262,30 @@ function AuthContent({ children }: { children: React.ReactNode }) {
       });
       
       if (callbackUrl) {
-        console.log('✅ Redirecting to callback URL:', callbackUrl);
-        router.push(decodeURIComponent(callbackUrl));
+        const decodedUrl = decodeURIComponent(callbackUrl);
+        console.log('✅ Redirecting to callback URL:', decodedUrl);
+        
+        // If it's an absolute URL with the same origin, extract the path
+        try {
+          if (decodedUrl.startsWith('http://') || decodedUrl.startsWith('https://')) {
+            const urlObj = new URL(decodedUrl);
+            // Only redirect to path if same origin for security
+            if (urlObj.origin === window.location.origin) {
+              const pathWithQuery = urlObj.pathname + urlObj.search + urlObj.hash;
+              console.log('🔗 Extracted path from absolute URL:', pathWithQuery);
+              router.push(pathWithQuery);
+            } else {
+              console.log('⚠️ Different origin detected, redirecting to home');
+              router.push("/");
+            }
+          } else {
+            // Relative URL, use as-is
+            router.push(decodedUrl);
+          }
+        } catch (error) {
+          console.error('❌ Error parsing callback URL:', error);
+          router.push(decodedUrl); // Fallback to treating it as relative
+        }
       } else {
         console.log('ℹ️ No callback URL, redirecting to home');
         router.push("/");

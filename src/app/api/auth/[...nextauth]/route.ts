@@ -19,10 +19,36 @@ const handler = NextAuth({
   ],
   callbacks: {
     async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url;
+      console.log('🔄 NextAuth redirect callback:', { url, baseUrl });
+      
+      // If url starts with http(s), check if it's same origin
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        try {
+          const urlObj = new URL(url);
+          const baseUrlObj = new URL(baseUrl);
+          
+          // Allow if same origin (handles both http://localhost and https://domain.com)
+          if (urlObj.origin === baseUrlObj.origin) {
+            console.log('✅ Redirecting to same origin URL:', url);
+            return url;
+          }
+          
+          console.log('⚠️ Different origin, falling back to baseUrl:', baseUrl);
+          return baseUrl;
+        } catch (error) {
+          console.error('❌ Error parsing URL:', error);
+          return baseUrl;
+        }
+      }
+      
+      // Relative callback URLs
+      if (url.startsWith("/")) {
+        const redirectUrl = `${baseUrl}${url}`;
+        console.log('✅ Redirecting to relative URL:', redirectUrl);
+        return redirectUrl;
+      }
+      
+      console.log('⚠️ Falling back to baseUrl:', baseUrl);
       return baseUrl;
     },
     async jwt({ token, user, account }) {
