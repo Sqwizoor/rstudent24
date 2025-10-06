@@ -11,7 +11,7 @@ import {
   View,
 } from "@aws-amplify/ui-react";
 import Image from "next/image"
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 // https://docs.amplify.aws/gen1/javascript/tools/libraries/configure-categories/
 Amplify.configure({
@@ -251,7 +251,15 @@ const Auth = ({ children }: { children: React.ReactNode }) => {
   // Redirect authenticated users away from auth pages
   useEffect(() => {
     if (user && isAuthPage) {
-      router.push("/");
+      // Check for callbackUrl in URL params
+      const params = new URLSearchParams(window.location.search);
+      const callbackUrl = params.get('callbackUrl');
+      
+      if (callbackUrl) {
+        router.push(decodeURIComponent(callbackUrl));
+      } else {
+        router.push("/");
+      }
     }
   }, [user, isAuthPage, router]);
 

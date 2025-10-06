@@ -99,7 +99,12 @@ function SignInContent() {
                   Continue as a landlord
                 </p>
                 <Button
-                  onClick={() => window.location.href = '/cognito-signin'}
+                  onClick={() => {
+                    const url = callbackUrl !== '/' 
+                      ? `/cognito-signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                      : '/cognito-signin';
+                    window.location.href = url;
+                  }}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Continue with Cognito
