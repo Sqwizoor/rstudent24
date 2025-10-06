@@ -106,17 +106,12 @@ const ApplicationModal = ({
       
       toast.success("Redirecting to WhatsApp...", { duration: 2000 });
       
+      // Use a single, more reliable redirect method
       setTimeout(() => {
-        try {
-          const opened = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-          if (!opened || opened.closed || typeof opened.closed === "undefined") {
-            window.location.href = whatsappUrl;
-          }
-        } catch (error) {
-          window.location.href = whatsappUrl;
-        }
+        window.open(whatsappUrl, "_blank", "noopener,noreferrer");
       }, 300);
       
+      // Show custom link as secondary option if available
       if (customLink && customLink.trim()) {
         setTimeout(() => {
           toast.info("Or visit the landlord's website:", {
@@ -134,15 +129,9 @@ const ApplicationModal = ({
     if (customLink && customLink.trim()) {
       toast.success("Redirecting to property contact...", { duration: 2000 });
       
+      // Use a single, more reliable redirect method
       setTimeout(() => {
-        try {
-          const opened = window.open(customLink, "_blank", "noopener,noreferrer");
-          if (!opened || opened.closed || typeof opened.closed === "undefined") {
-            window.location.href = customLink;
-          }
-        } catch (error) {
-          window.location.href = customLink;
-        }
+        window.open(customLink, "_blank", "noopener,noreferrer");
       }, 300);
       return;
     }
