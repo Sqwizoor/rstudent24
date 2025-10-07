@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useSignInRedirect } from "@/hooks/useSignInRedirect";
 import FooterSection from "../landing/FooterSection";
 
 import LandlordHero from "./landlord-hero";
@@ -9,6 +10,8 @@ import HowItWorks from "./how-it-works";
 import BenefitsSection from "./benefits-section";
 
 export default function LandlordsPage() {
+  const { redirectToSignin, signupUrl } = useSignInRedirect();
+
   return (
     <div className="min-h-screen">
       <LandlordHero />
@@ -27,13 +30,17 @@ export default function LandlordsPage() {
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Button
               className="bg-white text-blue-600 hover:bg-gray-100 font-medium px-8 py-6 rounded-full text-lg"
-              onClick={() => window.location.href = "/signin"}
+              onClick={redirectToSignin}
             >
               Login to your account
             </Button>
             <Button
               className="bg-blue-600 border-2 border-white text-white hover:bg-blue-700 font-medium px-8 py-6 rounded-full text-lg"
-              onClick={() => window.location.href = "/signup"}
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.location.href = signupUrl;
+                }
+              }}
             >
               Create an account
             </Button>

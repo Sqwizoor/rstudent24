@@ -37,11 +37,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { useSignInRedirect } from "@/hooks/useSignInRedirect"
 
 const Navbar = () => {
   const { user: authUser, isAuthenticated, provider, isLoading: authLoading } = useUnifiedAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const { signinUrl, signupUrl } = useSignInRedirect()
   // Use auth loading to avoid UI flicker when session is still resolving
   const [isLoading, setIsLoading] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -139,7 +141,7 @@ const Navbar = () => {
       if (role === "manager") return router.push("/managers/properties");
       return router.push("/tenants/favorites");
     }
-    router.push("/signin");
+    router.push(signinUrl);
   }
 
   const getUserInitial = () => {
@@ -406,7 +408,7 @@ const Navbar = () => {
                       <Button
                         variant="outline"
                         size="lg"
-                        onClick={() => router.push("/signup")}
+                        onClick={() => router.push(signupUrl)}
                     className={cn(
                       "transition-colors bg-transparent border-2 px-7 py-4 rounded-full text-l shadow-md",
                       scrolled 

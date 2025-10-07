@@ -11,11 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PropertyTypeIcons } from "@/lib/constants";
+import { useSignInRedirect } from "@/hooks/useSignInRedirect";
 import { formatPriceValue } from "@/lib/utils";
 
 const RandomListings = () => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const { signinUrl } = useSignInRedirect();
   const filters = useAppSelector((state) => state.global.filters);
   
   // Authentication and favorites
@@ -322,7 +324,7 @@ const RandomListings = () => {
   const handleFavoriteToggle = async (propertyId: number) => {
     if (!authUser?.cognitoInfo?.userId) {
       // Redirect to login if user is not authenticated
-      router.push('/auth/signin');
+      router.push(signinUrl);
       return;
     }
     

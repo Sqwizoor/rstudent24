@@ -12,6 +12,7 @@ import Card from "@/components/Card";
 import CardCompact from "@/components/CardCompact";
 import React, { useState } from "react";
 import { Pagination } from "@/components/ui/pagination";
+import { useSignInRedirect } from "@/hooks/useSignInRedirect";
 
 const Listings = () => {
   // Pagination state
@@ -34,6 +35,7 @@ const Listings = () => {
   const [removeFavorite] = useRemoveFavoritePropertyMutation();
   const viewMode = useAppSelector((state) => state.global.viewMode);
   const filters = useAppSelector((state) => state.global.filters);
+  const { signinUrl } = useSignInRedirect();
 
   const {
     data: allProperties,
@@ -163,7 +165,9 @@ const Listings = () => {
           id: 'login-required',
           action: {
             label: 'Log in',
-            onClick: () => window.location.href = '/signin'
+            onClick: () => {
+              window.location.href = signinUrl;
+            }
           }
         }
       );

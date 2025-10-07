@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { useSignInRedirect } from "@/hooks/useSignInRedirect";
 import { useRouter } from "next/navigation";
 import React from "react";
 
@@ -10,6 +11,7 @@ interface ContactWidgetProps {
 const ContactWidget = ({ onOpenModal }: ContactWidgetProps) => {
   const { user: authUser, isAuthenticated } = useUnifiedAuth();
   const router = useRouter();
+  const { signinUrl } = useSignInRedirect();
 
   const handleButtonClick = () => {
     console.log('ContactWidget button clicked', { isAuthenticated, authUser: authUser ? { id: authUser.id, role: authUser.role } : null });
@@ -19,7 +21,7 @@ const ContactWidget = ({ onOpenModal }: ContactWidgetProps) => {
       onOpenModal();
     } else {
       console.log('Redirecting to signin');
-      router.push("/signin");
+      router.push(signinUrl);
     }
   };
 
