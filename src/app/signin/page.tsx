@@ -11,15 +11,9 @@ import Image from "next/image";
 function SignInContent() {
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
-  const rawCallbackUrl = searchParams.get('callbackUrl') || '/';
-  
-  // Ensure we have an absolute URL for NextAuth
-  const callbackUrl = rawCallbackUrl.startsWith('http') 
-    ? rawCallbackUrl 
-    : `${window.location.origin}${rawCallbackUrl}`;
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
 
   console.log('🔍 SignIn page loaded:', {
-    rawCallbackUrl,
     callbackUrl,
     origin: window.location.origin,
     allParams: Array.from(searchParams.entries())
@@ -29,10 +23,11 @@ function SignInContent() {
     setIsLoading(true);
     console.log('🔐 Google sign-in triggered with callbackUrl:', callbackUrl);
     try {
-      // NextAuth expects an absolute URL for callbackUrl
+      // Pass the callbackUrl directly to NextAuth
+      // NextAuth will handle the redirect properly
       const result = await signIn("google", { 
-        callbackUrl,
-        redirect: true // Let NextAuth handle the redirect
+        callbackUrl: callbackUrl,
+        redirect: true
       });
       
       console.log('✅ Sign-in result:', result);

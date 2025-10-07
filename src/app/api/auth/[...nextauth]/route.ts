@@ -21,19 +21,29 @@ const handler = NextAuth({
     async redirect({ url, baseUrl }) {
       console.log('🔄 NextAuth redirect callback:', { url, baseUrl });
       
+      // Always decode the URL first
+      let decodedUrl = url;
+      try {
+        decodedUrl = decodeURIComponent(url);
+      } catch (e) {
+        // URL might not be encoded
+      }
+      
+      console.log('📝 Decoded URL:', decodedUrl);
+      
       // If url starts with http(s), check if it's same origin
-      if (url.startsWith('http://') || url.startsWith('https://')) {
+      if (decodedUrl.startsWith('http://') || decodedUrl.startsWith('https://')) {
         try {
-          const urlObj = new URL(url);
+          const urlObj = new URL(decodedUrl);
           const baseUrlObj = new URL(baseUrl);
           
           // Allow if same origin (handles both http://localhost and https://domain.com)
           if (urlObj.origin === baseUrlObj.origin) {
-            console.log('✅ Redirecting to same origin URL:', url);
-            return url;
+            console.log('✅ Same origin - redirecting to:', decodedUrl);
+            return decodedUrl;
           }
           
-          console.log('⚠️ Different origin, falling back to baseUrl:', baseUrl);
+          console.log('⚠️ Different origin, falling back to baseUrl');
           return baseUrl;
         } catch (error) {
           console.error('❌ Error parsing URL:', error);
@@ -42,13 +52,13 @@ const handler = NextAuth({
       }
       
       // Relative callback URLs
-      if (url.startsWith("/")) {
-        const redirectUrl = `${baseUrl}${url}`;
-        console.log('✅ Redirecting to relative URL:', redirectUrl);
+      if (decodedUrl.startsWith("/")) {
+        const redirectUrl = `${baseUrl}${decodedUrl}`;
+        console.log('✅ Relative URL - redirecting to:', redirectUrl);
         return redirectUrl;
       }
       
-      console.log('⚠️ Falling back to baseUrl:', baseUrl);
+      console.log('⚠️ No valid URL found, falling back to baseUrl');
       return baseUrl;
     },
     async jwt({ token, user, account }) {

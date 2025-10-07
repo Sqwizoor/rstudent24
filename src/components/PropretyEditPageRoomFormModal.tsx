@@ -266,42 +266,6 @@ export function PropertyEditPageRoomFormModal({
             </div>
             {/* Amenities and Features removed for simplified room form */}
 
-            {/* Application Redirect Settings */}
-            <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-gray-700">
-              <UILabel className="text-base font-semibold text-slate-900 dark:text-gray-100">Application Redirect Settings</UILabel>
-              <p className="text-xs text-slate-600 dark:text-gray-400">
-                Choose where students should be redirected after submitting an application for this room.
-              </p>
-              
-              <ModalCreateFormField 
-                name="redirectType" 
-                label="Redirect students to:" 
-                type="select" 
-                options={[
-                  { value: RedirectTypeEnum.NONE, label: "No redirect (default)" },
-                  { value: RedirectTypeEnum.WHATSAPP, label: "WhatsApp only" },
-                  { value: RedirectTypeEnum.CUSTOM_LINK, label: "Custom link only" },
-                  { value: RedirectTypeEnum.BOTH, label: "Both WhatsApp and custom link" },
-                ]} 
-              />
-
-              {(watchRoomForm("redirectType") === RedirectTypeEnum.WHATSAPP || watchRoomForm("redirectType") === RedirectTypeEnum.BOTH) && (
-                <ModalCreateFormField
-                  name="whatsappNumber"
-                  label="WhatsApp Number"
-                  placeholder="e.g., +27123456789"
-                />
-              )}
-
-              {(watchRoomForm("redirectType") === RedirectTypeEnum.CUSTOM_LINK || watchRoomForm("redirectType") === RedirectTypeEnum.BOTH) && (
-                <ModalCreateFormField
-                  name="customLink"
-                  label="Custom Link"
-                  placeholder="e.g., https://your-website.com/contact"
-                />
-              )}
-            </div>
-
             {/* Photo Management for Room */}
       <div className="space-y-3 border-t border-slate-200 dark:border-gray-700 pt-4 mt-4">
         <UILabel className="text-base font-semibold text-slate-900 dark:text-gray-100">Room Photos</UILabel>

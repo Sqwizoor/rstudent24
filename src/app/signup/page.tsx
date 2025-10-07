@@ -11,17 +11,12 @@ import Image from "next/image";
 function SignUpContent() {
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
-  const rawCallbackUrl = searchParams.get('callbackUrl') || '/';
-  
-  // Ensure we have an absolute URL for NextAuth
-  const callbackUrl = rawCallbackUrl.startsWith('http') 
-    ? rawCallbackUrl 
-    : `${window.location.origin}${rawCallbackUrl}`;
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
 
   const handleGoogleSignUp = async () => {
     setIsLoading(true);
     try {
-      // NextAuth expects an absolute URL for callbackUrl
+      // Pass the callbackUrl directly to NextAuth
       await signIn("google", { callbackUrl });
     } catch (error) {
       console.error("Google sign-up error:", error);
@@ -106,7 +101,7 @@ function SignUpContent() {
                 </p>
                 <Button
                   onClick={() => {
-                    const url = callbackUrl !== window.location.origin + '/' 
+                    const url = callbackUrl && callbackUrl !== '/' 
                       ? `/cognito-signup?callbackUrl=${encodeURIComponent(callbackUrl)}`
                       : '/cognito-signup';
                     window.location.href = url;
@@ -122,7 +117,7 @@ function SignUpContent() {
         <CardFooter className="text-center">
           <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
-            <a href={`/signin${callbackUrl !== '/' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`} className="text-blue-600 hover:underline">
+            <a href={`/signin${callbackUrl && callbackUrl !== '/' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`} className="text-blue-600 hover:underline">
               Sign in here
             </a>
           </p>

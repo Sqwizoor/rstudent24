@@ -361,7 +361,7 @@ const RandomListings = () => {
   };
   
   return (
-    <div className="py-16 px-4 md:px-8 bg-gray-50 dark:bg-gray-800">
+    <div className="py-16 px-8 md:px-8 bg-gray-50 dark:bg-gray-800">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-center items-center mb-10">
           <div className="text-center">

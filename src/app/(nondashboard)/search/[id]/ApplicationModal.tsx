@@ -68,31 +68,31 @@ const ApplicationModal = ({
   };
 
   const handlePostApplicationRedirect = () => {
+    console.log('=== REDIRECT DEBUG START (PROPERTY-ONLY) ===');
+    
     let whatsappNumber = null;
     let customLink = null;
     
-    if (roomData && roomId) {
-      whatsappNumber = roomData.whatsappNumber;
-      customLink = roomData.customLink;
-    }
-    
-    if ((!whatsappNumber && !customLink) && propertyData) {
+    // ONLY USE PROPERTY-LEVEL REDIRECT SETTINGS
+    if (propertyData) {
+      console.log('📍 Using PROPERTY-LEVEL redirect settings only');
       whatsappNumber = (propertyData as any).whatsappNumber;
       customLink = (propertyData as any).customLink;
-    }
-    
-    if ((!whatsappNumber && !customLink) && roomsData && roomsData.length > 0) {
-      const roomWithRedirect = roomsData.find(room => 
-        room.whatsappNumber || room.customLink
-      );
       
-      if (roomWithRedirect) {
-        whatsappNumber = roomWithRedirect.whatsappNumber;
-        customLink = roomWithRedirect.customLink;
-      }
+      console.log('🏢 Property redirect:', {
+        whatsappNumber,
+        customLink
+      });
+    } else {
+      console.log('⚠️ No property data available for redirect');
     }
 
     const message = generateWhatsAppMessage();
+    
+    console.log('🎯 Final redirect decision (PROPERTY-ONLY):', {
+      whatsappNumber,
+      customLink
+    });
 
     if (whatsappNumber && whatsappNumber.trim()) {
       const cleanNumber = whatsappNumber.replace(/[^0-9]/g, "");
@@ -136,7 +136,9 @@ const ApplicationModal = ({
       return;
     }
 
+    console.log('ℹ️ No redirect configured at property level');
     toast.success("Application submitted successfully! The property manager will contact you soon.");
+    console.log('=== REDIRECT DEBUG END ===');
   };
 
   const form = useForm<ApplicationFormData>({

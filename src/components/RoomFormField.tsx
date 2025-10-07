@@ -216,51 +216,6 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
 
             {/* Amenities and Features removed for simplified room form */}
 
-            {/* Application Redirect Settings */}
-            <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-[#1E2A45]">
-              <div className="flex items-center gap-2">
-                <CircleDollarSign className="h-5 w-5 text-[#4F9CF9]" />
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Application Redirect Settings</h3>
-              </div>
-              <p className="text-sm text-slate-600 dark:text-gray-400">
-                Choose where students should be redirected after submitting an application for this room.
-              </p>
-              
-              <CreateFormField
-                name="redirectType"
-                label="Redirect students to:"
-                type="select"
-                options={[
-                  { value: RedirectTypeEnum.NONE, label: "No redirect (default)" },
-                  { value: RedirectTypeEnum.WHATSAPP, label: "WhatsApp only" },
-                  { value: RedirectTypeEnum.CUSTOM_LINK, label: "Custom link only" },
-                  { value: RedirectTypeEnum.BOTH, label: "Both WhatsApp and custom link" },
-                ]}
-                labelClassName={labelStyle}
-                inputClassName={inputStyle}
-              />
-
-              {(form.watch("redirectType") === RedirectTypeEnum.WHATSAPP || form.watch("redirectType") === RedirectTypeEnum.BOTH) && (
-                <CreateFormField
-                  name="whatsappNumber"
-                  label="WhatsApp Number"
-                  placeholder="e.g., +27123456789"
-                  labelClassName={labelStyle}
-                  inputClassName={inputStyle}
-                />
-              )}
-
-              {(form.watch("redirectType") === RedirectTypeEnum.CUSTOM_LINK || form.watch("redirectType") === RedirectTypeEnum.BOTH) && (
-                <CreateFormField
-                  name="customLink"
-                  label="Custom Link"
-                  placeholder="e.g., https://your-website.com/contact"
-                  labelClassName={labelStyle}
-                  inputClassName={inputStyle}
-                />
-              )}
-            </div>
-
             {/* Room Photos */}
             <div>
               <label className={labelStyle}>Room Photos</label>
