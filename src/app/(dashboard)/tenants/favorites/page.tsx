@@ -11,10 +11,40 @@ import {
 } from "@/state/api";
 import { Heart } from "lucide-react";
 import React, { useState } from "react";
+import { useSignInRedirect } from "@/hooks/useSignInRedirect";
 
 const Favorites = () => {
-  const { data: authUser } = useGetAuthUserQuery();
+  const { data: authUser, isLoading: authLoading, error: authError } = useGetAuthUserQuery();
   const [removeFavorite] = useRemoveFavoritePropertyMutation();
+  const { signinUrl } = useSignInRedirect();
+
+  if (authLoading) return <Loading />;
+
+  if (authError || !authUser) {
+    return (
+      <div className="dashboard-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Header
+          title="Favorited Properties"
+          subtitle="Browse and manage your saved property listings"
+        />
+        <div className="flex flex-col items-center justify-center p-12 mt-8 bg-white dark:bg-[#0F1112] border border-gray-200 dark:border-[#333] rounded-xl text-center shadow-md">
+          <div className="p-4 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4">
+            <Heart className="h-12 w-12 text-blue-400 dark:text-blue-500" />
+          </div>
+          <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Sign in to view favorites</h3>
+          <p className="text-gray-600 dark:text-gray-400 max-w-md mb-4">
+            You need to be signed in with your student account to see saved properties. Please log in to continue.
+          </p>
+          <a
+            href={signinUrl}
+            className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-white shadow hover:bg-blue-700 transition"
+          >
+            Go to sign in
+          </a>
+        </div>
+      </div>
+    );
+  }
   const { data: tenant, refetch: refetchTenant, isLoading: tenantLoading, error: tenantError } = useGetTenantQuery(
     authUser?.cognitoInfo?.userId || "",
     {
@@ -22,6 +52,26 @@ const Favorites = () => {
       skip: !authUser?.cognitoInfo?.userId || authUser?.userRole === "manager",
     }
   );
+
+  if (authUser.userRole === "manager") {
+    return (
+      <div className="dashboard-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Header
+          title="Favorited Properties"
+          subtitle="Browse and manage your saved property listings"
+        />
+        <div className="flex flex-col items-center justify-center p-12 mt-8 bg-white dark:bg-[#0F1112] border border-gray-200 dark:border-[#333] rounded-xl text-center shadow-md">
+          <div className="p-4 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4">
+            <Heart className="h-12 w-12 text-blue-400 dark:text-blue-500" />
+          </div>
+          <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Favorites unavailable for managers</h3>
+          <p className="text-gray-600 dark:text-gray-400 max-w-md">
+            Manager accounts don&apos;t have a favorites list. Switch to a student account to save properties.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const {
     data: favoriteProperties,
@@ -115,6 +165,10 @@ const Favorites = () => {
               ? (property.location as Record<string, unknown>)
               : {};
 
+            const normalizedPhotoUrls = Array.isArray(property.photoUrls)
+              ? property.photoUrls.filter((url) => typeof url === 'string' && /^https?:\/\//.test(url))
+              : [];
+
             const enhancedProperty = {
               ...property,
               // Pass through the original price data
@@ -128,7 +182,7 @@ const Favorites = () => {
                 city: typeof locationData.city === 'string' ? locationData.city : ''
               },
               // Ensure photoUrls is an array
-              photoUrls: Array.isArray(property.photoUrls) ? property.photoUrls : []
+              photoUrls: normalizedPhotoUrls
             };
             
           

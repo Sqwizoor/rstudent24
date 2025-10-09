@@ -12,6 +12,7 @@ const barlow = Barlow({
   style: ['normal', 'italic'],
   variable: '--font-barlow',
   display: 'swap',
+  preload: false,
 });
 import "@aws-amplify/ui-react/styles.css";
 import Providers from "./providers";
