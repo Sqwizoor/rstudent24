@@ -111,6 +111,10 @@ const Favorites = () => {
             });
             
             // Transform property to add any missing required fields
+            const locationData = (property.location && typeof property.location === 'object')
+              ? (property.location as Record<string, unknown>)
+              : {};
+
             const enhancedProperty = {
               ...property,
               // Pass through the original price data
@@ -119,9 +123,9 @@ const Favorites = () => {
               squareFeet: property.squareFeet || 0,
               // Ensure location field has all required properties
               location: {
-                ...property.location,
-                address: property.location?.address || '',
-                city: property.location?.city || ''
+                ...locationData,
+                address: typeof locationData.address === 'string' ? locationData.address : '',
+                city: typeof locationData.city === 'string' ? locationData.city : ''
               },
               // Ensure photoUrls is an array
               photoUrls: Array.isArray(property.photoUrls) ? property.photoUrls : []

@@ -26,7 +26,6 @@ const nextConfig = {
   // Add file upload size limits
   experimental: {
     serverMaxBodySize: '20mb', // Increase max body size for file uploads
-    optimizeCss: true, // Enable CSS optimization
   },
   // Add environment variables from .env files
   env: {
