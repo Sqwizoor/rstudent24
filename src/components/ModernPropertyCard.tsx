@@ -72,11 +72,22 @@ function ModernPropertyCard({
   const [isHovered, setIsHovered] = useState(false)
   const [imgError, setImgError] = useState(false)
 
-  // No custom loader needed - using Next.js built-in image optimization
-
-  // Handle image error
+  // Handle image error with better fallback
   const handleImageError = () => {
-    console.error(`Failed to load image: ${imgSrc}`)
+    console.warn(`Failed to load image: ${imgSrc}`)
+    
+    // If we have multiple images, try the next one
+    if (property.photoUrls && property.photoUrls.length > 1 && !imgError) {
+      const currentIndex = property.photoUrls.indexOf(imgSrc)
+      const nextIndex = currentIndex + 1
+      
+      if (nextIndex < property.photoUrls.length) {
+        setImgSrc(property.photoUrls[nextIndex])
+        return
+      }
+    }
+    
+    // If all images fail or only one image, use placeholder
     setImgError(true)
     setImgSrc("/placeholder.jpg")
   }
@@ -96,10 +107,10 @@ function ModernPropertyCard({
                 src={imgSrc || "/placeholder.svg"}
                 alt={property.name}
                 fill
+                unoptimized={imgSrc.includes('amazonaws.com')}
                 className={`object-cover transition-transform duration-500 ${isHovered ? "scale-105" : "scale-100"}`}
                 onError={handleImageError}
                 sizes="(max-width: 768px) 40vw, 160px"
-                priority
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-900 rounded-lg">

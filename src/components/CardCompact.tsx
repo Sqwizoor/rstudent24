@@ -61,6 +61,38 @@ export default function PropertyCardCompact({
     "/placeholder.svg?height=300&width=300"
   )
   const [isHovered, setIsHovered] = useState(false)
+  const [imgError, setImgError] = useState(false)
+
+  // Handle image error with better fallback
+  const handleImageError = () => {
+    console.warn(`Failed to load image: ${imgSrc}`)
+    
+    // Try images array first
+    if (property.images && property.images.length > 1 && !imgError) {
+      const currentIndex = property.images.indexOf(imgSrc)
+      const nextIndex = currentIndex + 1
+      
+      if (nextIndex < property.images.length) {
+        setImgSrc(property.images[nextIndex])
+        return
+      }
+    }
+    
+    // Then try photoUrls array
+    if (property.photoUrls && property.photoUrls.length > 1 && !imgError) {
+      const currentIndex = property.photoUrls.indexOf(imgSrc)
+      const nextIndex = currentIndex + 1
+      
+      if (nextIndex < property.photoUrls.length) {
+        setImgSrc(property.photoUrls[nextIndex])
+        return
+      }
+    }
+    
+    // If all images fail, use placeholder
+    setImgError(true)
+    setImgSrc("/placeholder.svg?height=300&width=300")
+  }
 
   // Calculate room-based statistics
   const roomStats = getRoomStats(property.rooms);
@@ -80,15 +112,21 @@ export default function PropertyCardCompact({
     >
       {/* Image section */}
       <div className="relative h-full w-1/3 min-w-[120px]  overflow-hidden ml-3">
-        <Image
-          src={imgSrc || "/placeholder.svg"}
-          alt={property.name}
-          fill
-          className={`object-cover transition-transform rounded-md duration-500 ${isHovered ? "scale-110 rounded-md" : "scale-100"}`}
-          sizes="(max-width: 768px) 100vw, 33vw"
-          onError={() => setImgSrc("/placeholder.svg?height=300&width=300")}
-          priority
-        />
+        {!imgError ? (
+          <Image
+            src={imgSrc || "/placeholder.svg"}
+            alt={property.name}
+            fill
+            unoptimized={imgSrc.includes('amazonaws.com')}
+            className={`object-cover transition-transform rounded-md duration-500 ${isHovered ? "scale-110 rounded-md" : "scale-100"}`}
+            sizes="(max-width: 768px) 100vw, 33vw"
+            onError={handleImageError}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-md">
+            <Home className="h-10 w-10 text-gray-400" />
+          </div>
+        )}
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent z-10" />
         

@@ -15,7 +15,7 @@ import React, { useState } from "react";
 const Favorites = () => {
   const { data: authUser } = useGetAuthUserQuery();
   const [removeFavorite] = useRemoveFavoritePropertyMutation();
-  const { data: tenant, refetch: refetchTenant } = useGetTenantQuery(
+  const { data: tenant, refetch: refetchTenant, isLoading: tenantLoading, error: tenantError } = useGetTenantQuery(
     authUser?.cognitoInfo?.userId || "",
     {
       // Skip if no user ID or if user is a manager
@@ -48,8 +48,49 @@ const Favorites = () => {
     }
   };
 
+  // Show loading state while fetching tenant data
+  if (tenantLoading) return <Loading />;
+  
+  // Handle tenant error gracefully
+  if (tenantError) {
+    return (
+      <div className="dashboard-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Header
+          title="Favorited Properties"
+          subtitle="Browse and manage your saved property listings"
+        />
+        <div className="flex flex-col items-center justify-center p-12 mt-8 bg-white dark:bg-[#0F1112] border border-gray-200 dark:border-[#333] rounded-xl text-center shadow-md">
+          <div className="p-4 rounded-full bg-red-50 dark:bg-red-900/20 mb-4">
+            <Heart className="h-12 w-12 text-red-400 dark:text-red-500" />
+          </div>
+          <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Unable to Load Profile</h3>
+          <p className="text-gray-600 dark:text-gray-400 max-w-md">We couldn't load your profile information. Please try refreshing the page.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state while fetching properties
   if (isLoading) return <Loading />;
-  if (error) return <div>Error loading favorites</div>;
+  
+  // Handle property loading error gracefully
+  if (error) {
+    return (
+      <div className="dashboard-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Header
+          title="Favorited Properties"
+          subtitle="Browse and manage your saved property listings"
+        />
+        <div className="flex flex-col items-center justify-center p-12 mt-8 bg-white dark:bg-[#0F1112] border border-gray-200 dark:border-[#333] rounded-xl text-center shadow-md">
+          <div className="p-4 rounded-full bg-red-50 dark:bg-red-900/20 mb-4">
+            <Heart className="h-12 w-12 text-red-400 dark:text-red-500" />
+          </div>
+          <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Unable to Load Favorites</h3>
+          <p className="text-gray-600 dark:text-gray-400 max-w-md">We couldn't load your favorite properties. Please try refreshing the page.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ">
@@ -61,42 +102,55 @@ const Favorites = () => {
       {/* Enhanced card grid with larger, wider cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10 max-w-screen-xl mx-auto">
         {favoriteProperties?.map((property) => {
-          // Debug the raw property data
-          console.log('RAW PROPERTY FROM API:', {
-            id: property.id,
-            price: property.price,
-            priceType: typeof property.price
-          });
+          try {
+            // Debug the raw property data
+            console.log('RAW PROPERTY FROM API:', {
+              id: property.id,
+              price: property.price,
+              priceType: typeof property.price
+            });
+            
+            // Transform property to add any missing required fields
+            const enhancedProperty = {
+              ...property,
+              // Pass through the original price data
+              price: property.price,
+              // Ensure squareFeet is always a number (required by ModernPropertyCard)
+              squareFeet: property.squareFeet || 0,
+              // Ensure location field has all required properties
+              location: {
+                ...property.location,
+                address: property.location?.address || '',
+                city: property.location?.city || ''
+              },
+              // Ensure photoUrls is an array
+              photoUrls: Array.isArray(property.photoUrls) ? property.photoUrls : []
+            };
+            
           
-          // Transform property to add any missing required fields
-          const enhancedProperty = {
-            ...property,
-            // Pass through the original price data
-            price: property.price,
-            // Ensure squareFeet is always a number (required by ModernPropertyCard)
-            squareFeet: property.squareFeet || 0,
-            // Ensure location field has all required properties
-            location: {
-              ...property.location,
-              address: property.location?.address || '',
-              city: property.location?.city || ''
-            }
-          };
-          
-        
-          
-          return (
-            <div key={property.id} className="transform transition-all ml-[-2.5rem] duration-300 hover:scale-[1.02] hover:shadow-xl">
-              <ModernPropertyCard
-                property={enhancedProperty}
-                isFavorite={true}
-                onFavoriteToggle={() => handleRemoveFavorite(property.id)}
-                showFavoriteButton={true}
-                propertyLink={`/properties/${property.id}`}
-                userRole="tenant"
-              />
-            </div>
-          );
+            
+            return (
+              <div key={property.id} className="transform transition-all ml-[-2.5rem] duration-300 hover:scale-[1.02] hover:shadow-xl">
+                <ModernPropertyCard
+                  property={enhancedProperty}
+                  isFavorite={true}
+                  onFavoriteToggle={() => handleRemoveFavorite(property.id)}
+                  showFavoriteButton={true}
+                  propertyLink={`/properties/${property.id}`}
+                  userRole="tenant"
+                />
+              </div>
+            );
+          } catch (cardError) {
+            console.error(`Error rendering property card ${property.id}:`, cardError);
+            return (
+              <div key={property.id} className="transform transition-all ml-[-2.5rem] duration-300">
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-sm text-red-600 dark:text-red-400">Unable to display property</p>
+                </div>
+              </div>
+            );
+          }
         })}
       </div>
       

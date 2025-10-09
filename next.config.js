@@ -21,9 +21,12 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
+  // Optimize loading and reduce preload warnings
+  optimizeFonts: true,
   // Add file upload size limits
   experimental: {
     serverMaxBodySize: '20mb', // Increase max body size for file uploads
+    optimizeCss: true, // Enable CSS optimization
   },
   // Add environment variables from .env files
   env: {

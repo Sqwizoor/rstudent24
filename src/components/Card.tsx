@@ -124,9 +124,33 @@ function PropertyCard({
     return src
   }
 
-  // Handle image error
+  // Handle image error with better fallback
   const handleImageError = () => {
-    console.error(`Failed to load image: ${imgSrc}`)
+    console.warn(`Failed to load image: ${imgSrc}`)
+    
+    // Try images array first
+    if (property.images && property.images.length > 1 && !imgError) {
+      const currentIndex = property.images.indexOf(imgSrc)
+      const nextIndex = currentIndex + 1
+      
+      if (nextIndex < property.images.length) {
+        setImgSrc(property.images[nextIndex])
+        return
+      }
+    }
+    
+    // Then try photoUrls array
+    if (property.photoUrls && property.photoUrls.length > 1 && !imgError) {
+      const currentIndex = property.photoUrls.indexOf(imgSrc)
+      const nextIndex = currentIndex + 1
+      
+      if (nextIndex < property.photoUrls.length) {
+        setImgSrc(property.photoUrls[nextIndex])
+        return
+      }
+    }
+    
+    // If all images fail, use placeholder
     setImgError(true)
     setImgSrc("/placeholder.jpg")
   }
@@ -163,7 +187,7 @@ function PropertyCard({
               alt={property.name}
               fill
               loader={loaderFunc}
-              unoptimized={true}
+              unoptimized={imgSrc.includes('amazonaws.com')}
               className={`object-cover transition-transform ${edgeToEdgeImage ? roundedImageClass : 'rounded-xl'} duration-500 ease-out ${disableImageHoverZoom ? 'scale-100' : isHovered ? (simpleShadow ? 'scale-[1.02]' : 'scale-110') : 'scale-100'}`}
               onError={handleImageError}
             />
