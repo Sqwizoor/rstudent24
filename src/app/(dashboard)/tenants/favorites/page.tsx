@@ -18,6 +18,33 @@ const Favorites = () => {
   const [removeFavorite] = useRemoveFavoritePropertyMutation();
   const { signinUrl } = useSignInRedirect();
 
+  const userId = authUser?.cognitoInfo?.userId ?? "";
+  const isManager = authUser?.userRole === "manager";
+
+  const shouldSkipTenant = authLoading || !authUser || !userId || isManager;
+
+  const {
+    data: tenant,
+    refetch: refetchTenant,
+    isLoading: tenantLoading,
+    error: tenantError,
+  } = useGetTenantQuery(userId, {
+    skip: shouldSkipTenant,
+  });
+
+  const favoriteIds = tenant?.favorites?.map((fav: { id: number }) => fav.id) ?? [];
+  const shouldSkipProperties = shouldSkipTenant || favoriteIds.length === 0;
+
+  const {
+    data: favoriteProperties,
+    isLoading,
+    error,
+    refetch: refetchProperties,
+  } = useGetPropertiesQuery(
+    { favoriteIds },
+    { skip: shouldSkipProperties }
+  );
+
   if (authLoading) return <Loading />;
 
   if (authError || !authUser) {
@@ -45,15 +72,7 @@ const Favorites = () => {
       </div>
     );
   }
-  const { data: tenant, refetch: refetchTenant, isLoading: tenantLoading, error: tenantError } = useGetTenantQuery(
-    authUser?.cognitoInfo?.userId || "",
-    {
-      // Skip if no user ID or if user is a manager
-      skip: !authUser?.cognitoInfo?.userId || authUser?.userRole === "manager",
-    }
-  );
-
-  if (authUser.userRole === "manager") {
+  if (isManager) {
     return (
       <div className="dashboard-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Header
@@ -73,21 +92,11 @@ const Favorites = () => {
     );
   }
 
-  const {
-    data: favoriteProperties,
-    isLoading,
-    error,
-    refetch: refetchProperties,
-  } = useGetPropertiesQuery(
-    { favoriteIds: tenant?.favorites?.map((fav: { id: number }) => fav.id) },
-    { skip: !tenant?.favorites || tenant?.favorites.length === 0 }
-  );
-
   const handleRemoveFavorite = async (propertyId: number) => {
     try {
       // Pass both cognitoId and propertyId as an object to match the expected type
       await removeFavorite({ 
-        cognitoId: authUser?.cognitoInfo?.userId || "", 
+        cognitoId: userId, 
         propertyId 
       }).unwrap();
       // Refetch to update the UI
