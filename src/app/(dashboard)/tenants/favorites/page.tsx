@@ -64,7 +64,7 @@ const Favorites = () => {
             <Heart className="h-12 w-12 text-red-400 dark:text-red-500" />
           </div>
           <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Unable to Load Profile</h3>
-          <p className="text-gray-600 dark:text-gray-400 max-w-md">We couldn't load your profile information. Please try refreshing the page.</p>
+          <p className="text-gray-600 dark:text-gray-400 max-w-md">We couldn&apos;t load your profile information. Please try refreshing the page.</p>
         </div>
       </div>
     );
@@ -86,7 +86,7 @@ const Favorites = () => {
             <Heart className="h-12 w-12 text-red-400 dark:text-red-500" />
           </div>
           <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Unable to Load Favorites</h3>
-          <p className="text-gray-600 dark:text-gray-400 max-w-md">We couldn't load your favorite properties. Please try refreshing the page.</p>
+          <p className="text-gray-600 dark:text-gray-400 max-w-md">We couldn&apos;t load your favorite properties. Please try refreshing the page.</p>
         </div>
       </div>
     );
