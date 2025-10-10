@@ -64,12 +64,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  const isAuthError = Boolean(
-    authError &&
-      typeof authError === "object" &&
-      "status" in authError &&
-      (authError as { status?: number }).status === 401
-  );
+  // Note: useUnifiedAuth doesn't return authError, so we can't check for 401 errors
+  // This check is now removed since it's not applicable with the unified auth system
+  const isAuthError = false;
 
   if (authLoading || isLoading)
     return (
@@ -90,7 +87,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
 
-  if (!authUser?.userRole) {
+  if (!user?.role) {
     return (
       <div
         className={cn(
@@ -137,14 +134,18 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   }
   
   // Redirect admin users to admin dashboard
-  if (authUser.userRole.toLowerCase() === "admin") {
+  if (user.role?.toLowerCase() === "admin") {
     router.push("/admin");
     return null;
   }
 
+  // Map student role to tenant for UI display
+  const userRole = user.role?.toLowerCase();
+  const displayRole = (userRole === "student" ? "tenant" : userRole) as "tenant" | "manager";
+
   return (
     <SidebarProvider>
-      <DashboardContent userRole={authUser.userRole.toLowerCase() as "tenant" | "manager"}>
+      <DashboardContent userRole={displayRole}>
         {children}
       </DashboardContent>
     </SidebarProvider>
