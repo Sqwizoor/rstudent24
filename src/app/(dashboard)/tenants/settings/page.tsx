@@ -20,10 +20,19 @@ const TenantSettingsContent = () => {
   const [updateTenant] = useUpdateTenantSettingsMutation();
 
   const isLoading = authLoading || (isAuthenticated && tenantLoading);
+  const isTenant = user?.role === "tenant" || user?.role === "student";
+
+  // useMemo must be called before any conditional returns
+  const initialData = useMemo(
+    () => ({
+      name: tenantData?.name || user?.userInfo?.name || "",
+      email: tenantData?.email || user?.userInfo?.email || "",
+      phoneNumber: tenantData?.phoneNumber || user?.userInfo?.phoneNumber || "",
+    }),
+    [tenantData, user?.userInfo]
+  );
 
   if (isLoading) return <FormSkeleton />;
-
-  const isTenant = user?.role === "tenant" || user?.role === "student";
 
   if (!isAuthenticated || !tenantId || !isTenant) {
     return (
@@ -35,15 +44,6 @@ const TenantSettingsContent = () => {
       </div>
     );
   }
-
-  const initialData = useMemo(
-    () => ({
-      name: tenantData?.name || user?.userInfo?.name || "",
-      email: tenantData?.email || user?.userInfo?.email || "",
-      phoneNumber: tenantData?.phoneNumber || user?.userInfo?.phoneNumber || "",
-    }),
-    [tenantData, user?.userInfo]
-  );
 
   const handleSubmit = async (data: typeof initialData) => {
     if (!tenantId) return;

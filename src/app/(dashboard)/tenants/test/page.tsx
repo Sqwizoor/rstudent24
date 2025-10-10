@@ -42,7 +42,7 @@ export default function TestPage() {
         <div className="p-6 bg-blue-900/20 border border-blue-600 rounded-xl">
           <h2 className="text-xl font-semibold mb-3">Next Steps:</h2>
           <ol className="space-y-2 text-sm list-decimal list-inside">
-            <li>Check browser console (F12) - Should show "TestPage mounted successfully"</li>
+            <li>Check browser console (F12) - Should show &quot;TestPage mounted successfully&quot;</li>
             <li>Try visiting <a href="/tenants/system-check" className="text-blue-400 hover:underline">/tenants/system-check</a></li>
             <li>Then try <a href="/tenants/dashboard" className="text-blue-400 hover:underline">/tenants/dashboard</a></li>
           </ol>

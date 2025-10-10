@@ -184,9 +184,9 @@ export default function SystemCheck() {
               Troubleshooting Steps
             </h3>
             <ol className="space-y-2 text-sm text-gray-300 list-decimal list-inside">
-              <li>Sign in with your account if you haven't already</li>
+              <li>Sign in with your account if you haven&apos;t already</li>
               <li>
-                Make sure you're using a tenant/student account (not manager)
+                Make sure you&apos;re using a tenant/student account (not manager)
               </li>
               <li>Clear browser cache and refresh (Ctrl + Shift + R)</li>
               <li>Check browser console (F12) for detailed errors</li>

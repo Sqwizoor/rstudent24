@@ -283,7 +283,7 @@ const MissingTenantProfile = () => (
     <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-rose-500/10">
       <Building className="h-6 w-6 text-rose-500" />
     </div>
-    <h2 className="text-2xl font-semibold text-white">We couldn't find your tenant profile</h2>
+    <h2 className="text-2xl font-semibold text-white">We couldn&apos;t find your tenant profile</h2>
     <p className="mt-3 text-sm text-muted-foreground">
       If you just signed up, your account may still be syncing. Refresh the page in a moment or complete your profile details.
     </p>
@@ -356,4 +356,4 @@ const normalizeResidence = (residence: Property | Record<string, unknown>): Mode
   };
 };
 
-export default Residences;
+export default ResidencesContent;
