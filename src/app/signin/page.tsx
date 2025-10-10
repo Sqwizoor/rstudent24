@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, Suspense, useMemo } from 'react';
 import { signIn } from "next-auth/react";
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,11 +11,44 @@ import Image from "next/image";
 function SignInContent() {
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
+  const rawCallback = searchParams.get('callbackUrl');
+
+  const callbackUrl = useMemo(() => {
+    if (!rawCallback) return '/';
+
+    const decodeValue = (value: string) => {
+      try {
+        return decodeURIComponent(value);
+      } catch {
+        return value;
+      }
+    };
+
+    const decoded = decodeValue(rawCallback);
+
+    if (decoded.startsWith('/')) {
+      return decoded || '/';
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const currentOrigin = window.location.origin;
+        const parsed = new URL(decoded, currentOrigin);
+        if (parsed.origin === currentOrigin) {
+          const path = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+          return path || '/';
+        }
+      } catch {
+        // ignore and fall through to default
+      }
+    }
+
+    return '/';
+  }, [rawCallback]);
 
   console.log('🔍 SignIn page loaded:', {
     callbackUrl,
-    origin: window.location.origin,
+    origin: typeof window !== 'undefined' ? window.location.origin : 'server',
     allParams: Array.from(searchParams.entries())
   });
 

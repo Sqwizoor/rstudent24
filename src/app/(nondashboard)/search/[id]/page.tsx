@@ -1,6 +1,7 @@
 "use client";
 
-import { useGetAuthUserQuery, useGetPropertyQuery, useGetRoomsQuery, useGetPropertiesQuery, useAddFavoritePropertyMutation, useRemoveFavoritePropertyMutation } from "@/state/api";
+import { useGetPropertyQuery, useGetRoomsQuery, useGetPropertiesQuery, useAddFavoritePropertyMutation, useRemoveFavoritePropertyMutation } from "@/state/api";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
@@ -129,11 +130,8 @@ const SingleListing = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isImageModalOpen, isModalOpen]);
   
-  // Use skip option to prevent unnecessary API calls that might result in 403 errors
-  const { data: authUser, isError: authError } = useGetAuthUserQuery(undefined, {
-    // Don't show error toasts for auth errors
-    skip: false,
-  });
+  // Use unified auth to support both NextAuth (Google) and Cognito
+  const { user: authUser, isLoading: authLoading } = useUnifiedAuth();
   const [addFavoriteProperty] = useAddFavoritePropertyMutation();
   const [removeFavoriteProperty] = useRemoveFavoritePropertyMutation();
   
@@ -211,24 +209,27 @@ const SingleListing = () => {
 
   // Favorite helpers (match home featured behavior)
   const isPropertyFavorite = (propId: number) => {
-    if (authUser?.userRole !== 'tenant') return false;
+    if (authUser?.role !== 'tenant' && authUser?.role !== 'student') return false;
     const tenantInfo = (authUser as any).userInfo as any;
     return tenantInfo?.favorites?.some((fav: any) => fav.id === propId) || false;
   };
 
   const handleFavoriteToggle = async (propId: number) => {
-    if (!authUser?.cognitoInfo?.userId) {
+    if (!authUser?.id) {
       // Redirect handled elsewhere; here we simply no-op to keep UI consistent
       return;
     }
-    if (authUser.userRole !== 'tenant') return;
+    if (authUser.role !== 'tenant' && authUser.role !== 'student') return;
+    
     try {
+      const userId = authUser.id;
       const tenantInfo = (authUser as any).userInfo as any;
       const currentlyFavorite = tenantInfo?.favorites?.some((fav: any) => fav.id === propId) || false;
+      
       if (currentlyFavorite) {
-        await removeFavoriteProperty({ cognitoId: authUser.cognitoInfo.userId, propertyId: propId }).unwrap();
+        await removeFavoriteProperty({ cognitoId: userId, propertyId: propId }).unwrap();
       } else {
-        await addFavoriteProperty({ cognitoId: authUser.cognitoInfo.userId, propertyId: propId }).unwrap();
+        await addFavoriteProperty({ cognitoId: userId, propertyId: propId }).unwrap();
       }
     } catch (e) {
       console.error('Error toggling favorite for nearby card:', e);
@@ -742,7 +743,7 @@ const SingleListing = () => {
                   isFavorite={isPropertyFavorite(p.id)}
                   onFavoriteToggle={() => handleFavoriteToggle(p.id)}
                   propertyLink={`/search/${p.id}`}
-                  userRole={authUser?.userRole || null}
+                  userRole={authUser?.role === 'student' ? 'tenant' : (authUser?.role || null)}
                   showFavoriteButton={true}
                   className="mt-0 border-0 mx-auto !p-2"
                   imagePaddingClass="p-0"

@@ -18,7 +18,21 @@ export function useUnifiedAuth() {
   const { data: nextAuthSession, status: nextAuthStatus } = useSession();
   
   // Get Cognito session (for landlords/managers)
-  const { data: cognitoUser, isLoading: cognitoLoading, error: cognitoError } = useGetAuthUserQuery();
+  // Skip Cognito query if NextAuth is already active to avoid unnecessary API calls
+  const skipCognito = nextAuthStatus === "authenticated";
+  const { data: cognitoUser, isLoading: cognitoLoading, error: cognitoError } = useGetAuthUserQuery(undefined, {
+    skip: skipCognito
+  });
+
+  // DEBUG logging
+  console.log('🔐 useUnifiedAuth state:', {
+    nextAuthStatus,
+    hasNextAuthSession: !!nextAuthSession,
+    hasCognitoUser: !!cognitoUser,
+    cognitoLoading,
+    cognitoError: cognitoError ? String(cognitoError) : null,
+    skipCognito
+  });
 
   // Determine which auth method is active
   const isNextAuthActive = nextAuthSession && nextAuthStatus === "authenticated";
@@ -28,7 +42,7 @@ export function useUnifiedAuth() {
   if (isNextAuthActive && nextAuthSession.user) {
     return {
       user: {
-        id: nextAuthSession.user.email || "", // Use email as ID for Google users
+        id: (nextAuthSession.user as any)?.id || nextAuthSession.user.email || "", // Prefer stable ID when available
         name: nextAuthSession.user.name || "",
         email: nextAuthSession.user.email || "",
         role: (nextAuthSession.user as any).role || "tenant",

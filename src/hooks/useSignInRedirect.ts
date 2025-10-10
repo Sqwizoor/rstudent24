@@ -108,6 +108,9 @@ export function useSignInRedirect() {
     }
   }, [buildSigninUrl]);
 
+  const homeSigninUrl = useMemo(() => buildSigninUrl("/"), [buildSigninUrl]);
+  const homeSignupUrl = useMemo(() => buildSignupUrl("/"), [buildSignupUrl]);
+
   return {
     callbackTarget: preferredTarget,
     signinUrl: buildSigninUrl(),
@@ -117,5 +120,7 @@ export function useSignInRedirect() {
     buildSigninUrl,
     buildSignupUrl,
     buildCognitoSigninUrl,
+    homeSigninUrl,
+    homeSignupUrl,
   };
 }

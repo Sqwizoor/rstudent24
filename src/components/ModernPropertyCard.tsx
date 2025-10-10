@@ -42,6 +42,8 @@ interface ModernPropertyCardProps {
   userRole?: "tenant" | "manager" | null
 }
 
+export type ModernPropertyCardProperty = ModernPropertyCardProps["property"]
+
 function ModernPropertyCard({
   property,
   isFavorite = false,

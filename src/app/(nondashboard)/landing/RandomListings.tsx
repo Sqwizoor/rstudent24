@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useGetPropertiesQuery, useGetAuthUserQuery, useAddFavoritePropertyMutation, useRemoveFavoritePropertyMutation } from "@/state/api";
+import { useGetPropertiesQuery, useAddFavoritePropertyMutation, useRemoveFavoritePropertyMutation } from "@/state/api";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import Card from "@/components/Card";
 import { useAppSelector } from "@/state/redux";
 import { useDispatch } from "react-redux";
@@ -20,8 +21,8 @@ const RandomListings = () => {
   const { signinUrl } = useSignInRedirect();
   const filters = useAppSelector((state) => state.global.filters);
   
-  // Authentication and favorites
-  const { data: authUser } = useGetAuthUserQuery(undefined);
+  // Authentication and favorites - use unified auth
+  const { user: authUser, isLoading: authLoading } = useUnifiedAuth();
   const [addFavoriteProperty] = useAddFavoritePropertyMutation();
   const [removeFavoriteProperty] = useRemoveFavoritePropertyMutation();
   
@@ -328,23 +329,24 @@ const RandomListings = () => {
       return;
     }
     
-    // Only tenants can have favorites
-    if (authUser.userRole !== 'tenant') {
+    // Only tenants/students can have favorites
+    if (authUser.role !== 'tenant' && authUser.role !== 'student') {
       return;
     }
     
     try {
+      const userId = authUser.id;
       const tenantInfo = authUser.userInfo as any; // Cast to access favorites
       const isCurrentlyFavorite = tenantInfo?.favorites?.some((fav: any) => fav.id === propertyId) || false;
       
       if (isCurrentlyFavorite) {
         await removeFavoriteProperty({
-          cognitoId: authUser.cognitoInfo.userId,
+          cognitoId: userId,
           propertyId: propertyId
         }).unwrap();
       } else {
         await addFavoriteProperty({
-          cognitoId: authUser.cognitoInfo.userId,
+          cognitoId: userId,
           propertyId: propertyId
         }).unwrap();
       }
@@ -355,7 +357,7 @@ const RandomListings = () => {
   
   // Check if property is favorite
   const isPropertyFavorite = (propertyId: number) => {
-    if (authUser?.userRole !== 'tenant') {
+    if (authUser?.role !== 'tenant' && authUser?.role !== 'student') {
       return false;
     }
     const tenantInfo = authUser.userInfo as any; // Cast to access favorites
@@ -534,7 +536,7 @@ const RandomListings = () => {
                 isFavorite={isPropertyFavorite(property.id)}
                 onFavoriteToggle={() => handleFavoriteToggle(property.id)}
                 propertyLink={`/search/${property.id}`}
-                userRole={authUser?.userRole || null}
+                userRole={authUser?.role === 'student' ? 'tenant' : (authUser?.role || null)}
                 showFavoriteButton={true}
                 onClick={() => handlePropertyClick(property.id)}
                 className="mt-0 border-0 mx-auto !p-2"

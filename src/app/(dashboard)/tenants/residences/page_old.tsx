@@ -86,46 +86,6 @@ const ResidencesContent = () => {
 
   const residenceCount = residences?.length ?? 0;
 
-  const renderResidences = () => {
-    if (residenceCount === 0) {
-      return (
-        <EmptyState
-          icon={<Home className="h-12 w-12 text-sky-500" />}
-          title="No active residences"
-          message="Once you move into a property, we'll show lease details and quick links right here."
-          actionLabel="Discover properties"
-          actionHref="/search"
-        />
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {residences?.map((residence: Property) => {
-          try {
-            return (
-              <ModernPropertyCard
-                key={residence.id}
-                property={normalizeResidence(residence)}
-                isFavorite={favoriteIds.includes(residence.id)}
-                showFavoriteButton={false}
-                propertyLink={`/tenants/residences/${residence.id}`}
-                userRole="tenant"
-              />
-            );
-          } catch (error) {
-            console.error(`Error rendering residence ${residence.id}:`, error);
-            return (
-              <div key={residence.id} className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                <p className="text-sm text-red-600 dark:text-red-400">Unable to display residence</p>
-              </div>
-            );
-          }
-        })}
-      </div>
-    );
-  };
-
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 space-y-12">
       <div className="space-y-3">
@@ -142,7 +102,7 @@ const ResidencesContent = () => {
         <SummaryCard
           title="Active stays"
           value={residenceCount}
-          description="Homes you're currently renting"
+          description="Homes you’re currently renting"
         />
         <SummaryCard
           title="Saved favorites"
@@ -163,7 +123,29 @@ const ResidencesContent = () => {
           title="Your residences"
           description="Each card contains the essentials—location, rent, and quick actions for your stay."
         />
-        {renderResidences()}
+
+        {residenceCount > 0 && residences ? (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {residences.map((residence: Property) => (
+              <ModernPropertyCard
+                key={residence.id}
+                property={normalizeResidence(residence)}
+                isFavorite={favoriteIds.includes(residence.id)}
+                showFavoriteButton={false}
+                propertyLink={`/tenants/residences/${residence.id}`}
+                userRole="tenant"
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            icon={<Home className="h-12 w-12 text-sky-500" />}
+            title="No active residences"
+            message="Once you move into a property, we’ll show lease details and quick links right here."
+            actionLabel="Discover properties"
+            actionHref="/search"
+          />
+        )}
       </section>
 
       {residenceCount > 0 && (
@@ -187,14 +169,6 @@ const ResidencesContent = () => {
         </section>
       )}
     </div>
-  );
-};
-
-const Residences = () => {
-  return (
-    <ErrorBoundary>
-      <ResidencesContent />
-    </ErrorBoundary>
   );
 };
 
@@ -360,44 +334,26 @@ const ResidencesSkeleton = () => (
 );
 
 const normalizeResidence = (residence: Property | Record<string, unknown>): ModernPropertyCardProperty => {
-  try {
-    const location = residence.location ?? {};
-    const photoUrls = Array.isArray(residence.photoUrls)
-      ? residence.photoUrls
-      : Array.isArray((residence as any).images)
-        ? (residence as any).images
-        : [];
+  const location = residence.location ?? {};
+  const photoUrls = Array.isArray(residence.photoUrls)
+    ? residence.photoUrls
+    : Array.isArray((residence as any).images)
+      ? (residence as any).images
+      : [];
 
-    return {
-      id: residence.id as number,
-      name: residence.name as string,
-      location: {
-        address: (location as any).address ?? "",
-        city: (location as any).city ?? "",
-      },
-      photoUrls,
-      price: (residence as any).price ?? (residence as any).pricePerMonth ?? 0,
-      beds: (residence as any).beds ?? ((residence as any).rooms?.[0]?.beds ?? 0),
-      baths: (residence as any).baths ?? ((residence as any).rooms?.[0]?.baths ?? 0),
-      squareFeet: (residence as any).squareFeet ?? (residence as any).size ?? 0,
-    };
-  } catch (error) {
-    console.error("Error normalizing residence:", error);
-    // Return a minimal valid object
-    return {
-      id: (residence.id as number) ?? 0,
-      name: (residence.name as string) ?? "Unknown Property",
-      location: {
-        address: "",
-        city: "",
-      },
-      photoUrls: [],
-      price: 0,
-      beds: 0,
-      baths: 0,
-      squareFeet: 0,
-    };
-  }
+  return {
+    id: residence.id as number,
+    name: residence.name as string,
+    location: {
+      address: (location as any).address ?? "",
+      city: (location as any).city ?? "",
+    },
+    photoUrls,
+    price: (residence as any).price ?? (residence as any).pricePerMonth ?? 0,
+    beds: (residence as any).beds ?? ((residence as any).rooms?.[0]?.beds ?? 0),
+    baths: (residence as any).baths ?? ((residence as any).rooms?.[0]?.baths ?? 0),
+    squareFeet: (residence as any).squareFeet ?? (residence as any).size ?? 0,
+  };
 };
 
 export default Residences;

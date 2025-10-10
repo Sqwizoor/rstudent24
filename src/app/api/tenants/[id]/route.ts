@@ -125,20 +125,18 @@ export async function PUT(
     
     // Prepare update data with field name mapping
     const updateData: any = {};
-    
-    // Map fields from the frontend to the database fields
-    if (body.email) updateData.email = body.email;
-    if (body.name) {
-      // If name is provided as a single field, split it into firstName and lastName
-      const nameParts = body.name.split(' ');
-      if (nameParts.length > 1) {
-        updateData.firstName = nameParts[0];
-        updateData.lastName = nameParts.slice(1).join(' ');
-      } else {
-        updateData.firstName = body.name;
-      }
+
+    if (typeof body.email === 'string') {
+      updateData.email = body.email;
     }
-    if (body.phoneNumber) updateData.phone = body.phoneNumber;
+
+    if (typeof body.name === 'string') {
+      updateData.name = body.name;
+    }
+
+    if (typeof body.phoneNumber === 'string') {
+      updateData.phoneNumber = body.phoneNumber;
+    }
     
     console.log('Update data after mapping:', updateData);
     

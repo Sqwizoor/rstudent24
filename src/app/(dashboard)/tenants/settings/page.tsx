@@ -1,21 +1,31 @@
 "use client";
+import React, { useMemo } from "react";
 import SettingsForm from "@/components/SettingsForm";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { FormSkeleton } from "@/components/ui/skeletons";
 import {
-  useGetAuthUserQuery,
+  useGetTenantQuery,
   useUpdateTenantSettingsMutation,
 } from "@/state/api";
+import { skipToken } from "@reduxjs/toolkit/query";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 
-import { FormSkeleton } from "@/components/ui/skeletons";
-import React from "react";
+const TenantSettingsContent = () => {
+  const { user, isLoading: authLoading, isAuthenticated } = useUnifiedAuth();
+  const tenantId = user?.id;
+  const { data: tenantData, isLoading: tenantLoading } = useGetTenantQuery(
+    tenantId ? tenantId : skipToken
+  );
 
-const TenantSettings = () => {
-  const { data: authUser, isLoading } = useGetAuthUserQuery();
   const [updateTenant] = useUpdateTenantSettingsMutation();
+
+  const isLoading = authLoading || (isAuthenticated && tenantLoading);
 
   if (isLoading) return <FormSkeleton />;
 
-  // Make sure we have valid user data and the correct role
-  if (!authUser || authUser.userRole !== 'tenant') {
+  const isTenant = user?.role === "tenant" || user?.role === "student";
+
+  if (!isAuthenticated || !tenantId || !isTenant) {
     return (
       <div className="flex bg-[#0F1112] justify-center p-8">
         <div className="text-white text-center">
@@ -26,29 +36,44 @@ const TenantSettings = () => {
     );
   }
 
-  const initialData = {
-    name: authUser?.userInfo?.name || '',
-    email: authUser?.userInfo?.email || '',
-    phoneNumber: authUser?.userInfo?.phoneNumber || '',
-  };
+  const initialData = useMemo(
+    () => ({
+      name: tenantData?.name || user?.userInfo?.name || "",
+      email: tenantData?.email || user?.userInfo?.email || "",
+      phoneNumber: tenantData?.phoneNumber || user?.userInfo?.phoneNumber || "",
+    }),
+    [tenantData, user?.userInfo]
+  );
 
   const handleSubmit = async (data: typeof initialData) => {
-    await updateTenant({
-      cognitoId: authUser?.cognitoInfo?.userId || "",
-      ...data,
-    });
+    if (!tenantId) return;
+
+    try {
+      await updateTenant({
+        cognitoId: tenantId,
+        ...data,
+      }).unwrap();
+    } catch (error) {
+      console.error("Failed to update tenant settings:", error);
+    }
   };
 
   return (
-
     <div className="flex bg-[#0F1112] justify-center md:mx-w-10xl">
- <SettingsForm
-      initialData={initialData}
-      onSubmit={handleSubmit}
-      userType="tenant"
-    />
+      <SettingsForm
+        initialData={initialData}
+        onSubmit={handleSubmit}
+        userType="tenant"
+      />
     </div>
-   
+  );
+};
+
+const TenantSettings = () => {
+  return (
+    <ErrorBoundary>
+      <TenantSettingsContent />
+    </ErrorBoundary>
   );
 };
 

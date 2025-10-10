@@ -43,7 +43,7 @@ const Navbar = () => {
   const { user: authUser, isAuthenticated, provider, isLoading: authLoading } = useUnifiedAuth()
   const router = useRouter()
   const pathname = usePathname()
-  const { signinUrl, signupUrl } = useSignInRedirect()
+  const { homeSigninUrl, homeSignupUrl } = useSignInRedirect()
   // Use auth loading to avoid UI flicker when session is still resolving
   const [isLoading, setIsLoading] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -141,7 +141,7 @@ const Navbar = () => {
       if (role === "manager") return router.push("/managers/properties");
       return router.push("/tenants/favorites");
     }
-    router.push(signinUrl);
+    router.push(homeSigninUrl);
   }
 
   const getUserInitial = () => {
@@ -408,7 +408,7 @@ const Navbar = () => {
                       <Button
                         variant="outline"
                         size="lg"
-                        onClick={() => router.push(signupUrl)}
+                        onClick={() => router.push(homeSignupUrl)}
                     className={cn(
                       "transition-colors bg-transparent border-2 px-7 py-4 rounded-full text-l shadow-md",
                       scrolled 
@@ -422,8 +422,8 @@ const Navbar = () => {
                   </Button>
                   
                   <Button
-                    size="lg"
-                        onClick={handlePrimaryAuthAction}
+          size="lg"
+            onClick={handlePrimaryAuthAction}
                     className="bg-[#00acee] hover:bg-[#00acee] text-white  text-l px-7 py-5 rounded-full shadow-full hover:shadow-xl transition-all duration-300"
                   >
                         {isAuthenticated ? 'Go to dashboard' : 'Login'}

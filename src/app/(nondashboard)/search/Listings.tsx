@@ -1,6 +1,5 @@
 import {
   useAddFavoritePropertyMutation,
-  useGetAuthUserQuery,
   useGetPropertiesQuery,
   useGetTenantQuery,
   useRemoveFavoritePropertyMutation,
@@ -13,18 +12,22 @@ import CardCompact from "@/components/CardCompact";
 import React, { useState } from "react";
 import { Pagination } from "@/components/ui/pagination";
 import { useSignInRedirect } from "@/hooks/useSignInRedirect";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 
 const Listings = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12; // Number of properties per page
   
-  const { data: authUser, isLoading: authLoading } = useGetAuthUserQuery();
+  // Use unified auth to support both NextAuth (Google) and Cognito
+  const { user: authUser, isLoading: authLoading } = useUnifiedAuth();
+  const userId = authUser?.id || "";
+  
   const { data: tenant, isError: tenantError } = useGetTenantQuery(
-    authUser?.cognitoInfo?.userId || "",
+    userId,
     {
       // Skip if no user ID or if user is a manager
-      skip: !authUser?.cognitoInfo?.userId || authUser?.userRole === "manager",
+      skip: !userId || authUser?.role === "manager",
       // Don't refetch on focus to prevent unnecessary error toasts
       refetchOnFocus: false,
       // Don't refetch on reconnect to prevent unnecessary error toasts
@@ -182,16 +185,18 @@ const Listings = () => {
     }));
 
     try {
+      const userId = authUser.id;
+      
       if (currentFavoriteStatus) {
         await removeFavorite({
-          cognitoId: authUser.cognitoInfo.userId || "",
+          cognitoId: userId,
           propertyId,
         });
         toast.success('Property removed from favorites');
         console.log('Property removed from favorites:', propertyId);
       } else {
         await addFavorite({
-          cognitoId: authUser.cognitoInfo.userId || "",
+          cognitoId: userId,
           propertyId,
         });
         toast.success('Property added to favorites');
@@ -312,7 +317,7 @@ const Listings = () => {
               isFavorite={localFavorites[property.id] || false}
               onFavoriteToggle={() => handleFavoriteToggle(property.id)}
               propertyLink={`/search/${property.id}`}
-              userRole={authUser?.userRole || null}
+              userRole={authUser?.role === 'student' ? 'tenant' : (authUser?.role || null)}
               showFavoriteButton={true}
               hoverRingClass="hover:ring-[#00acee]/50"
               disableImageHoverZoom
@@ -325,7 +330,7 @@ const Listings = () => {
               isFavorite={localFavorites[property.id] || false}
               onFavoriteToggle={() => handleFavoriteToggle(property.id)}
               propertyLink={`/search/${property.id}`}
-              userRole={authUser?.userRole || null}
+              userRole={authUser?.role === 'student' ? 'tenant' : (authUser?.role || null)}
               showFavoriteButton={true}
             />
           )

@@ -31,7 +31,7 @@ export async function verifyAuth(
     });
     
     if (nextAuthToken) {
-      const userId = nextAuthToken.email || nextAuthToken.sub || '';
+  const userId = nextAuthToken.sub || nextAuthToken.email || '';
       const userRole = (nextAuthToken as any).role || 'tenant';
       
       console.log(`NextAuth authenticated request from ${userId} with role: ${userRole}`);
