@@ -323,7 +323,9 @@ const RandomListings = () => {
   
   // Handle favorite toggle
   const handleFavoriteToggle = async (propertyId: number) => {
-    if (!authUser?.cognitoInfo?.userId) {
+    // Check if user is authenticated (works for both NextAuth and Cognito)
+    if (!authUser?.id) {
+      console.log('❌ No user ID, redirecting to sign in');
       // Redirect to login if user is not authenticated
       router.push(signinUrl);
       return;
@@ -331,27 +333,47 @@ const RandomListings = () => {
     
     // Only tenants/students can have favorites
     if (authUser.role !== 'tenant' && authUser.role !== 'student') {
+      console.log('❌ User role not allowed for favorites:', authUser.role);
       return;
     }
+    
+    console.log('🎯 Toggling favorite:', {
+      userId: authUser.id,
+      propertyId,
+      role: authUser.role,
+      provider: authUser.provider
+    });
     
     try {
       const userId = authUser.id;
       const tenantInfo = authUser.userInfo as any; // Cast to access favorites
       const isCurrentlyFavorite = tenantInfo?.favorites?.some((fav: any) => fav.id === propertyId) || false;
       
+      console.log('Current favorite status:', isCurrentlyFavorite);
+      
       if (isCurrentlyFavorite) {
-        await removeFavoriteProperty({
+        console.log('Removing favorite...');
+        const result = await removeFavoriteProperty({
           cognitoId: userId,
           propertyId: propertyId
         }).unwrap();
+        console.log('✅ Remove favorite result:', result);
       } else {
-        await addFavoriteProperty({
+        console.log('Adding favorite...');
+        const result = await addFavoriteProperty({
           cognitoId: userId,
           propertyId: propertyId
         }).unwrap();
+        console.log('✅ Add favorite result:', result);
       }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
+    } catch (error: any) {
+      console.error('❌ Error toggling favorite:', {
+        error,
+        message: error?.message,
+        data: error?.data,
+        status: error?.status,
+        originalStatus: error?.originalStatus
+      });
     }
   };
   

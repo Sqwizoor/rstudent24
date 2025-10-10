@@ -40,9 +40,18 @@ export function useUnifiedAuth() {
 
   // Return unified user object
   if (isNextAuthActive && nextAuthSession.user) {
+    // For NextAuth users, the ID should match what was stored as cognitoId during sign-in
+    // The signIn callback uses: profile.sub || user.id || user.email
+    // So we need to use the same priority order here
+    const userId = (nextAuthSession.user as any)?.sub || 
+                   (nextAuthSession.user as any)?.id || 
+                   nextAuthSession.user.email || "";
+    
+    console.log('🔐 NextAuth user ID:', userId);
+    
     return {
       user: {
-        id: (nextAuthSession.user as any)?.id || nextAuthSession.user.email || "", // Prefer stable ID when available
+        id: userId,
         name: nextAuthSession.user.name || "",
         email: nextAuthSession.user.email || "",
         role: (nextAuthSession.user as any).role || "tenant",
