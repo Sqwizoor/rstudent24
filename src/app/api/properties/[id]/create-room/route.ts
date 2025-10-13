@@ -78,12 +78,6 @@ interface RoomData {
   photoUrls: string[];
   bathroomPrivacy?: 'PRIVATE' | 'SHARED';
   kitchenPrivacy?: 'PRIVATE' | 'SHARED';
-<<<<<<< HEAD
-=======
-  redirectType?: 'NONE' | 'WHATSAPP' | 'CUSTOM_LINK' | 'BOTH';
-  whatsappNumber?: string;
-  customLink?: string;
->>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
 }
 
 // POST handler for the create-room endpoint
@@ -152,12 +146,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           photoUrls: [] as string[],
           bathroomPrivacy: (() => { const v = formData.get('bathroomPrivacy')?.toString(); return v ? (v.toUpperCase() as 'PRIVATE' | 'SHARED') : undefined; })(),
           kitchenPrivacy: (() => { const v = formData.get('kitchenPrivacy')?.toString(); return v ? (v.toUpperCase() as 'PRIVATE' | 'SHARED') : undefined; })(),
-<<<<<<< HEAD
-=======
-          redirectType: (() => { const v = formData.get('redirectType')?.toString(); return v && v !== "" ? (v.toUpperCase() as 'NONE' | 'WHATSAPP' | 'CUSTOM_LINK' | 'BOTH') : undefined; })(),
-          whatsappNumber: formData.get('whatsappNumber')?.toString(),
-          customLink: formData.get('customLink')?.toString(),
->>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
         };
         
         // Process photo uploads with size validation
@@ -311,12 +299,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           availableFrom: roomData.availableFrom ? new Date(roomData.availableFrom) : null,
           beds: roomData.beds || 1,
           baths: roomData.baths || 1,
-<<<<<<< HEAD
-=======
-          redirectType: roomData.redirectType || null,
-          whatsappNumber: roomData.whatsappNumber || null,
-          customLink: roomData.customLink || null,
->>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
         },
       });
       

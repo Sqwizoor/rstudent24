@@ -350,11 +350,7 @@ export default function EditPropertyPage() {
         city: fetchedPropertyData.location?.city || "",
         state: fetchedPropertyData.location?.state || "",
         province: fetchedPropertyData.location?.state || "",
-<<<<<<< HEAD
         suburb: fetchedPropertyData.location?.suburb || "",
-=======
-        suburb: "",
->>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
         country: fetchedPropertyData.location?.country || "",
         postalCode: fetchedPropertyData.location?.postalCode || "",
         locationId: fetchedPropertyData.locationId,
@@ -406,13 +402,6 @@ export default function EditPropertyPage() {
           if (value) formData.append('state', String(value));
           return; // do not send unsupported 'province' key
         }
-<<<<<<< HEAD
-=======
-        if (key === 'suburb') {
-          // Not persisted in schema on update; omit to avoid server error
-          return;
-        }
->>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
         if (typeof value === 'boolean') {
           formData.append(key, String(value));
         } else if (value instanceof Date) {

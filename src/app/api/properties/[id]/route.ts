@@ -217,10 +217,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     // Extract location data
     const address = formData.get('address') as string;
     const city = formData.get('city') as string;
-<<<<<<< HEAD
     const suburb = formData.get('suburb') as string;
-=======
->>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
     const state = formData.get('state') as string;
     const country = formData.get('country') as string;
     const postalCode = formData.get('postalCode') as string;
@@ -303,19 +300,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Update location if any location field is provided
-<<<<<<< HEAD
     if (address || city || suburb || state || country || postalCode) {
-=======
-    if (address || city || state || country || postalCode) {
->>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
       // Get existing location data
       const locationData = {
         address: address || existingProperty.location.address,
         city: city || existingProperty.location.city,
-<<<<<<< HEAD
         suburb: suburb || existingProperty.location.suburb,
-=======
->>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
         state: state || existingProperty.location.state,
         country: country || existingProperty.location.country,
         postalCode: postalCode || existingProperty.location.postalCode,
@@ -333,11 +323,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const propertyData: any = {};
     for (const [key, value] of formData.entries()) {
       if (
-<<<<<<< HEAD
         key === 'address' || key === 'city' || key === 'suburb' || key === 'state' ||
-=======
-        key === 'address' || key === 'city' || key === 'state' ||
->>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
         key === 'country' || key === 'postalCode' ||
         key === 'managerCognitoId' || key === 'replacePhotos' ||
         key === 'locationId' || key === 'photoUrls' ||

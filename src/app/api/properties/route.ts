@@ -238,10 +238,7 @@ export async function GET(request: NextRequest) {
           'id', l.id,
           'address', l.address,
           'city', l.city,
-<<<<<<< HEAD
           'suburb', l.suburb,
-=======
->>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
           'state', l.state,
           'country', l.country,
           'postalCode', l."postalCode",
@@ -397,18 +394,11 @@ export async function POST(request: NextRequest) {
         
         // Create location using raw query
         const locationResult = await prisma.$queryRaw<{ id: number }[]>`
-<<<<<<< HEAD
           INSERT INTO "Location" ("address", "city", "suburb", "state", "country", "postalCode", "coordinates")
           VALUES (
             ${addressParts.join(', ')},
             ${city},
             ${suburb || null},
-=======
-          INSERT INTO "Location" ("address", "city", "state", "country", "postalCode", "coordinates")
-          VALUES (
-            ${addressParts.join(', ')},
-            ${city},
->>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
             ${state || 'N/A'},  -- Provide a default value if state is null
             ${country},
             ${postalCode || null},
@@ -429,19 +419,12 @@ export async function POST(request: NextRequest) {
           if (
             key !== 'address' &&
             key !== 'city' &&
-<<<<<<< HEAD
             key !== 'suburb' &&
-=======
->>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
             key !== 'state' &&
             key !== 'country' &&
             key !== 'postalCode' &&
             key !== 'managerCognitoId' &&
             key !== 'photoUrls' &&
-<<<<<<< HEAD
-=======
-            key !== 'suburb' && // not a Property field; used only for geocoding
->>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
             key !== 'province' &&
             key !== 'accreditedBy' &&
             key !== 'closestUniversity' &&

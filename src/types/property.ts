@@ -4,6 +4,7 @@ export interface Location {
   id: number;
   address: string;
   city: string;
+  suburb?: string;
   state?: string;
   country: string;
   postalCode?: string;
