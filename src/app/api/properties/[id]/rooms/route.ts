@@ -104,7 +104,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
               description: formData.get('description')?.toString() || '',
               pricePerMonth: parseFloat(formData.get('pricePerMonth')?.toString() || '0'),
               securityDeposit: parseFloat(formData.get('securityDeposit')?.toString() || '0'),
+<<<<<<< HEAD
               topUp: parseFloat(formData.get('topUp')?.toString() || '0'),
+=======
+>>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
               squareFeet: parseInt(formData.get('squareFeet')?.toString() || '0'),
               beds: parseInt(formData.get('beds')?.toString() || '1'),
               baths: parseFloat(formData.get('baths')?.toString() || '1'),
@@ -117,6 +120,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
               amenities: processArrayField(formData.get('amenities')),
               features: processArrayField(formData.get('features')),
               photoUrls: [] as string[],  // This will be handled separately with uploaded files
+<<<<<<< HEAD
+=======
+              
+              // Redirect settings
+              redirectType: (() => { const v = formData.get('redirectType')?.toString(); return v && v !== "" ? v : undefined; })(),
+              whatsappNumber: formData.get('whatsappNumber')?.toString(),
+              customLink: formData.get('customLink')?.toString(),
+>>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
             };
             
             console.log('Processed room data from FormData:', roomData);
@@ -241,6 +252,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           securityDeposit: typeof roomData.securityDeposit === 'number' 
             ? roomData.securityDeposit 
             : parseFloat(roomData.securityDeposit) || 0,
+<<<<<<< HEAD
           topUp: typeof roomData.topUp === 'number' 
             ? roomData.topUp 
             : parseFloat(roomData.topUp) || 0,
@@ -253,6 +265,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           baths: typeof roomData.baths === 'number' 
             ? roomData.baths 
             : parseFloat(roomData.baths) || 1,
+=======
+          squareFeet: typeof roomData.squareFeet === 'number' 
+            ? roomData.squareFeet 
+            : parseInt(roomData.squareFeet) || 0,
+>>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
           // Room type and capacity from the schema
           roomType: roomData.roomType || 'PRIVATE',
           capacity: typeof roomData.capacity === 'number' 
@@ -264,6 +281,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           features: Array.isArray(roomData.features) ? roomData.features : [],
           photoUrls: Array.isArray(roomData.photoUrls) ? roomData.photoUrls : [],
           propertyId: propertyId,
+<<<<<<< HEAD
+=======
+          redirectType: roomData.redirectType || null,
+          whatsappNumber: roomData.whatsappNumber || null,
+          customLink: roomData.customLink || null,
+>>>>>>> c35e497bafa3a2ea527ce722c20ea3a4d7ad185b
         }
       });
 
