@@ -12,12 +12,12 @@ import PropertyDetails from "./PropertyDetails";
 import PropertyLocation from "./PropertyLocation";
 import ContactWidget from "./ContactWidget";
 import ApplicationModal from "./ApplicationModal";
-import Loading from "@/components/Loading";
 import PropertyReviews from "@/components/PropertyReviews";
 import { Building2, Bed, Bath, Users, Home } from "lucide-react";
 import { getRoomStats } from "@/lib/roomUtils";
 import Card from "@/components/Card";
-import { NAVBAR_HEIGHT, getCampusLabelById } from "@/lib/constants";
+import { CAMPUSES, NAVBAR_HEIGHT, UniversityEnum, getCampusLabelById } from "@/lib/constants";
+import { PropertyDetailSkeleton } from "@/components/ui/skeletons";
 
 // Define interfaces for type safety
 interface Room {
@@ -44,61 +44,74 @@ const SingleListing = () => {
 
   // University logo mapping
   const getUniversityLogo = (universityName: string): string | null => {
-    const universityMap: { [key: string]: string } = {
-      // University of Cape Town variations
-      "UCT": "/universities/UCT-university.png",
-      "University of Cape Town": "/universities/UCT-university.png",
-      "uct": "/universities/UCT-university.png",
-      
-      // University of the Witwatersrand variations
-      "Wits": "/universities/Witwatersrand,-univesity.jpg",
-      "University of the Witwatersrand": "/universities/Witwatersrand,-univesity.jpg",
-      "Witwatersrand": "/universities/Witwatersrand,-univesity.jpg",
-      "wits": "/universities/Witwatersrand,-univesity.jpg",
-      
-      // University of the Western Cape variations
-      "UWC": "/universities/UWC_Logo.svg",
-      "University of the Western Cape": "/universities/UWC_Logo.svg",
-      "uwc": "/universities/UWC_Logo.svg",
-      
-      // University of Johannesburg variations
-      "UJ": "/universities/University-Johannesburg.svg",
-      "University of Johannesburg": "/universities/University-Johannesburg.svg",
-      "uj": "/universities/University-Johannesburg.svg",
-      
-      // University of Limpopo variations
-      "UL": "/universities/University_of_Limpopo_logo.svg",
-      "University of Limpopo": "/universities/University_of_Limpopo_logo.svg",
-      "ul": "/universities/University_of_Limpopo_logo.svg",
-      
-      // University of the Free State variations
-      "UFS": "/universities/University-FreeState.svg",
-      "University of the Free State": "/universities/University-FreeState.svg",
-      "ufs": "/universities/University-FreeState.svg",
-      
-      // Stellenbosch University variations
-      "Stellenbosch": "/universities/Stellenbosch.jpg",
-      "Stellenbosch University": "/universities/Stellenbosch.jpg",
-      "stellenbosch": "/universities/Stellenbosch.jpg",
-      
-      // Rhodes University variations
-      "Rhodes": "/universities/Rhodes-university.png",
-      "Rhodes University": "/universities/Rhodes-university.png",
-      "rhodes": "/universities/Rhodes-university.png",
-      
-      // University of Pretoria variations
-      "UP": "/universities/pretoria.webp",
-      "University of Pretoria": "/universities/pretoria.webp",
-      "up": "/universities/pretoria.webp",
-      
-      // University of KwaZulu-Natal variations
-      "UKZN": "/universities/kzn.png",
-      "University of KwaZulu-Natal": "/universities/kzn.png",
-      "ukzn": "/universities/kzn.png",
+    const baseMap: Record<string, string> = {
+      UCT: "/universities/UCT LOGO.png",
+      "University of Cape Town": "/universities/UCT LOGO.png",
+      WITS: "/universities/WITS UNI.png",
+      "University of the Witwatersrand": "/universities/WITS UNI.png",
+      UWC: "/universities/UWC.png",
+      "University of the Western Cape": "/universities/UWC.png",
+      UJ: "/universities/University_of_Johannesburg_Logo.svg-modified.png",
+      "University of Johannesburg": "/universities/University_of_Johannesburg_Logo.svg-modified.png",
+      UL: "/universities/UL.png",
+      "University of Limpopo": "/universities/UL.png",
+      UFS: "/universities/UFS 1.png",
+      "University of the Free State": "/universities/UFS 1.png",
+      SU: "/universities/Stellies.jpg",
+      "Stellenbosch University": "/universities/Stellies.jpg",
+      RU: "/universities/RHODES.png",
+      "Rhodes University": "/universities/RHODES.png",
+      UP: "/universities/University_of_Pretoria_Coat_of_Arms-modified.png",
+      "University of Pretoria": "/universities/University_of_Pretoria_Coat_of_Arms-modified.png",
+      UKZN: "/universities/UKZN (2).png",
+      "University of KwaZulu-Natal": "/universities/UKZN (2).png",
+      CPUT: "/universities/CPUT LOGO.png",
+      "Cape Peninsula University of Technology": "/universities/CPUT LOGO.png",
+      TUT: "/universities/TUT-Logo1-modified.png",
+      "Tshwane University of Technology": "/universities/TUT-Logo1-modified.png",
+      UNISA: "/universities/Unisa-Logo-1-1.jpg",
+      "University of South Africa": "/universities/Unisa-Logo-1-1.jpg",
+      NWU: "/universities/NWU.png",
+      "North-West University": "/universities/NWU.png",
+      UFH: "/universities/UFH.png",
+      "University of Fort Hare": "/universities/UFH.png",
+      WSU: "/universities/WSU (2).png",
+      "Walter Sisulu University": "/universities/WSU (2).png",
+      MUT: "/universities/MUT.png",
+      "Mangosuthu University of Technology": "/universities/MUT.png",
+      SPU: "/universities/SOL PLAATJIE.png",
+      "Sol Plaatje University": "/universities/SOL PLAATJIE.png",
+      CUT: "/universities/CUT.png",
+      "Central University of Technology": "/universities/CUT.png",
+      UMP: "/universities/UMP.png",
+      "University of Mpumalanga": "/universities/UMP.png",
+      NMU: "/universities/NMU.png",
+      "Nelson Mandela University": "/universities/NMU.png",
+      UNIVEN: "/universities/UNIVEN.png",
+      "University of Venda": "/universities/UNIVEN.png",
+      UNIZULU: "/universities/UNIZULU.png",
+      "University of Zululand": "/universities/UNIZULU.png",
+      VUT: "/universities/VUT 2.jpg",
+      "Vaal University of Technology": "/universities/VUT 2.jpg",
+      DUT: "/universities/DUT.jpg",
+      "Durban University of Technology": "/universities/DUT.jpg",
+      SMU: "/universities/Sefako Makgato University.png",
+      "Sefako Makgatho Health Sciences University": "/universities/Sefako Makgato University.png",
     };
 
-    // Check for exact match first, then try lowercase
-    return universityMap[universityName] || universityMap[universityName.toLowerCase()] || null;
+    const normalizedName = universityName?.trim();
+    if (!normalizedName) return null;
+
+    const directMatch = baseMap[normalizedName];
+    if (directMatch) return directMatch;
+
+    const upperMatch = baseMap[normalizedName.toUpperCase()];
+    if (upperMatch) return upperMatch;
+
+    const lowerMatch = baseMap[normalizedName.toLowerCase()];
+    if (lowerMatch) return lowerMatch;
+
+    return null;
   };
   
   // Debug modal state changes
@@ -251,6 +264,19 @@ const SingleListing = () => {
   const displayBeds = roomStats.totalBeds || property?.beds || 0;
   const displayBaths = roomStats.totalBaths || property?.baths || 0;
   const displaySquareFeet = roomStats.totalSquareFeet || property?.squareFeet || 0;
+  const primaryCampusId = property?.closestCampuses?.[0];
+  const primaryCampusLabel = primaryCampusId ? getCampusLabelById(primaryCampusId) : null;
+  const primaryCampusDetails = React.useMemo(() => {
+    if (!primaryCampusId) return null;
+    return CAMPUSES.find((campus) => campus.campusID === Number(primaryCampusId)) || null;
+  }, [primaryCampusId]);
+
+  const primaryUniversityLogo = React.useMemo(() => {
+    if (!primaryCampusDetails) return null;
+    const universityKey = primaryCampusDetails.universityID;
+    const universityName = (UniversityEnum as Record<string, string | undefined>)?.[universityKey] || String(universityKey);
+    return getUniversityLogo(universityName) || getUniversityLogo(String(universityKey));
+  }, [primaryCampusDetails]);
   // Determine deposit and top-up from the earliest created room (first created)
   const firstCreatedRoom = React.useMemo(() => {
     if (!Array.isArray(rooms) || rooms.length === 0) return null;
@@ -276,7 +302,7 @@ const SingleListing = () => {
     return typeof roomTopUp === 'number' ? roomTopUp : 0;
   })();
 
-  if (isLoading || roomsLoading) return <div><Loading/></div>;
+  if (isLoading || roomsLoading) return <PropertyDetailSkeleton />;
   if (isError || !property || !processedProperty) return <div>Property not found</div>;
 
   return (
@@ -348,7 +374,7 @@ const SingleListing = () => {
                 <div className="absolute bottom-4 right-4 z-10">
                   <button 
                     onClick={() => setIsImageModalOpen(true)}
-                    className="bg-white/90 text-gray-800 px-3 py-2 rounded-lg text-xs font-medium hover:bg-white transition-colors shadow-lg"
+                    className="bg-[#00acee] text-white px-3 py-2 rounded-full text-xs font-medium shadow-lg transition-colors hover:bg-[#0095cc]"
                   >
                     View all ({processedProperty.images.length})
                   </button>
@@ -377,7 +403,7 @@ const SingleListing = () => {
             {processedProperty.images && processedProperty.images.length > 1 && (
               <button 
                 onClick={() => setIsImageModalOpen(true)}
-                className="mt-4 w-full bg-blue-600 text-white px-4 py-3 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                className="mt-4 w-full bg-[#00acee] text-white px-4 py-3 rounded-full text-sm font-medium transition-colors hover:bg-[#0095cc]"
               >
                 View all {processedProperty.images.length} photos
               </button>
@@ -406,32 +432,56 @@ const SingleListing = () => {
                     <span className="text-sm text-gray-600">{(property.averageRating || 0).toFixed(1)} ({property.numberOfReviews || 0} reviews)</span>
                   </div>
                   {/* Address + University directly under title */}
-                  <div className="flex items-start gap-3 mt-1 flex-wrap">
-                    <svg className="h-6 w-6 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-4 flex-wrap">
-                        <p className="text-gray-800 font-medium text-lg truncate max-w-full">
-                          {property.location?.address || 'No address'}
-                        </p>
-                        {property.closestCampuses?.[0] && (
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center shadow-sm">
-                              <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C20.832 18.477 19.246 18 17.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                              </svg>
+                  <div className="mt-3 w-full">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 rounded-2xl bg-white/95 border border-slate-200 shadow-sm px-4 py-4 sm:bg-transparent sm:border-none sm:shadow-none sm:px-0 sm:py-0">
+                      <div className="flex items-start gap-3">
+                            <div className="grid grid-cols-[auto,1fr] gap-x-3 sm:gap-x-4 gap-y-3">
+                              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-200 text-[#00acee] sm:h-14 sm:w-14 sm:rounded-full">
+                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                              </span>
+                              <div className="min-w-0">
+                                <p className="text-base sm:text-lg font-semibold text-gray-900 leading-snug">
+                                  {property.location?.address || 'No address'}
+                                </p>
+                              </div>
+
+                              {primaryCampusLabel ? (
+                                <>
+                                  <span className="relative h-12 w-12 sm:h-14 sm:w-14 rounded-full overflow-hidden bg-white border border-blue-100 shadow-sm">
+                                    {primaryUniversityLogo ? (
+                                      <Image
+                                        src={primaryUniversityLogo}
+                                        alt={primaryCampusDetails?.universityID ? `${primaryCampusDetails.universityID} logo` : "University logo"}
+                                        fill
+                                        sizes="(max-width: 640px) 48px, 56px"
+                                        className="object-contain p-1"
+                                        priority={false}
+                                      />
+                                    ) : (
+                                      <div className="flex h-full w-full items-center justify-center text-[#00acee]">
+                                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253" />
+                                        </svg>
+                                      </div>
+                                    )}
+                                  </span>
+                                  <div className="flex flex-col">
+                                    <span className="text-[11px] uppercase tracking-wide text-slate-500">Close to</span>
+                                    <span className="text-sm sm:text-base font-semibold text-slate-800 leading-tight">
+                                      {primaryCampusLabel.replace(/^Close to\s*/i, "")}
+                                    </span>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="col-start-2 text-gray-600">
+                                  {property.location?.city || 'No city'}
+                                </div>
+                              )}
                             </div>
-                            <span className="text-gray-700 font-medium whitespace-nowrap">
-                              {getCampusLabelById(property.closestCampuses[0])}
-                            </span>
                           </div>
-                        )}
-                      </div>
-                      <p className="text-gray-600 mt-1">
-                        {property.location?.city || 'No city'}
-                      </p>
                     </div>
                   </div>
                 </div>

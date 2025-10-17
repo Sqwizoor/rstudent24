@@ -51,6 +51,75 @@ export function PropertyCardSkeleton() {
   )
 }
 
+export function PropertyDetailSkeleton() {
+  return (
+    <div className="bg-white min-h-screen">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className="w-full max-w-5xl xl:max-w-6xl mx-auto space-y-8">
+          {/* Gallery skeleton */}
+          <div className="space-y-4">
+            <Skeleton className="w-32 h-5 bg-gray-200/70" />
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+              <Skeleton className="md:col-span-4 h-64 md:h-[420px] rounded-3xl bg-gray-200" />
+              <div className="md:col-span-2 grid grid-rows-2 gap-4">
+                <Skeleton className="h-32 md:h-full rounded-2xl bg-gray-200" />
+                <Skeleton className="h-32 md:h-full rounded-2xl bg-gray-200" />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="space-y-4">
+                <Skeleton className="h-8 w-2/3 bg-gray-200" />
+                <Skeleton className="h-4 w-1/2 bg-gray-200/80" />
+                <Skeleton className="h-4 w-1/3 bg-gray-200/70" />
+              </div>
+
+              <div className="bg-gray-100 rounded-2xl p-6 space-y-4">
+                <Skeleton className="h-4 w-1/4 bg-gray-200" />
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-4 w-full bg-gray-200/80" />
+                ))}
+              </div>
+
+              <div className="bg-gray-100 rounded-2xl p-6 space-y-4">
+                <Skeleton className="h-5 w-40 bg-gray-200" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="space-y-3">
+                      <Skeleton className="h-32 rounded-xl bg-gray-200" />
+                      <Skeleton className="h-4 w-2/3 bg-gray-200/80" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-1 space-y-6">
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+                <Skeleton className="h-6 w-24 bg-gray-200" />
+                <Skeleton className="h-10 w-32 bg-gray-200" />
+                <Skeleton className="h-4 w-1/2 bg-gray-200/70" />
+                <div className="space-y-3 pt-2">
+                  <Skeleton className="h-10 w-full bg-gray-200" />
+                  <Skeleton className="h-10 w-full bg-gray-200" />
+                </div>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+                <Skeleton className="h-5 w-32 bg-gray-200" />
+                <Skeleton className="h-32 rounded-xl bg-gray-200" />
+                <Skeleton className="h-10 w-full bg-gray-200" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Compact Property Card Skeleton
 export function PropertyCardCompactSkeleton() {
   return (

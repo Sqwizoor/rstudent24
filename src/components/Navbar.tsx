@@ -155,7 +155,7 @@ const Navbar = () => {
               alt="Rentiful Logo"
               width={160}
               height={53}
-              className="object-contain h-14 cursor-pointer"
+              className="object-contain h-10 sm:h-12 md:h-14 cursor-pointer"
               priority
               draggable={false}
             />

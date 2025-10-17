@@ -226,7 +226,7 @@ const HeroSection = () => {
   };
 
   return (
-    <div className="relative h-[100vh] md:h-[80vh]">
+    <div className="relative h-[80vh] md:h-[80vh]">
       {/* Animated background overlay */}
 
       <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-black/30 to-black/40 z-10"></div>
@@ -286,7 +286,7 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-3xl pt-6 md:text-6xl lg:text-7xl xl:text-8xl pt-19 font-extrabold text-white mb-6 tracking-tight drop-shadow-lg"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl pt-6 font-extrabold text-white mb-6 tracking-tight drop-shadow-lg"
             >
               Find Any Res.
             </motion.h1>
