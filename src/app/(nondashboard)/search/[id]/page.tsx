@@ -373,31 +373,6 @@ const SingleListing = () => {
               />
             </div>
             
-            {/* Mobile image grid - rectangular layout */}
-            <div className="grid grid-cols-1 gap-3">
-              {processedProperty.images?.slice(1, 3).map((image, index) => (
-                <div key={index} className="relative h-28 rounded-lg overflow-hidden cursor-pointer" onClick={() => setIsImageModalOpen(true)}>
-                  <Image
-                    src={image || "/placeholder.jpg"}
-                    alt={`${property.name} ${index + 2}`}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 300px"
-                    quality={70}
-                    className="object-cover"
-                    unoptimized={false}
-                  />
-                </div>
-              )) || 
-              // Fallback for mobile
-              Array.from({ length: 3 }, (_, index) => (
-                <div key={`fallback-mobile-${index}`} className="relative h-28 rounded-lg overflow-hidden bg-gray-200">
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Home className="h-6 w-6 text-gray-400" />
-                  </div>
-                </div>
-              ))}
-            </div>
-            
             {/* View all button for mobile */}
             {processedProperty.images && processedProperty.images.length > 1 && (
               <button 
@@ -416,11 +391,11 @@ const SingleListing = () => {
     <div className="lg:col-span-2 space-y-6">
             {/* Property Header */}
             <div>
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-4">
+                <div className="flex-1 min-w-0">
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">{property.name}</h1>
                   {/* Rating */}
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
                         <svg key={i} className={`h-5 w-5 ${i < Math.floor(property.averageRating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} viewBox="0 0 20 20">
@@ -431,7 +406,7 @@ const SingleListing = () => {
                     <span className="text-sm text-gray-600">{(property.averageRating || 0).toFixed(1)} ({property.numberOfReviews || 0} reviews)</span>
                   </div>
                   {/* Address + University directly under title */}
-                  <div className="flex items-start gap-3 mt-1">
+                  <div className="flex items-start gap-3 mt-1 flex-wrap">
                     <svg className="h-6 w-6 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -462,13 +437,13 @@ const SingleListing = () => {
                 </div>
 
                 {/* Favorite and Share buttons */}
-                <div className="flex items-center gap-2">
-                  <button className="p-3 rounded-full hover:bg-gray-100 transition-colors border border-gray-200">
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <button className="p-2 sm:p-3 rounded-full hover:bg-gray-100 transition-colors border border-gray-200">
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.682l-1.318-1.364a4.5 4.5 0 00-6.364 0z" />
                     </svg>
                   </button>
-                  <button className="p-3 rounded-full hover:bg-gray-100 transition-colors border border-gray-200">
+                  <button className="p-2 sm:p-3 rounded-full hover:bg-gray-100 transition-colors border border-gray-200">
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                     </svg>
