@@ -180,6 +180,25 @@ const Navbar = () => {
         <div className="flex items-center gap-4 md:gap-6">
           <NavigationLinks />
 
+          {/* Register/Login (desktop only, when logged out) */}
+          {!authUser && (
+            <div className="hidden md:flex items-center gap-3">
+              <Button
+                variant="outline"
+                className="h-10 rounded-full bg-transparent border-2 border-[#00acee] text-[#00acee] hover:bg-[#00acee] hover:text-white transition-all"
+                onClick={() => router.push(homeSignupUrl)}
+              >
+                Register
+              </Button>
+              <Button
+                className="h-10 rounded-full bg-[#00acee] text-white hover:bg-[#00acee]/90 shadow-lg"
+                onClick={handlePrimaryAuthAction}
+              >
+                Login
+              </Button>
+            </div>
+          )}
+
           {/* ✅ Manual mobile toggle button replaces SheetTrigger */}
           <button
             type="button"
@@ -198,17 +217,17 @@ const Navbar = () => {
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetContent
               side="top"
-              className="w-full min-h-[70vh] pt-16 px-0 bg-white/95 backdrop-blur-lg border-none"
+              className="w-full min-h-[70vh] pt-24 px-0 bg-white/95 backdrop-blur-lg border-none rounded-b-2xl shadow-xl transition-all"
             >
               <div className="flex flex-col h-full">
-                <div className="flex-1 px-6">
+                <div className="flex-1 px-6 pt-2">
                   <NavigationLinks mobile onLinkClick={() => setMobileMenuOpen(false)} />
                 </div>
                 {!authUser && (
-                  <div className="mt-auto border-t border-gray-100 bg-white p-6 space-y-4">
+                  <div className="mt-auto border-t border-gray-100/60 bg-white/90 backdrop-blur-sm p-6 space-y-4 rounded-t-2xl shadow-lg">
                     <Button
                       variant="outline"
-                      className="w-full h-12 bg-transparent border-2 border-[#00acee] text-[#00acee] hover:bg-[#00acee] hover:text-white transition-all"
+                      className="w-full h-12 rounded-full bg-transparent border-2 border-[#00acee] text-[#00acee] hover:bg-[#00acee] hover:text-white transition-all"
                       onClick={() => {
                         router.push(homeSignupUrl)
                         setMobileMenuOpen(false)
@@ -217,7 +236,7 @@ const Navbar = () => {
                       Register
                     </Button>
                     <Button
-                      className="w-full h-12 bg-[#00acee] text-white hover:bg-[#00acee]/90 shadow-lg"
+                      className="w-full h-12 rounded-full bg-[#00acee] text-white hover:bg-[#00acee]/90 shadow-lg transition-all"
                       onClick={() => {
                         handlePrimaryAuthAction()
                         setMobileMenuOpen(false)

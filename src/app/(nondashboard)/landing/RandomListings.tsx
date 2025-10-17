@@ -386,7 +386,7 @@ const RandomListings = () => {
   };
   
   return (
-    <div className="py-16 px-2 md:px-8 bg-gray-50 dark:bg-gray-800">
+    <div className="py-16 px-0 md:px-8 bg-gray-50 dark:bg-gray-800">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-center items-center mb-10">
           <div className="text-center">
@@ -566,7 +566,7 @@ const RandomListings = () => {
                 simpleShadow
                 reviewsCount={(property as any).reviews ?? (property as any).reviewCount ?? (property as any).reviewsCount}
                 locationDisplayMode="suburbCity"
-                imageAspect="4/2"
+                imageAspect="4/3"
               />
             ))}
           </div>
