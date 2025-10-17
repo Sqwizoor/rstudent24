@@ -8,6 +8,23 @@
   --font-display: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
 }
 
+
+
+
+/* Hide horizontal scrollbar on mobile nicely */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+
+
+
+
+
 *,
 *::before,
 *::after {

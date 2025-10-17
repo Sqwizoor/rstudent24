@@ -15,7 +15,7 @@ function Landing() {
       {/* <FeaturesSection /> */}
       <BlogSection />
       {/* <DiscoverSection/> */}
-      <CallToActionSection />
+      {/* <CallToActionSection /> */}
       <FooterSection />
     </div>
   );

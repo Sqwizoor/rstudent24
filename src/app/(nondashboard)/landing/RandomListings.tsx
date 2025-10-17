@@ -8,12 +8,11 @@ import { useAppSelector } from "@/state/redux";
 import { useDispatch } from "react-redux";
 import { setFilters } from "@/state";
 import { useRouter } from "next/navigation";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+
 import { Button } from "@/components/ui/button";
-import { PropertyTypeIcons } from "@/lib/constants";
+
 import { useSignInRedirect } from "@/hooks/useSignInRedirect";
-import { formatPriceValue } from "@/lib/utils";
+
 
 const RandomListings = () => {
   const dispatch = useDispatch();
@@ -387,7 +386,7 @@ const RandomListings = () => {
   };
   
   return (
-    <div className="py-16 px-8 md:px-8 bg-gray-50 dark:bg-gray-800">
+    <div className="py-16 px-2 md:px-8 bg-gray-50 dark:bg-gray-800">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-center items-center mb-10">
           <div className="text-center">
