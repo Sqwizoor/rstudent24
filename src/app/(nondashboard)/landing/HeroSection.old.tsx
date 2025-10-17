@@ -492,8 +492,7 @@ const HeroSection = () => {
         </div>
       </div>
     </div>
-  );      {/* Content Container */}
-);
+  );
 };
 
 // Define the prop types for PropertyTypeTab component
