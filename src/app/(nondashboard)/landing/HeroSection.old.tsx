@@ -464,7 +464,6 @@ const HeroSection = () => {
                   </Button>
                 </>
               ) : (
-                // Desktop Search Bar
                 <div className="flex gap-3">
                   {/* Desktop filters and button here */}
                   <div className="flex-1">
