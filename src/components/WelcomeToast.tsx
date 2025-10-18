@@ -32,13 +32,23 @@ export default function WelcomeToast() {
               <p className="font-medium text-white">Welcome to our updated site</p>
             </div>
             <button 
-              onClick={() => toast.dismiss(toastId)} 
-              className="p-1.5 rounded-full hover:bg-blue-600/20 transition-colors ml-auto group"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toast.dismiss(toastId);
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toast.dismiss(toastId);
+              }}
+              className="p-2 rounded-full hover:bg-blue-600/20 active:bg-blue-600/30 transition-colors ml-auto group min-w-[32px] min-h-[32px] flex items-center justify-center touch-manipulation"
               aria-label="Close notification"
+              type="button"
             >
               <X 
-                size={16} 
-                className="text-blue-100 group-hover:text-white transition-colors" 
+                size={18} 
+                className="text-blue-100 group-hover:text-white transition-colors pointer-events-none" 
               />
             </button>
           </div>,
