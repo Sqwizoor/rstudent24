@@ -3,6 +3,7 @@
 import * as React from "react"
 import * as SheetPrimitive from "@radix-ui/react-dialog"
 import { XIcon } from "lucide-react"
+import { useCallback } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -54,6 +55,14 @@ function SheetContent({
   side?: "top" | "right" | "bottom" | "left"
   hideCloseButton?: boolean
 }) {
+  const closeRef = React.useRef<HTMLButtonElement>(null)
+  
+  const handleClose = useCallback(() => {
+    if (closeRef.current) {
+      closeRef.current.click()
+    }
+  }, [])
+
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -75,10 +84,17 @@ function SheetContent({
       >
         {children}
         {!hideCloseButton && (
-          <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 active:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation p-2">
-            <XIcon className="size-5 pointer-events-none" />
-            <span className="sr-only">Close</span>
-          </SheetPrimitive.Close>
+          <>
+            <SheetPrimitive.Close ref={closeRef} className="hidden" />
+            <button
+              onClick={handleClose}
+              className="absolute top-4 right-4 w-10 h-10 rounded-lg opacity-70 hover:opacity-100 active:opacity-100 transition-opacity flex items-center justify-center touch-manipulation cursor-pointer"
+              aria-label="Close"
+              type="button"
+            >
+              <XIcon className="w-6 h-6" />
+            </button>
+          </>
         )}
       </SheetPrimitive.Content>
     </SheetPortal>
