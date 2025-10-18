@@ -207,6 +207,7 @@ export const api = createApi({
         
         try {
           let cognitoUser: CognitoAuthUser | undefined;
+          let userEmail = "";
           
           const session = await fetchAuthSession();
           // Auth session fetched
@@ -240,9 +241,13 @@ export const api = createApi({
             
             const rawUserRole = idToken.payload["custom:role"] as string;
             // Get email from idToken payload instead of non-existent username property
-            const userEmail = typeof idToken.payload.email === 'string' ? 
+            userEmail = typeof idToken.payload.email === 'string' ? 
               idToken.payload.email.toLowerCase() : '';
 
+
+            if (cognitoUser) {
+              cognitoUser.email = userEmail || cognitoUser.email;
+            }
 
 
             if (!cognitoUser) {
@@ -424,9 +429,15 @@ export const api = createApi({
           }
 
           // --- Construct the AppUser object ---
+          const dbUser = userDetailsResponse.data as Tenant | Manager | Admin;
+          const mergedUserInfo = {
+            ...dbUser,
+            email: userEmail || dbUser.email,
+          } as Tenant | Manager | Admin;
+
           const appUserData: AppUser = {
             cognitoInfo: cognitoUser,
-            userInfo: userDetailsResponse.data as Tenant | Manager | Admin,
+            userInfo: mergedUserInfo,
             userRole: determinedUserRole,
           };
 

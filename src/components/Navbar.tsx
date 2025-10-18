@@ -238,6 +238,15 @@ const Navbar = () => {
                   <Home className="mr-2 h-4 w-4" />
                   <span>Go to dashboard</span>
                 </DropdownMenuItem>
+                {authUser?.role?.toLowerCase() === "manager" && (
+                  <DropdownMenuItem
+                    onSelect={() => router.push("/managers/newproperty")}
+                    className="cursor-pointer"
+                  >
+                    <Building2 className="mr-2 h-4 w-4" />
+                    <span>Add property</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onSelect={() => handleSignOut()}

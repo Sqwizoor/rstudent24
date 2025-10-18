@@ -6,6 +6,7 @@ export interface ExtendedAuthUser {
     // Include the core AuthUser properties that are actually used in your app
     username?: string;
     userId?: string;
+    email?: string;
     
     // Add our custom properties
     signInDetails?: {

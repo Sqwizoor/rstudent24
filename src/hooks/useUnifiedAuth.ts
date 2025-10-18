@@ -65,11 +65,13 @@ export function useUnifiedAuth() {
   }
 
   if (isCognitoActive && cognitoUser) {
+    const dbEmail = (cognitoUser.userInfo as { email?: string })?.email;
+
     return {
       user: {
         id: cognitoUser.cognitoInfo.userId || "",
         name: cognitoUser.userInfo.name || "",
-        email: cognitoUser.userInfo.email || "",
+        email: cognitoUser.cognitoInfo?.email || dbEmail || "",
         role: cognitoUser.userRole,
         provider: "cognito",
         userInfo: cognitoUser.userInfo,
