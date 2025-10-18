@@ -51,7 +51,7 @@ const SearchPageContent = () => {
     >
       <div className="h-10"/>
       <FiltersBar />
-      <div className="flex justify-between flex-1 overflow-hidden gap-6 mb-5">
+      <div className="flex justify-between flex-1 overflow-hidden md:gap-6 mb-5">
         <div
           className={`h-full overflow-auto transition-all duration-300 ease-in-out ${
             isFiltersFullOpen
@@ -64,7 +64,7 @@ const SearchPageContent = () => {
         <div className="hidden md:block md:basis-5/12 grow-0">
           <Map />
         </div>
-        <div className="basis-12/12 md:basis-7/12 overflow-y-auto px-4 md:pl-[1rem] md:pr-0">
+        <div className="w-full md:basis-7/12 overflow-y-auto md:pl-[1rem] md:pr-0">
           <Listings />
         </div>
       </div>

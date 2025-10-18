@@ -214,8 +214,8 @@ const Listings = () => {
   };
 
   if (isLoading) return (
-    <div className="w-full md:pr-4 xl:pr-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 mb-8">
+    <div className="w-full px-1 md:px-0 md:pr-4 xl:pr-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 md:gap-6 mb-8">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="bg-white rounded-3xl overflow-hidden mt-6 shadow-md border border-transparent w-full">
             {/* Image skeleton */}
@@ -301,7 +301,7 @@ const Listings = () => {
   }
 
   return (
-    <div className="w-full md:pr-4 xl:pr-8">
+    <div className="w-full px-1 md:px-0 md:pr-4 xl:pr-8">
       {/* Property count heading */}
       <div className="mb-4">
         {/* Location-based or Property name-based heading */}
@@ -332,7 +332,7 @@ const Listings = () => {
           viewMode === "grid"
             ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-2"
             : "grid-cols-1"
-        } gap-6 mb-8`}
+        } gap-4 md:gap-6 mb-8`}
       >
         {currentProperties.map((property) => (
           viewMode === "grid" ? (
