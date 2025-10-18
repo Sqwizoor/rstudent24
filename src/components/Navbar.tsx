@@ -10,7 +10,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { signOut as cognitoSignOut } from "aws-amplify/auth"
 import { signOut as nextAuthSignOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
-import { Search, Settings, LogOut, User, ChevronDown, Home, Building2, BookOpen, Shield, Menu, X } from "lucide-react"
+import { Search, Settings, LogOut, User, ChevronDown, Home, Building2, BookOpen, Shield, Menu } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -263,21 +263,22 @@ const Navbar = () => {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-expanded={mobileMenuOpen}
+            aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}
             className={cn(
               "md:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors",
               "text-slate-700 hover:text-blue-600",
               isHomePage && !scrolled && !mobileMenuOpen && "text-white hover:text-blue-100",
-              mobileMenuOpen && "text-blue-600 hover:text-blue-700",
+              mobileMenuOpen && "bg-white/80 text-blue-600 shadow-sm",
             )}
           >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            <Menu className="h-6 w-6" />
           </button>
 
           {/* Mobile menu content */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetContent
               side="top"
-              hideCloseButton
               className="w-full px-0 pb-8 bg-white/95 backdrop-blur-lg border-none rounded-b-2xl shadow-xl transition-all"
               style={{ paddingTop: NAVBAR_HEIGHT + 16 }}
             >
