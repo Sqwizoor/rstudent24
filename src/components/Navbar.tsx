@@ -279,7 +279,6 @@ const Navbar = () => {
 
             <SheetContent
               side="top"
-              hideCloseButton
               className="w-full px-0 pb-8 bg-white/95 backdrop-blur-lg border-none rounded-b-2xl shadow-xl transition-all"
               style={{ paddingTop: NAVBAR_HEIGHT + 16 }}
             >
