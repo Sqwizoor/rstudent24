@@ -336,23 +336,23 @@ const Listings = () => {
       >
         {currentProperties.map((property) => (
           viewMode === "grid" ? (
-            <div key={property.id} className="w-full">
-              <Card
-                property={property}
-                isFavorite={localFavorites[property.id] || false}
-                onFavoriteToggle={() => handleFavoriteToggle(property.id)}
-                propertyLink={`/search/${property.id}`}
-                userRole={authUser?.role === 'student' ? 'tenant' : (authUser?.role || null)}
-                showFavoriteButton={true}
-                className="mt-0 border-0 !p-2"
-                imagePaddingClass="p-0"
-                largeActionIcons
-                simpleShadow
-                reviewsCount={(property as any).reviews ?? (property as any).reviewCount ?? (property as any).reviewsCount}
-                locationDisplayMode="suburbCity"
-                imageAspect="4/3"
-              />
-            </div>
+            <Card
+              key={property.id}
+              property={property}
+              isFavorite={localFavorites[property.id] || false}
+              onFavoriteToggle={() => handleFavoriteToggle(property.id)}
+              propertyLink={`/search/${property.id}`}
+              userRole={authUser?.role === 'student' ? 'tenant' : (authUser?.role || null)}
+              showFavoriteButton={true}
+              className="mt-0 border-0 !p-2"
+              imagePaddingClass="p-0"
+              largeActionIcons
+              simpleShadow
+              reviewsCount={(property as any).reviews ?? (property as any).reviewCount ?? (property as any).reviewsCount}
+              locationDisplayMode="suburbCity"
+              imageAspect="4/3"
+              widthClass="max-w-full"
+            />
           ) : (
             <CardCompact
               key={property.id}
