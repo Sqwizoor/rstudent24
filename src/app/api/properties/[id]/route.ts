@@ -597,6 +597,31 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       }
     }
 
+    // Delete related records first to avoid foreign key constraint errors
+    // Delete all applications related to this property
+    await prisma.application.deleteMany({
+      where: { propertyId: id },
+    });
+
+    // Delete all leases related to this property
+    await prisma.lease.deleteMany({
+      where: { propertyId: id },
+    });
+
+    // Delete all payments related to this property's leases
+    await prisma.payment.deleteMany({
+      where: {
+        lease: {
+          propertyId: id
+        }
+      }
+    });
+
+    // Delete all rooms related to this property
+    await prisma.room.deleteMany({
+      where: { propertyId: id },
+    });
+
     // Delete property
     await prisma.property.delete({
       where: { id },
