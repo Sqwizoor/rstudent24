@@ -261,30 +261,27 @@ const Navbar = () => {
                 type="button"
                 aria-label="Toggle navigation"
                 className={cn(
-                  "md:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors",
-                  "text-slate-700 hover:text-blue-600",
-                  isHomePage && !scrolled && "text-white hover:text-blue-100",
+                  "md:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors z-50",
+                  mobileMenuOpen
+                    ? "text-blue-600 hover:text-blue-700"
+                    : "text-slate-700 hover:text-blue-600",
+                  isHomePage && !scrolled && !mobileMenuOpen && "text-white hover:text-blue-100",
                 )}
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                <Menu className="h-6 w-6" />
+                {mobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
               </button>
             </SheetTrigger>
 
             <SheetContent
               side="top"
-              hideCloseButton
               className="w-full px-0 pb-8 bg-white/95 backdrop-blur-lg border-none rounded-b-2xl shadow-xl transition-all"
               style={{ paddingTop: NAVBAR_HEIGHT + 16 }}
             >
-              <SheetClose asChild>
-                <button
-                  type="button"
-                  aria-label="Close menu"
-                  className="absolute top-4 right-6 flex items-center justify-center w-10 h-10 rounded-full text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition-colors"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </SheetClose>
 
               <div className="px-6 space-y-8">
                 <NavigationLinks mobile onLinkClick={() => setMobileMenuOpen(false)} />
