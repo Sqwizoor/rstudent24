@@ -10,7 +10,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { signOut as cognitoSignOut } from "aws-amplify/auth"
 import { signOut as nextAuthSignOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
-import { Search, Settings, LogOut, User, ChevronDown, Home, Building2, BookOpen, Shield, Menu, X } from "lucide-react"
+import { Search, LogOut, ChevronDown, Home, Building2, Menu, X } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -126,8 +126,8 @@ const Navbar = () => {
               (scrolled
                 ? "text-slate-700 hover:text-blue-600"
                 : isHomePage
-                ? "text-white hover:text-blue-100"
-                : "text-slate-700 hover:text-blue-600"),
+                  ? "text-white hover:text-blue-100"
+                  : "text-slate-700 hover:text-blue-600"),
           )}
         >
           {link.label}
@@ -144,16 +144,20 @@ const Navbar = () => {
           isDashboardPage
             ? "bg-white/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-700/40 backdrop-blur-lg"
             : scrolled
-            ? "bg-white/90 border-b border-slate-200 backdrop-blur-lg"
-            : isHomePage
-            ? "bg-transparent border-transparent"
-            : "bg-white/80 backdrop-blur-sm border-b border-slate-200/30",
+              ? "bg-white/90 border-b border-slate-200 backdrop-blur-lg"
+              : isHomePage
+                ? "bg-transparent border-transparent"
+                : "bg-white/80 backdrop-blur-sm border-b border-slate-200/30",
         )}
         style={{ height: `${NAVBAR_HEIGHT}px` }}
       >
         {/* Left section */}
-  <div className="flex items-center gap-4 md:gap-6 md:flex-1">
-          {isDashboardPage && <div className="md:hidden"><SidebarTrigger /></div>}
+        <div className="flex items-center gap-4 md:gap-6 md:flex-1">
+          {isDashboardPage && (
+            <div className="md:hidden">
+              <SidebarTrigger />
+            </div>
+          )}
           <Link href="/" className="group transition-all duration-300 relative">
             <Image
               src="/student24-logo.png"
@@ -218,9 +222,7 @@ const Navbar = () => {
                   </Avatar>
                   <div className="hidden md:flex flex-col items-start leading-tight">
                     <span className="text-sm font-semibold text-slate-700">{getDisplayName()}</span>
-                    {authUser?.role && (
-                      <span className="text-xs text-slate-500 capitalize">{authUser.role}</span>
-                    )}
+                    {authUser?.role && <span className="text-xs text-slate-500 capitalize">{authUser.role}</span>}
                   </div>
                   <ChevronDown className="hidden md:block h-4 w-4 text-slate-500" />
                 </button>
@@ -231,18 +233,12 @@ const Navbar = () => {
                   {userEmail && <p className="text-xs text-slate-500 truncate">{userEmail}</p>}
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onSelect={() => handlePrimaryAuthAction()}
-                  className="cursor-pointer"
-                >
+                <DropdownMenuItem onSelect={() => handlePrimaryAuthAction()} className="cursor-pointer">
                   <Home className="mr-2 h-4 w-4" />
                   <span>Go to dashboard</span>
                 </DropdownMenuItem>
                 {authUser?.role?.toLowerCase() === "manager" && (
-                  <DropdownMenuItem
-                    onSelect={() => router.push("/managers/newproperty")}
-                    className="cursor-pointer"
-                  >
+                  <DropdownMenuItem onSelect={() => router.push("/managers/newproperty")} className="cursor-pointer">
                     <Building2 className="mr-2 h-4 w-4" />
                     <span>Add property</span>
                   </DropdownMenuItem>
@@ -270,20 +266,7 @@ const Navbar = () => {
                   isHomePage && !scrolled && "text-white hover:text-blue-100",
                 )}
               >
-                <div className="relative h-6 w-6">
-                  <Menu
-                    className={cn(
-                      "absolute h-6 w-6 transition-all duration-300",
-                      mobileMenuOpen ? "rotate-90 scale-0" : "rotate-0 scale-100",
-                    )}
-                  />
-                  <X
-                    className={cn(
-                      "absolute h-6 w-6 transition-all duration-300",
-                      mobileMenuOpen ? "rotate-0 scale-100" : "-rotate-90 scale-0",
-                    )}
-                  />
-                </div>
+                <Menu className="h-6 w-6" />
               </button>
             </SheetTrigger>
 
@@ -293,6 +276,16 @@ const Navbar = () => {
               className="w-full px-0 pb-8 bg-white/95 backdrop-blur-lg border-none rounded-b-2xl shadow-xl transition-all"
               style={{ paddingTop: NAVBAR_HEIGHT + 16 }}
             >
+              <SheetClose asChild>
+                <button
+                  type="button"
+                  aria-label="Close menu"
+                  className="absolute top-4 right-6 z-50 flex items-center justify-center w-10 h-10 rounded-full text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </SheetClose>
+
               <div className="px-6 space-y-8">
                 <NavigationLinks mobile onLinkClick={() => setMobileMenuOpen(false)} />
 
@@ -310,7 +303,7 @@ const Navbar = () => {
                     {authUser.role?.toLowerCase() === "manager" && (
                       <Button
                         variant="outline"
-                        className="w-full h-11 rounded-full border-2 border-[#00acee] text-[#00acee] hover:bg-[#00acee] hover:text-white transition-all"
+                        className="w-full h-11 rounded-full border-2 border-[#00acee] text-[#00acee] hover:bg-[#00acee] hover:text-white transition-all bg-transparent"
                         onClick={() => {
                           router.push("/managers/newproperty")
                           setMobileMenuOpen(false)
@@ -321,7 +314,7 @@ const Navbar = () => {
                     )}
                     <Button
                       variant="outline"
-                      className="w-full h-11 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100"
+                      className="w-full h-11 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 bg-transparent"
                       onClick={() => {
                         handleSignOut()
                         setMobileMenuOpen(false)
