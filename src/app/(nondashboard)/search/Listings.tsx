@@ -214,36 +214,61 @@ const Listings = () => {
   };
 
   if (isLoading) return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-200">
-          {/* Image skeleton */}
-          <div className="relative w-full aspect-[4/3] px-2 pt-2">
-            <div className="w-full h-full bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
-          </div>
-          {/* Content skeleton */}
-          <div className="p-4 pt-5 space-y-3">
-            {/* Title */}
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse w-3/4"></div>
-            {/* Description */}
-            <div className="space-y-2">
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse w-full"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse w-2/3"></div>
-            </div>
-            {/* Location rows */}
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse flex-1"></div>
+    <div className="w-full pr-4 md:pr-8 xl:pr-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 mb-8">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-3xl overflow-hidden mt-6 shadow-md border border-transparent mx-auto w-full max-w-md sm:max-w-none">
+            {/* Image skeleton */}
+            <div className="relative w-full aspect-[4/3] px-2 pt-2">
+              <div className="w-full h-full bg-gray-200 rounded-3xl animate-pulse"></div>
+              
+              {/* Price tag skeleton */}
+              <div className="absolute top-3 right-3">
+                <div className="bg-gray-300 rounded-xl w-20 h-8 animate-pulse"></div>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse w-3/4"></div>
+              
+              {/* Available rooms badge skeleton */}
+              <div className="absolute top-3 left-3">
+                <div className="bg-gray-300 rounded-xl w-16 h-6 animate-pulse"></div>
+              </div>
+              
+              {/* Bottom right icons skeleton */}
+              <div className="absolute bottom-0 right-3 transform translate-y-1/2 flex items-center gap-2">
+                <div className="w-11 h-11 bg-gray-300 rounded-full animate-pulse"></div>
+                <div className="w-11 h-11 bg-gray-300 rounded-full animate-pulse"></div>
               </div>
             </div>
+            
+            {/* Content skeleton */}
+            <div className="p-4 pt-5 space-y-3">
+              {/* Title skeleton */}
+              <div className="space-y-2">
+                <div className="h-6 bg-gray-200 rounded-xl animate-pulse w-3/4"></div>
+                {/* Review skeleton */}
+                <div className="h-4 bg-gray-200 rounded-xl animate-pulse w-20"></div>
+              </div>
+              
+              {/* Description skeleton */}
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded-xl animate-pulse w-full"></div>
+                <div className="h-4 bg-gray-200 rounded-xl animate-pulse w-2/3"></div>
+              </div>
+              
+              {/* Location and university skeleton */}
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 rounded-xl animate-pulse flex-1"></div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 rounded-xl animate-pulse w-3/4"></div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
     
@@ -305,28 +330,29 @@ const Listings = () => {
       <div
         className={`grid ${
           viewMode === "grid"
-            ? "grid-cols-1 md:grid-cols-2"
+            ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-2"
             : "grid-cols-1"
         } gap-6 mb-8`}
       >
         {currentProperties.map((property) => (
           viewMode === "grid" ? (
-            <Card
-              key={property.id}
-              property={property}
-              isFavorite={localFavorites[property.id] || false}
-              onFavoriteToggle={() => handleFavoriteToggle(property.id)}
-              propertyLink={`/search/${property.id}`}
-              userRole={authUser?.role === 'student' ? 'tenant' : (authUser?.role || null)}
-              showFavoriteButton={true}
-              className="mt-0 border-0 mx-auto !p-2"
-              imagePaddingClass="p-0"
-              largeActionIcons
-              simpleShadow
-              reviewsCount={(property as any).reviews ?? (property as any).reviewCount ?? (property as any).reviewsCount}
-              locationDisplayMode="suburbCity"
-              imageAspect="4/3"
-            />
+            <div key={property.id} className="mx-auto w-full max-w-md sm:max-w-none">
+              <Card
+                property={property}
+                isFavorite={localFavorites[property.id] || false}
+                onFavoriteToggle={() => handleFavoriteToggle(property.id)}
+                propertyLink={`/search/${property.id}`}
+                userRole={authUser?.role === 'student' ? 'tenant' : (authUser?.role || null)}
+                showFavoriteButton={true}
+                className="mt-0 border-0 !p-2"
+                imagePaddingClass="p-0"
+                largeActionIcons
+                simpleShadow
+                reviewsCount={(property as any).reviews ?? (property as any).reviewCount ?? (property as any).reviewsCount}
+                locationDisplayMode="suburbCity"
+                imageAspect="4/3"
+              />
+            </div>
           ) : (
             <CardCompact
               key={property.id}
