@@ -44,7 +44,7 @@ const SearchPageContent = () => {
 
   return (
     <div
-      className="w-full mx-auto md:px-5 flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+      className="w-full mx-auto px-4 md:px-5 flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
       style={{
         height: `calc(100vh - ${NAVBAR_HEIGHT}px)`
       }}
