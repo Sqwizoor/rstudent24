@@ -64,7 +64,7 @@ const SearchPageContent = () => {
         <div className="hidden md:block md:basis-5/12 grow-0">
           <Map />
         </div>
-        <div className="basis-12/12 md:basis-7/12 overflow-y-auto pl-[1rem]">
+        <div className="basis-12/12 md:basis-7/12 overflow-y-auto px-4 md:pl-[1rem] md:pr-0">
           <Listings />
         </div>
       </div>

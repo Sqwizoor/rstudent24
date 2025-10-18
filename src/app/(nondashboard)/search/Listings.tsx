@@ -214,10 +214,10 @@ const Listings = () => {
   };
 
   if (isLoading) return (
-    <div className="w-full pr-4 md:pr-8 xl:pr-12">
+    <div className="w-full md:pr-4 xl:pr-8">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 mb-8">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-3xl overflow-hidden mt-6 shadow-md border border-transparent mx-auto w-full max-w-md sm:max-w-none">
+          <div key={i} className="bg-white rounded-3xl overflow-hidden mt-6 shadow-md border border-transparent w-full">
             {/* Image skeleton */}
             <div className="relative w-full aspect-[4/3] px-2 pt-2">
               <div className="w-full h-full bg-gray-200 rounded-3xl animate-pulse"></div>
@@ -301,7 +301,7 @@ const Listings = () => {
   }
 
   return (
-    <div className="w-full pr-4 md:pr-8 xl:pr-12">
+    <div className="w-full md:pr-4 xl:pr-8">
       {/* Property count heading */}
       <div className="mb-4">
         {/* Location-based or Property name-based heading */}
@@ -336,7 +336,7 @@ const Listings = () => {
       >
         {currentProperties.map((property) => (
           viewMode === "grid" ? (
-            <div key={property.id} className="mx-auto w-full max-w-md sm:max-w-none">
+            <div key={property.id} className="w-full">
               <Card
                 property={property}
                 isFavorite={localFavorites[property.id] || false}
