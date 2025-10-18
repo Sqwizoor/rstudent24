@@ -277,14 +277,49 @@ const Navbar = () => {
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetContent
               side="top"
-              className="w-full min-h-[70vh] pt-24 px-0 bg-white/95 backdrop-blur-lg border-none rounded-b-2xl shadow-xl transition-all"
+              hideCloseButton
+              className="w-full px-0 pb-8 bg-white/95 backdrop-blur-lg border-none rounded-b-2xl shadow-xl transition-all"
+              style={{ paddingTop: NAVBAR_HEIGHT + 16 }}
             >
-              <div className="flex flex-col h-full">
-                <div className="flex-1 px-6 pt-2">
-                  <NavigationLinks mobile onLinkClick={() => setMobileMenuOpen(false)} />
-                </div>
-                {!authUser && (
-                  <div className="mt-auto border-t border-gray-100/60 bg-white/90 backdrop-blur-sm p-6 space-y-4 rounded-t-2xl shadow-lg">
+              <div className="px-6 space-y-8">
+                <NavigationLinks mobile onLinkClick={() => setMobileMenuOpen(false)} />
+
+                {authUser ? (
+                  <div className="space-y-3 border-t border-gray-100/60 pt-6">
+                    <Button
+                      className="w-full h-11 rounded-full bg-[#00acee] text-white hover:bg-[#0099d4] transition-all"
+                      onClick={() => {
+                        handlePrimaryAuthAction()
+                        setMobileMenuOpen(false)
+                      }}
+                    >
+                      Go to dashboard
+                    </Button>
+                    {authUser.role?.toLowerCase() === "manager" && (
+                      <Button
+                        variant="outline"
+                        className="w-full h-11 rounded-full border-2 border-[#00acee] text-[#00acee] hover:bg-[#00acee] hover:text-white transition-all"
+                        onClick={() => {
+                          router.push("/managers/newproperty")
+                          setMobileMenuOpen(false)
+                        }}
+                      >
+                        Add property
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      className="w-full h-11 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100"
+                      onClick={() => {
+                        handleSignOut()
+                        setMobileMenuOpen(false)
+                      }}
+                    >
+                      Sign out
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4 border-t border-gray-100/60 pt-6">
                     <Button
                       variant="outline"
                       className="w-full h-12 rounded-full bg-transparent border-2 border-[#00acee] text-[#00acee] hover:bg-[#00acee] hover:text-white transition-all"
