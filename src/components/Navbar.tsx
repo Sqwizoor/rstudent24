@@ -10,7 +10,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { signOut as cognitoSignOut } from "aws-amplify/auth"
 import { signOut as nextAuthSignOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
-import { Search, Settings, LogOut, User, ChevronDown, Home, Building2, BookOpen, Shield, Menu } from "lucide-react"
+import { Search, Settings, LogOut, User, ChevronDown, Home, Building2, BookOpen, Shield, Menu, X } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +21,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useSignInRedirect } from "@/hooks/useSignInRedirect"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetClose } from "@/components/ui/sheet"
 
 const Navbar = () => {
   const { user: authUser, isAuthenticated, provider, isLoading: authLoading } = useUnifiedAuth()
@@ -269,7 +269,7 @@ const Navbar = () => {
               "md:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors",
               "text-slate-700 hover:text-blue-600",
               isHomePage && !scrolled && !mobileMenuOpen && "text-white hover:text-blue-100",
-              mobileMenuOpen && "bg-white/80 text-blue-600 shadow-sm",
+              mobileMenuOpen && "opacity-0 pointer-events-none",
             )}
           >
             <Menu className="h-6 w-6" />
@@ -279,10 +279,21 @@ const Navbar = () => {
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetContent
               side="top"
+              hideCloseButton
               className="w-full px-0 pb-8 bg-white/95 backdrop-blur-lg border-none rounded-b-2xl shadow-xl transition-all"
               style={{ paddingTop: NAVBAR_HEIGHT + 16 }}
             >
-              <div className="px-6 space-y-8">
+              <div className="relative px-6 pt-8 space-y-8">
+                <SheetClose asChild>
+                  <button
+                    type="button"
+                    className="absolute right-0 top-2 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-500 shadow hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00acee]/40"
+                  >
+                    <X className="h-5 w-5" />
+                    <span className="sr-only">Close menu</span>
+                  </button>
+                </SheetClose>
+
                 <NavigationLinks mobile onLinkClick={() => setMobileMenuOpen(false)} />
 
                 {authUser ? (
