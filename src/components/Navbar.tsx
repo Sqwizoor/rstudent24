@@ -260,36 +260,21 @@ const Navbar = () => {
           )}
 
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            {mobileMenuOpen ? (
-              <SheetClose asChild>
-                <button
-                  type="button"
-                  aria-expanded={true}
-                  aria-label="Close navigation"
-                  className={cn(
-                    "md:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors",
-                    "text-blue-600 hover:text-blue-700",
-                  )}
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </SheetClose>
-            ) : (
-              <SheetTrigger asChild>
-                <button
-                  type="button"
-                  aria-expanded={false}
-                  aria-label="Open navigation"
-                  className={cn(
-                    "md:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors",
-                    "text-slate-700 hover:text-blue-600",
-                    isHomePage && !scrolled && "text-white hover:text-blue-100",
-                  )}
-                >
-                  <Menu className="h-6 w-6" />
-                </button>
-              </SheetTrigger>
-            )}
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                aria-label="Toggle navigation"
+                className={cn(
+                  "md:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors",
+                  mobileMenuOpen
+                    ? "text-blue-600 hover:text-blue-700"
+                    : "text-slate-700 hover:text-blue-600",
+                  isHomePage && !scrolled && !mobileMenuOpen && "text-white hover:text-blue-100",
+                )}
+              >
+                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            </SheetTrigger>
 
             <SheetContent
               side="top"
