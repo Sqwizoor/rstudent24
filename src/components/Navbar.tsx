@@ -21,7 +21,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useSignInRedirect } from "@/hooks/useSignInRedirect"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
 
 const Navbar = () => {
   const { user: authUser, isAuthenticated, provider, isLoading: authLoading } = useUnifiedAuth()
@@ -266,7 +266,7 @@ const Navbar = () => {
                   isHomePage && !scrolled && "text-white hover:text-blue-100",
                 )}
               >
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                <Menu className="h-6 w-6" />
               </button>
             </SheetTrigger>
 
@@ -276,6 +276,16 @@ const Navbar = () => {
               className="w-full px-0 pb-8 bg-white/95 backdrop-blur-lg border-none rounded-b-2xl shadow-xl transition-all"
               style={{ paddingTop: NAVBAR_HEIGHT + 16 }}
             >
+              <SheetClose asChild>
+                <button
+                  type="button"
+                  aria-label="Close menu"
+                  className="absolute top-4 right-6 flex items-center justify-center w-10 h-10 rounded-full text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </SheetClose>
+
               <div className="px-6 space-y-8">
                 <NavigationLinks mobile onLinkClick={() => setMobileMenuOpen(false)} />
 
