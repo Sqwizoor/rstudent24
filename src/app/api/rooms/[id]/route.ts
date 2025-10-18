@@ -87,11 +87,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const availableFromStr = formData.get('availableFrom') as string;
   const bathroomPrivacyRaw = formData.get('bathroomPrivacy');
   const kitchenPrivacyRaw = formData.get('kitchenPrivacy');
-    
-    // Extract redirect settings
-    const redirectType = formData.get('redirectType') as string;
-    const whatsappNumber = formData.get('whatsappNumber') as string;
-    const customLink = formData.get('customLink') as string;
   const normalizePrivacy = (val: any): 'PRIVATE' | 'SHARED' | null => {
     if (typeof val !== 'string') return null;
     const up = val.toUpperCase();
@@ -211,9 +206,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         amenities,
         features: finalFeatures,
         photoUrls,
-        redirectType: redirectType && redirectType !== "" ? redirectType : null,
-        whatsappNumber: whatsappNumber && whatsappNumber !== "" ? whatsappNumber : null,
-        customLink: customLink && customLink !== "" ? customLink : null,
       },
     });
 

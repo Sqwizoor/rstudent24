@@ -100,6 +100,11 @@ const Navbar = () => {
     return "U"
   }
 
+  const userEmail =
+    authUser?.email ||
+    ((authUser as any)?.userInfo?.email as string | undefined) ||
+    ((authUser as any)?.cognitoInfo?.email as string | undefined)
+
   const NavigationLinks = ({ mobile = false, onLinkClick }: { mobile?: boolean; onLinkClick?: () => void }) => (
     <nav className={mobile ? "flex flex-col space-y-4" : "hidden md:flex items-center space-x-3"}>
       {[
@@ -147,7 +152,7 @@ const Navbar = () => {
         style={{ height: `${NAVBAR_HEIGHT}px` }}
       >
         {/* Left section */}
-        <div className="flex items-center gap-4 md:gap-6">
+  <div className="flex items-center gap-4 md:gap-6 md:flex-1">
           {isDashboardPage && <div className="md:hidden"><SidebarTrigger /></div>}
           <Link href="/" className="group transition-all duration-300 relative">
             <Image
@@ -162,8 +167,13 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Middle section (Dashboard actions for tenants) */}
-        <div className="flex items-center justify-center">
+        {/* Center navigation (desktop) */}
+        <div className="hidden md:flex flex-1 justify-center">
+          <NavigationLinks />
+        </div>
+
+        {/* Right section */}
+        <div className="flex items-center gap-4 md:gap-6 md:flex-1 md:justify-end">
           {isDashboardPage && authUser?.role?.toLowerCase() === "tenant" && (
             <Button
               variant="default"
@@ -174,29 +184,70 @@ const Navbar = () => {
               <span className="ml-2">Search Properties</span>
             </Button>
           )}
-        </div>
-
-        {/* Right section */}
-        <div className="flex items-center gap-4 md:gap-6">
-          <NavigationLinks />
 
           {/* Register/Login (desktop only, when logged out) */}
           {!authUser && (
             <div className="hidden md:flex items-center gap-3">
               <Button
                 variant="outline"
-                className="h-10 rounded-full bg-transparent border-2 border-[#00acee] text-[#00acee] hover:bg-[#00acee] hover:text-white transition-all"
+                className="h-10 rounded-full bg-transparent border-2 border-[#00acee] text-[#00acee] hover:bg-[#00acee] hover:text-white transition-all px-5 md:px-7 lg:px-8 md:min-w-[140px]"
                 onClick={() => router.push(homeSignupUrl)}
               >
                 Register
               </Button>
               <Button
-                className="h-10 rounded-full bg-[#00acee] text-white hover:bg-[#00acee]/90 shadow-lg"
+                className="h-10 rounded-full bg-[#00acee] text-white hover:bg-[#00acee]/90 shadow-lg px-5 md:px-8 lg:px-9 md:min-w-[140px]"
                 onClick={handlePrimaryAuthAction}
               >
                 Login
               </Button>
             </div>
+          )}
+
+          {authUser && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="flex items-center gap-2 rounded-full border border-slate-200/60 bg-white/80 px-2 py-1.5 shadow-sm transition-all duration-200 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00acee]/40"
+                >
+                  <Avatar className="h-10 w-10 text-[#00acee] bg-[#00acee]/10">
+                    <AvatarFallback className="text-sm font-semibold uppercase text-[#00acee]">
+                      {getUserInitial()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="hidden md:flex flex-col items-start leading-tight">
+                    <span className="text-sm font-semibold text-slate-700">{getDisplayName()}</span>
+                    {authUser?.role && (
+                      <span className="text-xs text-slate-500 capitalize">{authUser.role}</span>
+                    )}
+                  </div>
+                  <ChevronDown className="hidden md:block h-4 w-4 text-slate-500" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-3 py-2">
+                  <p className="text-sm font-medium text-slate-900">{getDisplayName()}</p>
+                  {userEmail && <p className="text-xs text-slate-500 truncate">{userEmail}</p>}
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={() => handlePrimaryAuthAction()}
+                  className="cursor-pointer"
+                >
+                  <Home className="mr-2 h-4 w-4" />
+                  <span>Go to dashboard</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={() => handleSignOut()}
+                  className="cursor-pointer text-red-600 focus:text-red-600"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
 
           {/* ✅ Manual mobile toggle button replaces SheetTrigger */}

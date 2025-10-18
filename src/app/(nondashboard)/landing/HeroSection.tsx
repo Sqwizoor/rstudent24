@@ -440,7 +440,7 @@ const HeroSection = () => {
                 {/* Search Button */}
                 <div className="w-full md:w-auto md:pt-0 pt-6 px-2">
                   <Button
-                    className="w-full bg-[#00acee] hover:bg-[#0099d4] text-white rounded-full md:rounded-full px-[4rem] py-8 text-sm"
+                    className="w-full md:min-w-[15rem] bg-[#00acee] hover:bg-[#0099d4] text-white rounded-full md:rounded-full px-10 md:px-16 py-5 text-sm"
                     onClick={handleLocationSearch}
                   >
                     <Search size={16} className="mr-1 rounded-lg" />
