@@ -10,7 +10,6 @@ import { cleanParams } from "@/lib/utils";
 import { setFilters } from "@/state";
 import Map from "./Map";
 import Listings from "./Listings";
-import Loading from "@/components/Loading";
 
 // Component that uses useSearchParams wrapped in Suspense
 const SearchPageContent = () => {
@@ -75,7 +74,7 @@ const SearchPageContent = () => {
 // Main component that wraps SearchPageContent with Suspense
 const SearchPage = () => {
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={<div />}>
       <SearchPageContent />
     </Suspense>
   );

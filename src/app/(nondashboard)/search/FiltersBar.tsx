@@ -354,7 +354,7 @@ const FiltersBar = () => {
   )
 
   return (
-    <div className="sticky top-0 z-10 bg-white backdrop-blur-md bg-opacity-95 shadow-lg px-4 py-3 rounded-xl border border-blue-100">
+    <div className="sticky top-0 z-10 bg-white backdrop-blur-md bg-opacity-95 shadow-lg px-4 py-3 rounded-full border border-blue-100">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4">
         {/* Mobile View */}
         {isMobile ? (
