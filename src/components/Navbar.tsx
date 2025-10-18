@@ -21,7 +21,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useSignInRedirect } from "@/hooks/useSignInRedirect"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetClose, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
 const Navbar = () => {
   const { user: authUser, isAuthenticated, provider, isLoading: authLoading } = useUnifiedAuth()
@@ -260,21 +260,36 @@ const Navbar = () => {
           )}
 
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <button
-                type="button"
-                aria-expanded={mobileMenuOpen}
-                aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}
-                className={cn(
-                  "md:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors",
-                  "text-slate-700 hover:text-blue-600",
-                  isHomePage && !scrolled && !mobileMenuOpen && "text-white hover:text-blue-100",
-                  mobileMenuOpen && "text-blue-600 hover:text-blue-700",
-                )}
-              >
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </button>
-            </SheetTrigger>
+            {mobileMenuOpen ? (
+              <SheetClose asChild>
+                <button
+                  type="button"
+                  aria-expanded={true}
+                  aria-label="Close navigation"
+                  className={cn(
+                    "md:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors",
+                    "text-blue-600 hover:text-blue-700",
+                  )}
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </SheetClose>
+            ) : (
+              <SheetTrigger asChild>
+                <button
+                  type="button"
+                  aria-expanded={false}
+                  aria-label="Open navigation"
+                  className={cn(
+                    "md:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors",
+                    "text-slate-700 hover:text-blue-600",
+                    isHomePage && !scrolled && "text-white hover:text-blue-100",
+                  )}
+                >
+                  <Menu className="h-6 w-6" />
+                </button>
+              </SheetTrigger>
+            )}
 
             <SheetContent
               side="top"
