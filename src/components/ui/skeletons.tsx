@@ -5,46 +5,54 @@ import { Skeleton } from "@/components/ui/skeleton"
 // Property Card Skeleton
 export function PropertyCardSkeleton() {
   return (
-    <div className="group overflow-hidden border border-[#333] bg-gradient-to-br from-blue-950/80 to-black rounded-xl">
-      {/* Image skeleton */}
-      <div className="relative w-full aspect-[4/3] overflow-hidden">
-        <Skeleton className="w-full h-full bg-gray-800" />
-        {/* Price tag skeleton */}
-        <div className="absolute top-4 left-4">
-          <Skeleton className="w-20 h-6 bg-gray-700" />
+    <div className="overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-800 rounded-lg shadow-sm w-full min-w-[400px] max-w-[800px] mx-auto">
+      <div className="flex flex-col lg:flex-row">
+        {/* Image container on the left */}
+        <div className="relative w-full lg:w-2/5 h-56 lg:h-64 overflow-hidden">
+          <Skeleton className="w-full h-full bg-gray-200 dark:bg-gray-700 rounded-md ml-3" />
+          {/* Price badge skeleton */}
+          <div className="absolute top-3 left-3 z-10">
+            <Skeleton className="w-24 h-8 bg-gray-300 dark:bg-gray-600 rounded-md" />
+          </div>
         </div>
-        {/* Badges skeleton */}
-        <div className="absolute bottom-4 left-4 flex gap-2">
-          <Skeleton className="w-16 h-5 bg-gray-700" />
-          <Skeleton className="w-14 h-5 bg-gray-700" />
-        </div>
-      </div>
-
-      <div className="p-5 space-y-4">
-        {/* Title and rating */}
-        <div className="flex items-start justify-between">
-          <Skeleton className="w-3/4 h-6 bg-gray-800" />
-          <Skeleton className="w-12 h-5 bg-gray-700" />
-        </div>
-
-        {/* Location */}
-        <Skeleton className="w-2/3 h-4 bg-gray-800" />
-
-        {/* Stats grid */}
-        <div className="grid grid-cols-3 gap-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex flex-col items-center justify-center p-2 rounded-md bg-[#111]/80">
-              <Skeleton className="w-4 h-4 mb-1 bg-gray-700" />
-              <Skeleton className="w-6 h-4 mb-1 bg-gray-800" />
-              <Skeleton className="w-8 h-3 bg-gray-700" />
+        
+        {/* Content on the right */}
+        <div className="flex-1 p-5 flex flex-col justify-between">
+          <div>
+            {/* Title skeleton */}
+            <Skeleton className="w-3/4 h-6 bg-gray-200 dark:bg-gray-700 mb-3" />
+            
+            {/* Location skeleton */}
+            <div className="space-y-2 mb-3">
+              <div className="flex items-center">
+                <Skeleton className="w-4 h-4 mr-2 bg-gray-300 dark:bg-gray-600 rounded-full" />
+                <Skeleton className="w-2/3 h-4 bg-gray-200 dark:bg-gray-700" />
+              </div>
+              <div className="flex items-center pl-6">
+                <Skeleton className="w-1/2 h-4 bg-gray-200 dark:bg-gray-700" />
+              </div>
+              <div className="flex items-center pl-6">
+                <Skeleton className="w-1/3 h-4 bg-gray-200 dark:bg-gray-700" />
+              </div>
             </div>
-          ))}
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex gap-2 pt-4 border-t border-[#333]/80">
-          <Skeleton className="flex-1 h-9 bg-gray-800" />
-          <Skeleton className="flex-1 h-9 bg-gray-800" />
+            
+            {/* Stats skeleton */}
+            <div className="flex items-center gap-3 mb-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center">
+                  <Skeleton className="w-4 h-4 mr-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+                  <Skeleton className="w-8 h-4 bg-gray-200 dark:bg-gray-700" />
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Action buttons skeleton */}
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+            <Skeleton className="w-20 h-9 bg-gray-200 dark:bg-gray-700 rounded-md" />
+            <Skeleton className="w-16 h-9 bg-gray-200 dark:bg-gray-700 rounded-md" />
+            <Skeleton className="w-20 h-9 bg-gray-200 dark:bg-gray-700 rounded-md" />
+          </div>
         </div>
       </div>
     </div>
