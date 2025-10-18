@@ -266,13 +266,24 @@ const Navbar = () => {
                 aria-label="Toggle navigation"
                 className={cn(
                   "md:hidden flex items-center justify-center w-10 h-10 rounded-full transition-colors",
-                  mobileMenuOpen
-                    ? "text-blue-600 hover:text-blue-700"
-                    : "text-slate-700 hover:text-blue-600",
-                  isHomePage && !scrolled && !mobileMenuOpen && "text-white hover:text-blue-100",
+                  "text-slate-700 hover:text-blue-600",
+                  isHomePage && !scrolled && "text-white hover:text-blue-100",
                 )}
               >
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                <div className="relative h-6 w-6">
+                  <Menu
+                    className={cn(
+                      "absolute h-6 w-6 transition-all duration-300",
+                      mobileMenuOpen ? "rotate-90 scale-0" : "rotate-0 scale-100",
+                    )}
+                  />
+                  <X
+                    className={cn(
+                      "absolute h-6 w-6 transition-all duration-300",
+                      mobileMenuOpen ? "rotate-0 scale-100" : "-rotate-90 scale-0",
+                    )}
+                  />
+                </div>
               </button>
             </SheetTrigger>
 
