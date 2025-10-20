@@ -400,12 +400,13 @@ const RandomListings = () => {
           </div>
         </div>
         
-        {/* University Buttons - Kept as requested */}
-        <div className="flex flex-wrap justify-center gap-2 mt-4 mb-[2rem]">
+        {/* University Buttons - Horizontal scroll on mobile, wrap on desktop */}
+        <div className="mt-4 mb-[2rem] -mx-4 px-4 md:mx-0 md:px-0">
+          <div className="flex gap-2 overflow-x-auto whitespace-nowrap no-scrollbar md:flex-wrap md:justify-center md:overflow-visible md:whitespace-normal">
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
+                className="shrink-0 bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
                 onClick={() => handleUniversityClick("UJ")}
               >
                 <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -416,7 +417,7 @@ const RandomListings = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
+                className="shrink-0 bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
                 onClick={() => handleUniversityClick("WITS")}
               >
                 <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -427,7 +428,7 @@ const RandomListings = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
+                className="shrink-0 bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
                 onClick={() => handleUniversityClick("UP")}
               >
                 <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -438,7 +439,7 @@ const RandomListings = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
+                className="shrink-0 bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
                 onClick={() => handleUniversityClick("UKZN")}
               >
                 <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -449,7 +450,7 @@ const RandomListings = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
+                className="shrink-0 bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
                 onClick={() => handleUniversityClick("DUT")}
               >
                 <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -460,7 +461,7 @@ const RandomListings = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
+                className="shrink-0 bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
                 onClick={() => handleUniversityClick("UCT")}
               >
                 <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -471,7 +472,7 @@ const RandomListings = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
+                className="shrink-0 bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 rounded-full text-xs px-3 py-1 flex items-center cursor-pointer transition-colors"
                 onClick={() => handleUniversityClick("TUT")}
               >
                 <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -479,13 +480,14 @@ const RandomListings = () => {
                 </svg>
                 Close to TUT
               </Button>
-              <Button variant="outline" size="sm" className="bg-white/90 hover:bg-white text-gray-700 rounded-full text-xs px-3 py-1 flex items-center">
+              <Button variant="outline" size="sm" className="shrink-0 bg-white/90 hover:bg-white text-gray-700 rounded-full text-xs px-3 py-1 flex items-center">
                 <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 Close to UFS
               </Button>
-            </div>
+          </div>
+        </div>
         
         {/* Properties Grid */}
         {isLoading ? (
