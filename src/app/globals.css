@@ -24,6 +24,28 @@
 
 
 
+/* Mobile marquee for horizontally-scrolling chips */
+@keyframes chips-marquee-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+.marquee-inner {
+  width: max-content;
+  will-change: transform;
+  animation: chips-marquee-right 22s linear infinite;
+}
+
+/* Pause animation on hover for pointer devices */
+@media (hover: hover) and (pointer: fine) {
+  .marquee-inner:hover { animation-play-state: paused; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-inner { animation: none; transform: translateX(0); }
+}
+
 
 *,
 *::before,
