@@ -14,7 +14,7 @@ const blogPosts = [
     title: "How to Find the Perfect Student Accommodation",
     excerpt: "Finding the right student accommodation can be challenging. Here are our top tips for securing the perfect place.",
     content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-    image: "/Bloom.png",
+  image: "/bloom.png",
     author: "Sarah Johnson",
     date: "May 5, 2025",
     readTime: "5 min read",
@@ -25,7 +25,7 @@ const blogPosts = [
     title: "5 Things to Check Before Signing a Lease Agreement",
     excerpt: "Don&apos;t get caught in a bad rental situation. Make sure to check these 5 important things before signing any lease.",
     content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-    image: "/Bloom.png",
+  image: "/bloom.png",
     author: "Michael Chen",
     date: "April 28, 2025",
     readTime: "7 min read",
@@ -36,7 +36,7 @@ const blogPosts = [
     title: "The Rise of Co-living Spaces in South Africa",
     excerpt: "Co-living is becoming increasingly popular among young professionals. Learn about this growing trend.",
     content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-    image: "/Bloom.png",
+  image: "/bloom.png",
     author: "Thabo Mbeki",
     date: "April 15, 2025",
     readTime: "6 min read",
@@ -47,7 +47,7 @@ const blogPosts = [
     title: "Decorating Your Rental on a Budget",
     excerpt: "Make your rental feel like home without breaking the bank with these budget-friendly decorating tips.",
     content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-    image: "/Bloom.png",
+  image: "/bloom.png",
     author: "Jessica Smith",
     date: "April 10, 2025",
     readTime: "4 min read",
@@ -58,7 +58,7 @@ const blogPosts = [
     title: "Understanding Rental Laws in South Africa",
     excerpt: "A comprehensive guide to tenant rights and responsibilities under South African rental laws.",
     content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-    image: "/Bloom.png",
+  image: "/bloom.png",
     author: "David Makhura",
     date: "March 30, 2025",
     readTime: "8 min read",
@@ -69,7 +69,7 @@ const blogPosts = [
     title: "The Future of Smart Homes in Rental Properties",
     excerpt: "How technology is transforming rental properties and what to expect in the coming years.",
     content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-    image: "/Bloom.png",
+  image: "/bloom.png",
     author: "Lerato Khumalo",
     date: "March 22, 2025",
     readTime: "5 min read",
@@ -106,7 +106,7 @@ export default function Blog() {
   return (
     <div className="bg-gray-50 min-h-screen pb-16">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16">
+    <div className="bg-gradient-to-r from-[#00acee] to-[#0099d4] text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-4">Rental App Blog</h1>
@@ -138,7 +138,7 @@ export default function Blog() {
                 variant={selectedCategory === category ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(category)}
-                className={selectedCategory === category ? "bg-blue-600" : ""}
+                className={selectedCategory === category ? "bg-[#00acee] hover:bg-[#0099d4]" : ""}
               >
                 {category}
               </Button>
@@ -148,7 +148,7 @@ export default function Blog() {
         
         {/* Featured Post */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 border-l-4 border-blue-600 pl-3">Featured Article</h2>
+          <h2 className="text-2xl font-bold mb-6 border-l-4 border-[#00acee] pl-3">Featured Article</h2>
           <div className="bg-white rounded-xl overflow-hidden shadow-lg">
             <div className="md:flex">
               <div className="md:w-1/2 relative h-64 md:h-auto">
@@ -177,7 +177,7 @@ export default function Blog() {
                 <h3 className="text-2xl font-bold mb-3">{featuredPost.title}</h3>
                 <p className="text-gray-600 mb-4">{featuredPost.excerpt}</p>
                 <Link href={`/blog/${featuredPost.id}`}>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button className="bg-[#00acee] hover:bg-[#0099d4]">
                     Read Full Article
                     <ChevronRight size={16} className="ml-1" />
                   </Button>
@@ -189,7 +189,7 @@ export default function Blog() {
         
         {/* Blog Posts Grid */}
         <div>
-          <h2 className="text-2xl font-bold mb-6 border-l-4 border-blue-600 pl-3">Latest Articles</h2>
+          <h2 className="text-2xl font-bold mb-6 border-l-4 border-[#00acee] pl-3">Latest Articles</h2>
           
           {filteredPosts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -202,7 +202,7 @@ export default function Blog() {
                       className="object-cover"
                       fill
                     />
-                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 m-2 rounded">
+                    <div className="absolute top-0 right-0 bg-[#00acee] text-white text-xs font-bold px-3 py-1 m-2 rounded">
                       {post.category}
                     </div>
                   </div>
@@ -225,7 +225,7 @@ export default function Blog() {
                         <span className="text-sm font-medium">{post.author}</span>
                       </div>
                       <Link href={`/blog/${post.id}`}>
-                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">
+                        <Button variant="ghost" size="sm" className="text-[#00acee] hover:text-[#0099d4]">
                           Read More
                         </Button>
                       </Link>
@@ -252,7 +252,7 @@ export default function Blog() {
         </div>
         
         {/* Newsletter Subscription */}
-        <div className="mt-16 bg-gradient-to-r from-blue-800 to-blue-600 rounded-xl p-8 text-white">
+  <div className="mt-16 bg-gradient-to-r from-[#00acee] to-[#0099d4] rounded-xl p-8 text-white">
           <div className="md:flex items-center justify-between">
             <div className="md:w-2/3 mb-6 md:mb-0">
               <h3 className="text-2xl font-bold mb-2">Subscribe to Our Newsletter</h3>
@@ -264,7 +264,7 @@ export default function Blog() {
                 placeholder="Your email address"
                 className="rounded-r-none text-gray-900"
               />
-              <Button className="rounded-l-none bg-blue-900 hover:bg-blue-950">
+              <Button className="rounded-l-none bg-white text-[#00acee] hover:bg-slate-100">
                 Subscribe
               </Button>
             </div>

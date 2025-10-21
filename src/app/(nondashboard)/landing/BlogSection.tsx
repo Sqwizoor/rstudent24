@@ -61,7 +61,7 @@ const BlogSection = () => {
                   className="object-cover"
                   fill
                 />
-                <div className="absolute top-0 right-0 bg-green-500 text-white text-xs font-medium px-3 py-1 m-2 rounded-full">
+                <div className="absolute top-0 right-0 bg-[#00acee] text-white text-xs font-medium px-3 py-1 m-2 rounded-full">
                   {post.category}
                 </div>
               </div>

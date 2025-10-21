@@ -193,14 +193,13 @@ const Navbar = () => {
           {!authUser && (
             <div className="hidden md:flex items-center gap-3">
               <Button
-                variant="outline"
-                className="h-10 rounded-full bg-transparent border-2 border-[#00acee] text-[#00acee] hover:bg-[#00acee] hover:text-white transition-all px-5 md:px-7 lg:px-8 md:min-w-[140px]"
+                className="h-10 rounded-full bg-[#00acee] text-white hover:bg-[#00acee]/90 shadow-lg px-5 md:px-8 lg:px-9 md:min-w-[140px]"
                 onClick={() => router.push(homeSignupUrl)}
               >
                 Register
               </Button>
               <Button
-                className="h-10 rounded-full bg-[#00acee] text-white hover:bg-[#00acee]/90 shadow-lg px-5 md:px-8 lg:px-9 md:min-w-[140px]"
+                className="h-10 rounded-full border-2 border-[#00acee] text-[#00acee] hover:bg-[#00acee] hover:text-white bg-transparent px-5 md:px-8 lg:px-9 md:min-w-[140px]"
                 onClick={handlePrimaryAuthAction}
               >
                 Login
@@ -338,8 +337,7 @@ const Navbar = () => {
                 ) : (
                   <div className="space-y-4 border-t border-gray-100/60 pt-6">
                     <Button
-                      variant="outline"
-                      className="w-full h-12 rounded-full bg-transparent border-2 border-[#00acee] text-[#00acee] hover:bg-[#00acee] hover:text-white transition-all"
+                      className="w-full h-12 rounded-full bg-[#00acee] text-white hover:bg-[#00acee]/90 shadow-lg transition-all"
                       onClick={() => {
                         router.push(homeSignupUrl)
                         setMobileMenuOpen(false)
@@ -348,7 +346,7 @@ const Navbar = () => {
                       Register
                     </Button>
                     <Button
-                      className="w-full h-12 rounded-full bg-[#00acee] text-white hover:bg-[#00acee]/90 shadow-lg transition-all"
+                      className="w-full h-12 rounded-full border-2 border-[#00acee] text-[#00acee] hover:bg-[#00acee] hover:text-white bg-transparent transition-all"
                       onClick={() => {
                         handlePrimaryAuthAction()
                         setMobileMenuOpen(false)

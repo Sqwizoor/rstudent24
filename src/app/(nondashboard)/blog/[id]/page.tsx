@@ -36,7 +36,7 @@ const blogPosts = [
       
       <p>By following these guidelines, you'll be better equipped to find student accommodation that meets your needs and enhances your university experience.</p>
     `,
-    image: "/Bloom.png",
+      image: "/bloom.png",
     author: "Sarah Johnson",
     date: "May 5, 2025",
     readTime: "5 min read",
@@ -67,7 +67,7 @@ const blogPosts = [
       
       <p>Taking the time to thoroughly check these five aspects before signing a lease can save you from significant headaches and financial losses down the road. Remember, a lease is a binding legal document, so make sure you're comfortable with all its terms before committing.</p>
     `,
-    image: "/Bloom.png",
+  image: "/bloom.png",
     author: "Michael Chen",
     date: "April 28, 2025",
     readTime: "7 min read",
@@ -107,7 +107,7 @@ const blogPosts = [
       
       <p>Whether co-living represents a temporary housing solution or a long-term lifestyle choice, its growth reflects changing attitudes toward home, community, and urban living in South Africa.</p>
     `,
-    image: "/Bloom.png",
+  image: "/bloom.png",
     author: "Thabo Mbeki",
     date: "April 15, 2025",
     readTime: "6 min read",
@@ -150,7 +150,7 @@ const blogPosts = [
       
       <p>Remember, the goal is to create a space that feels like yours without making permanent changes that could affect your security deposit. With these budget-friendly approaches, you can enjoy a personalized home environment without overcommitting financially or violating your lease terms.</p>
     `,
-    image: "/Bloom.png",
+  image: "/bloom.png",
     author: "Jessica Smith",
     date: "April 10, 2025",
     readTime: "4 min read",
@@ -211,7 +211,7 @@ const blogPosts = [
       
       <p>Understanding these legal aspects of renting in South Africa will help you navigate your tenancy with confidence and know when and how to assert your rights if necessary.</p>
     `,
-    image: "/Bloom.png",
+  image: "/bloom.png",
     author: "David Makhura",
     date: "March 30, 2025",
     readTime: "8 min read",
@@ -273,7 +273,7 @@ const blogPosts = [
       
       <p>As smart home technology continues to evolve, it's transforming the rental experience for both landlords and tenants. Those who embrace these changes stand to benefit from more efficient, comfortable, and secure living environments.</p>
     `,
-    image: "/Bloom.png",
+  image: "/bloom.png",
     author: "Lerato Khumalo",
     date: "March 22, 2025",
     readTime: "5 min read",
@@ -296,7 +296,7 @@ const BlogPostDetail = () => {
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
         <h1 className="text-2xl font-bold mb-4">Blog Post Not Found</h1>
         <p className="mb-6">The blog post you&apos;re looking for doesn&apos;t exist or has been removed.</p>
-        <Button onClick={() => router.push('/blog')} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={() => router.push('/blog')} className="bg-[#00acee] hover:bg-[#0099d4]">
           <ArrowLeft size={16} className="mr-2" />
           Back to Blog
         </Button>
@@ -324,7 +324,7 @@ const BlogPostDetail = () => {
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 text-white">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-4 text-sm mb-3">
-              <span className="bg-blue-600 px-3 py-1 rounded-full text-xs font-medium">
+              <span className="bg-[#00acee] px-3 py-1 rounded-full text-xs font-medium">
                 {post.category}
               </span>
               <span className="flex items-center">
@@ -401,7 +401,7 @@ const BlogPostDetail = () => {
               <div className="flex items-start gap-4">
                 <div className="w-16 h-16 bg-gray-300 rounded-full overflow-hidden flex-shrink-0">
                   <Image 
-                    src="/Bloom.png"
+                    src="/bloom.png"
                     alt={post.author}
                     width={64}
                     height={64}
@@ -440,7 +440,7 @@ const BlogPostDetail = () => {
                             className="object-cover transition-transform group-hover:scale-105"
                           />
                         </div>
-                        <h4 className="font-medium text-sm group-hover:text-blue-600 transition-colors line-clamp-2">
+                        <h4 className="font-medium text-sm group-hover:text-[#00acee] transition-colors line-clamp-2">
                           {relatedPost.title}
                         </h4>
                         <p className="text-xs text-gray-500 mt-1">{relatedPost.date}</p>
@@ -478,7 +478,7 @@ const BlogPostDetail = () => {
         <Button 
           onClick={() => router.push('/blog')} 
           variant="outline" 
-          className="flex items-center"
+          className="flex items-center text-[#00acee] border-[#00acee] hover:bg-[#00acee] hover:text-white"
         >
           <ArrowLeft size={16} className="mr-2" />
           Back to All Articles

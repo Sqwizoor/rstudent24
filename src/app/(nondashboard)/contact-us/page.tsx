@@ -45,13 +45,13 @@ export default function ContactUsPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[40vh] md:h-[50vh] bg-gradient-to-br from-blue-600 to-blue-800 overflow-hidden">
+  <section className="relative h-[40vh] md:h-[50vh] bg-gradient-to-br from-[#00acee] to-[#0099d4] overflow-hidden">
         {/* Background Image */}
         <Image
           src="/conta.png"
           alt="Contact Us"
           fill
-          className="object-cover object-center opacity-40"
+          className="object-cover object-center opacity-20"
           priority
         />
         
@@ -79,7 +79,7 @@ export default function ContactUsPage() {
                 <div>
                   <h3 className="font-medium text-slate-800 text-lg">Phone</h3>
                   <p className="text-slate-600 mt-1">+27 61 123 4567</p>
-                  <p className="text-slate-600">Monday to Friday, 8am to 5pm</p>
+                  <p className="text-slate-600">Available 24/7</p>
                 </div>
               </div>
               
