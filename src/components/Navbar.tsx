@@ -120,14 +120,14 @@ const Navbar = () => {
           onClick={onLinkClick}
           className={cn(
             mobile
-              ? "text-lg font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400"
+              ? "text-lg font-medium text-slate-700 dark:text-slate-300 hover:text-[#00acee] dark:hover:text-[#00acee]"
               : "px-4 py-2 text-base font-medium transition-colors duration-300",
             !mobile &&
               (scrolled
-                ? "text-slate-700 hover:text-blue-600"
+                ? "text-slate-700 hover:text-[#00acee]"
                 : isHomePage
-                  ? "text-white hover:text-blue-100"
-                  : "text-slate-700 hover:text-blue-600"),
+                  ? "text-white hover:text-[#00acee]"
+                  : "text-slate-700 hover:text-[#00acee]"),
           )}
         >
           {link.label}
