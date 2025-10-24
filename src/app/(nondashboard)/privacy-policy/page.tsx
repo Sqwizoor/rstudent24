@@ -116,7 +116,7 @@ export default function PrivacyPolicyPage() {
           <div className="mb-6">
             <p>Rental App</p>
             <p>Email: support@rentalapp.co.za</p>
-            <p>Office: 15 Summit Road, Johannesburg North, Midrand, South Africa</p>
+            <p>Office: 157 Van Riebeeck Ave, Edenvale, Johannesburg 2094, South Africa</p>
           </div>
         </div>
       </div>

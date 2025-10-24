@@ -100,21 +100,21 @@ export default function ContactUsPage() {
                 </div>
                 <div>
                   <h3 className="font-medium text-slate-800 text-lg">Office</h3>
-                  <p className="text-slate-600 mt-1">15 Summit Road</p>
-                  <p className="text-slate-600">Johannesburg North, Midrand, South Africa</p>
+                  <p className="text-slate-600 mt-1">157 Van Riebeeck Ave, Edenvale, Johannesburg 2094</p>
+                  <p className="text-slate-600">South Africa</p>
                 </div>
               </div>
             </div>
             
             {/* Map */}
             <div className="h-[300px] rounded-xl overflow-hidden shadow-md mt-8">
-              <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d114154.72233007333!2d28.023724837500005!3d-25.98596!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1e956a925c339535%3A0x2065d64305239340!2sMidrand%2C%20Johannesburg!5e0!3m2!1sen!2sza!4v1717392435450!5m2!1sen!2sza" 
-                width="100%" 
-                height="100%" 
-                style={{ border: 0 }} 
-                allowFullScreen 
-                loading="lazy" 
+              <iframe
+                src="https://maps.google.com/maps?q=157%20Van%20Riebeeck%20Ave%2C%20Edenvale%2C%20Johannesburg%202094&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               />
             </div>

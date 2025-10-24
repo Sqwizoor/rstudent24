@@ -1,7 +1,11 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { ChevronDown } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function LandlordHero() {
+  const router = useRouter()
   return (
     <div className="min-h-[70vh] bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 relative overflow-hidden">
       {/* Background Image */}
@@ -43,6 +47,7 @@ export default function LandlordHero() {
           <Button
             size="lg"
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
+            onClick={() => router.push('/signup')}
           >
             Create an account now
           </Button>
