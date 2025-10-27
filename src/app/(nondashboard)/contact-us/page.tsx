@@ -224,7 +224,7 @@ export default function ContactUsPage() {
                 
                 <Button 
                   type="submit" 
-                  className="w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2"
+                  className="w-full py-6 bg-[#00acee] hover:bg-[#0099d4] text-white rounded-xl flex items-center justify-center gap-2"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
