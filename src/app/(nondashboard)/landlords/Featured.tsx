@@ -5,10 +5,10 @@ export default function FeaturesLandSection() {
     <section className="py-16 px-4 md:px-8 lg:px-12 max-w-9xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column - Main Feature */}
-        <div className="lg:col-span-5 bg-blue-50 rounded-3xl p-8 md:p-12">
+        <div className="lg:col-span-5 bg-[#00acee]/10 rounded-3xl p-8 md:p-12">
           <div className="mb-2">
-            <span className="text-blue-600 text-sm font-medium">Student24 at your service</span>
-            <div className="w-16 h-0.5 bg-blue-600 mt-1"></div>
+            <span className="text-[#00acee] text-sm font-medium">Student24 at your service</span>
+            <div className="w-16 h-0.5 bg-[#00acee] mt-1"></div>
           </div>
 
           <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mt-6 mb-6">
@@ -27,8 +27,8 @@ export default function FeaturesLandSection() {
         <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Feature 1 - Responsive Support */}
           <div className="flex gap-4">
-            <div className="bg-blue-50 p-4 rounded-xl h-fit">
-              <Heart className="w-6 h-6 text-blue-600" />
+            <div className="bg-[#00acee]/10 p-4 rounded-xl h-fit">
+              <Heart className="w-6 h-6 text-[#00acee]" />
             </div>
             <div>
               <h3 className="font-bold text-slate-800 text-lg mb-2">Responsive support</h3>
@@ -41,8 +41,8 @@ export default function FeaturesLandSection() {
 
           {/* Feature 2 - Targeted Audience */}
           <div className="flex gap-4">
-            <div className="bg-blue-50 p-4 rounded-xl h-fit">
-              <Target className="w-6 h-6 text-blue-600" />
+            <div className="bg-[#00acee]/10 p-4 rounded-xl h-fit">
+              <Target className="w-6 h-6 text-[#00acee]" />
             </div>
             <div>
               <h3 className="font-bold text-slate-800 text-lg mb-2">Targeted audience</h3>
@@ -55,8 +55,8 @@ export default function FeaturesLandSection() {
 
           {/* Feature 3 - Easy Listing Process */}
           <div className="flex gap-4">
-            <div className="bg-blue-50 p-4 rounded-xl h-fit">
-              <Lightbulb className="w-6 h-6 text-blue-600" />
+            <div className="bg-[#00acee]/10 p-4 rounded-xl h-fit">
+              <Lightbulb className="w-6 h-6 text-[#00acee]" />
             </div>
             <div>
               <h3 className="font-bold text-slate-800 text-lg mb-2">Easy listing process</h3>
@@ -69,8 +69,8 @@ export default function FeaturesLandSection() {
 
           {/* Feature 4 - Booking Management */}
           <div className="flex gap-4">
-            <div className="bg-blue-50 p-4 rounded-xl h-fit">
-              <Bookmark className="w-6 h-6 text-blue-600" />
+            <div className="bg-[#00acee]/10 p-4 rounded-xl h-fit">
+              <Bookmark className="w-6 h-6 text-[#00acee]" />
             </div>
             <div>
               <h3 className="font-bold text-slate-800 text-lg mb-2">Booking management</h3>

@@ -78,18 +78,18 @@ export default function HowItWorks() {
       {/* Section Title */}
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold text-slate-800">How it works</h2>
-        <div className="w-16 h-1 bg-blue-600 mx-auto mt-2"></div>
+        <div className="w-16 h-1 bg-[#00acee] mx-auto mt-2"></div>
       </div>
 
       {/* Steps Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {slides[currentSlide].map((step, index) => (
-          <div key={index} className="bg-blue-50 rounded-3xl p-8 relative">
+          <div key={index} className="bg-[#00acee]/10 rounded-3xl p-8 relative">
             {/* Blue accent line */}
-            <div className="absolute left-0 top-8 bottom-8 w-1.5 bg-blue-600 rounded-r-full"></div>
+            <div className="absolute left-0 top-8 bottom-8 w-1.5 bg-[#00acee] rounded-r-full"></div>
 
             {/* Icon */}
-            <div className="border border-blue-600 text-blue-600 w-10 h-10 flex items-center justify-center rounded mb-6 ml-4">
+            <div className="border border-[#00acee] text-[#00acee] w-10 h-10 flex items-center justify-center rounded mb-6 ml-4">
               <span className="text-xl">{step.icon}</span>
             </div>
 
@@ -112,7 +112,7 @@ export default function HowItWorks() {
               onClick={() => goToSlide(index)}
               className={cn(
                 "w-2.5 h-2.5 rounded-full transition-all",
-                currentSlide === index ? "bg-cyan-500 w-6" : "bg-gray-300",
+                currentSlide === index ? "bg-[#00acee] w-6" : "bg-gray-300",
               )}
               aria-label={`Go to slide ${index + 1}`}
             />
@@ -123,14 +123,14 @@ export default function HowItWorks() {
         <div className="flex gap-2 ml-4">
           <button
             onClick={goToPrevSlide}
-            className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:border-cyan-500 hover:text-cyan-500 transition-colors"
+            className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:border-[#00acee] hover:text-[#00acee] transition-colors"
             aria-label="Previous slide"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={goToNextSlide}
-            className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:border-cyan-500 hover:text-cyan-500 transition-colors"
+            className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:border-[#00acee] hover:text-[#00acee] transition-colors"
             aria-label="Next slide"
           >
             <ChevronRight className="w-5 h-5" />

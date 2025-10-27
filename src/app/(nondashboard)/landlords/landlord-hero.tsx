@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 export default function LandlordHero() {
   const router = useRouter()
   return (
-    <div className="min-h-[70vh] bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 relative overflow-hidden">
+  <div className="min-h-[70vh] bg-gradient-to-br from-[#00acee] via-[#00a3e0] to-[#0099d4] relative overflow-hidden">
       {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-90"
@@ -17,7 +17,7 @@ export default function LandlordHero() {
       />
       
       {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-blue-900 opacity-60"></div>
+  <div className="absolute inset-0 bg-black/40"></div>
 
      
 
@@ -56,7 +56,7 @@ export default function LandlordHero() {
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
           <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-            <ChevronDown className="w-5 h-5 text-blue-600" />
+            <ChevronDown className="w-5 h-5 text-[#00acee]" />
           </div>
         </div>
       </main>
