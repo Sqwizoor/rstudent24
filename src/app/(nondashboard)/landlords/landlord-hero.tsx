@@ -46,7 +46,7 @@ export default function LandlordHero() {
           {/* CTA Button */}
           <Button
             size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
+            className="bg-[#00acee] hover:bg-[#0099d4] text-white px-8 py-4 text-lg font-semibold rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
             onClick={() => router.push('/signup')}
           >
             Create an account now
