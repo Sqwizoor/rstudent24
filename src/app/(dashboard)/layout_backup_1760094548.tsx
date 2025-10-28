@@ -1,6 +1,6 @@
 "use client";
 
-import Navbar from "@/components/Navbar";
+import DashboardNavbar from "@/components/DashboardNavbar";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import Sidebar from "@/components/AppSidebar";
 import { NAVBAR_HEIGHT } from "@/lib/constants";
@@ -175,7 +175,7 @@ const DashboardContent = ({ userRole, children }: { userRole: "tenant" | "manage
         "min-h-screen w-full",
         isDark ? "bg-slate-950" : "bg-slate-50"
       )}>
-        <Navbar />
+  <DashboardNavbar />
         <div style={{ paddingTop: `${NAVBAR_HEIGHT}px` }}>
           <div className="flex relative">
             {/* Mobile overlay - only visible when sidebar is open on mobile */}
