@@ -10,21 +10,21 @@ const MAX_FILE_BYTES = 15 * 1024 * 1024; // 15MB per file safeguard
 const MAX_TOTAL_BYTES = 30 * 1024 * 1024; // cumulative guard per request
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'eu-north-1',
+  region: process.env.S24_AWS_REGION || 'eu-north-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.S24_AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.S24_AWS_SECRET_ACCESS_KEY!,
   },
 });
 
 async function uploadFileToS3(file: Buffer, originalName: string, mimeType: string): Promise<string> {
-  if (!process.env.AWS_BUCKET_NAME) throw new Error('AWS_BUCKET_NAME not configured');
-  if (!process.env.AWS_REGION) throw new Error('AWS_REGION not configured');
+  if (!process.env.S24_AWS_BUCKET_NAME) throw new Error('S24_AWS_BUCKET_NAME not configured');
+  if (!process.env.S24_AWS_REGION) throw new Error('S24_AWS_REGION not configured');
   const uniquePrefix = Date.now() + '-' + Math.round(Math.random() * 1e9);
   const safeFileName = originalName.replace(/[^a-zA-Z0-9.-]/g, '');
   const key = `properties/${uniquePrefix}-${safeFileName}`;
   const params = {
-    Bucket: process.env.AWS_BUCKET_NAME,
+    Bucket: process.env.S24_AWS_BUCKET_NAME,
     Key: key,
     Body: file,
     ContentType: mimeType,
@@ -32,7 +32,8 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
   };
   const upload = new Upload({ client: s3Client, params });
   await upload.done();
-  return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+  return `https://${process.env.S24_AWS_BUCKET_NAME}.s3.${process.env.S24_AWS_REGION}.amazonaws.com/${key}`;
+  return `https://${process.env.S24_AWS_BUCKET_NAME}.s3.${process.env.S24_AWS_REGION}.amazonaws.com/${key}`;
 }
 
 export const runtime = 'nodejs';

@@ -13,10 +13,10 @@ const MAX_TOTAL_SIZE = 20 * 1024 * 1024; // 20MB total
 
 // S3 configuration
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'eu-north-1',
+  region: process.env.S24_AWS_REGION || 'eu-north-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
+    accessKeyId: process.env.S24_AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.S24_AWS_SECRET_ACCESS_KEY || ''
   }
 });
 
@@ -35,7 +35,7 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
     const upload = new Upload({
       client: s3Client,
       params: {
-        Bucket: process.env.AWS_BUCKET_NAME || 'realstatee',
+  Bucket: process.env.S24_AWS_BUCKET_NAME || 'realstatee',
         Key: fileName,
         Body: file,
         ContentType: mimeType,
@@ -49,7 +49,7 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
   // ACL not set: rely on bucket policy / ownership settings
     
     // Generate the URL
-    const fileUrl = `https://${process.env.AWS_BUCKET_NAME || 'realstatee'}.s3.${process.env.AWS_REGION || 'eu-north-1'}.amazonaws.com/${fileName}`;
+  const fileUrl = `https://${process.env.S24_AWS_BUCKET_NAME || 'realstatee'}.s3.${process.env.S24_AWS_REGION || 'eu-north-1'}.amazonaws.com/${fileName}`;
     console.log('Generated file URL:', fileUrl);
     
     return fileUrl;

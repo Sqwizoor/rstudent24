@@ -129,10 +129,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
               try {
                 // Configure S3 client with credentials
                 const s3Client = new S3Client({
-                  region: process.env.AWS_REGION || 'eu-north-1',
+                  region: process.env.S24_AWS_REGION || 'eu-north-1',
                   credentials: {
-                    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-                    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+                    accessKeyId: process.env.S24_AWS_ACCESS_KEY_ID!,
+                    secretAccessKey: process.env.S24_AWS_SECRET_ACCESS_KEY!,
                   },
                 });
                 
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                     const uploadResult = await new Upload({
                       client: s3Client,
                       params: {
-                        Bucket: process.env.AWS_BUCKET_NAME!,
+                        Bucket: process.env.S24_AWS_BUCKET_NAME!,
                         Key: uniqueFileName,
                         Body: buffer,
                         ContentType: fileEntry.type,
