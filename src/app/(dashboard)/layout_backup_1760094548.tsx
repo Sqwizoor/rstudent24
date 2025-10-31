@@ -71,7 +71,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         isDark ? "bg-slate-950" : "bg-slate-50"
       )}>
         <div className={cn(
-          "w-12 h-12 rounded-full animate-pulse",
+          "w-12 h-12 rounded-full px-3 animate-pulse",
           isDark ? "bg-slate-800" : "bg-slate-200"
         )}></div>
         <p className={cn(
