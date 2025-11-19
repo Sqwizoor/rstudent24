@@ -657,6 +657,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     };
 
     console.log("Property updated successfully:", propertyWithCoordinates);
+    
+    // ✅ Invalidate cache after update
+    queryCache.invalidateAll();
+    
     return NextResponse.json(propertyWithCoordinates);
   } catch (err: any) {
     console.error("Error updating property:", err);
@@ -750,6 +754,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     await prisma.location.delete({
       where: { id: existingProperty.location.id },
     });
+
+    // ✅ Invalidate cache after deletion
+    queryCache.invalidateAll();
 
     return NextResponse.json({ message: "Property deleted successfully", id });
   } catch (err: any) {

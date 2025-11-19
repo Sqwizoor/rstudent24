@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
 const handler = NextAuth({
+  // trustHost: true, // Not supported in NextAuth v4 AuthOptions type, but handled via env var
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
