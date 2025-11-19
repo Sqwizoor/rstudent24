@@ -403,6 +403,23 @@ const RandomListings = () => {
           </div>
         </div>
         
+        {/* City Tabs */}
+        <div className="flex flex-wrap justify-center gap-2 mb-6">
+          {cities.map((city) => (
+            <button
+              key={city}
+              onClick={() => setSelectedCity(city)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                selectedCity === city
+                  ? "bg-[#00acee] text-white shadow-md"
+                  : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+              }`}
+            >
+              {city}
+            </button>
+          ))}
+        </div>
+
         {/* University Buttons - Auto-scroll on mobile, wrap on desktop */}
         <div className="mt-4 mb-[2rem] md:mx-0 md:px-0">
           {/* Mobile: marquee auto-scroll, no manual scroll */}
@@ -705,15 +722,21 @@ const RandomListings = () => {
           <Button 
             className="bg-[#00acee] hover:bg-[#00acee] text-white px-8 py-2 rounded-full"
             onClick={() => {
-              // Reset filters to default values except for city
-              setLocalFilters({
-                location: `${selectedCity}, South Africa`,
-                propertyType: "any",
-                priceRange: [2000, 50000] as [number, number],
+              const locationQuery = `${selectedCity}, South Africa`;
+              
+              // Update Redux state
+              dispatch(setFilters({
+                location: locationQuery,
+                coordinates: [0, 0], // Reset coordinates to force text search or let search page handle it
+                propertyName: undefined
+              }));
+
+              // Navigate to search page
+              const params = new URLSearchParams({
+                location: locationQuery
               });
               
-              // Apply the reset filters to show all properties
-              setTimeout(handleApplyFilters, 0);
+              router.push(`/search?${params.toString()}`);
             }}
           >
             View All Properties in {selectedCity}
