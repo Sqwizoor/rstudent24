@@ -263,7 +263,7 @@ const ApplicationModal = ({
             content_name: roomName || propertyData?.name || 'Property Application',
             content_ids: [roomId ? `room_${roomId}` : `property_${propertyId}`],
             content_type: 'product',
-            value: roomData?.pricePerMonth || propertyData?.pricePerMonth || 0,
+            value: roomData?.pricePerMonth || propertyData?.minRoomPrice || propertyData?.price || 0,
             currency: 'ZAR'
           });
           console.log('Facebook Pixel AddToCart event tracked');
