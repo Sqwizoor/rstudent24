@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
-import { AlertCircle, BarChart, Building2, FileText, GraduationCap, LineChart, Mail, Phone, Users } from "lucide-react";
+import { AlertCircle, BarChart, Building2, FileText, Gift, GraduationCap, LineChart, Mail, Phone, Users } from "lucide-react";
 import { toast } from "sonner";
 import TestAdminAuth from "./test-admin-auth";
 
@@ -277,6 +277,20 @@ export default function AdminDashboard() {
               <div>
                 <h3 className="font-medium text-lg">Student Management</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">View and manage student accounts, applications, and leases</p>
+              </div>
+            </div>
+          </Card>
+          
+          {/* Referral System Tracking */}
+          <Card className="p-6 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => router.push('/admin/referrals')}>
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full">
+                <Gift className="w-6 h-6 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h3 className="font-medium text-lg">Referral Tracking</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Monitor student referrals and voucher rewards</p>
               </div>
             </div>
           </Card>

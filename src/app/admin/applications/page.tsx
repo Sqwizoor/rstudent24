@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Calendar, Home, Mail, Phone } from "lucide-react";
+import { ArrowLeft, Calendar, Download, Home, Mail, Phone } from "lucide-react";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -47,8 +47,35 @@ export default function AdminApplicationsPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isExporting, setIsExporting] = useState(false);
 
   const { data: applications, isLoading, error } = useGetApplicationsQuery({});
+
+  const handleExportCSV = async () => {
+    try {
+      setIsExporting(true);
+      const response = await fetch('/api/admin/applications/export');
+      
+      if (!response.ok) {
+        throw new Error('Failed to export applications');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `applications_export_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error exporting applications:', error);
+      alert('Failed to export applications. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const totalApplications = applications?.length ?? 0;
   const pendingCount = applications
@@ -108,10 +135,20 @@ export default function AdminApplicationsPage() {
             Review every room application submitted by students.
           </p>
         </div>
-  <Button variant="outline" onClick={() => router.push("/admin")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="default" 
+            onClick={handleExportCSV}
+            disabled={isExporting || isLoading || !applications || applications.length === 0}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            {isExporting ? "Exporting..." : "Export to CSV"}
+          </Button>
+          <Button variant="outline" onClick={() => router.push("/admin")}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
+          </Button>
+        </div>
       </div>
 
       <Card className="p-4">
