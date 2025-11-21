@@ -287,9 +287,9 @@ const Map = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No Properties in {filters.location}</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No Properties Found</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              We couldn&apos;t find any properties in this location. The map is showing the searched area, but there are currently no listings available here.
+              We couldn&apos;t find any properties in <span className="font-semibold">{filters.location && filters.location.length > 30 ? "this area" : filters.location}</span>. The map is showing the searched area, but there are currently no listings available here.
             </p>
           </div>
         </div>
