@@ -18,6 +18,13 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { fetchAuthSession } from "aws-amplify/auth";
 
+// Extend Window interface for Facebook Pixel
+declare global {
+  interface Window {
+    fbq?: (command: string, eventName: string, params?: any) => void;
+  }
+}
+
 interface ApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -248,6 +255,22 @@ const ApplicationModal = ({
       toast.success("Application Submitted Successfully!", {
         description: "Processing your request..."
       });
+      
+      // Track Facebook Pixel AddToCart event
+      if (typeof window !== 'undefined' && (window as any).fbq) {
+        try {
+          (window as any).fbq('track', 'AddToCart', {
+            content_name: roomName || propertyData?.name || 'Property Application',
+            content_ids: [roomId ? `room_${roomId}` : `property_${propertyId}`],
+            content_type: 'product',
+            value: roomData?.pricePerMonth || propertyData?.pricePerMonth || 0,
+            currency: 'ZAR'
+          });
+          console.log('Facebook Pixel AddToCart event tracked');
+        } catch (fbError) {
+          console.error('Failed to track Facebook Pixel event:', fbError);
+        }
+      }
       
       handlePostApplicationRedirect();
       

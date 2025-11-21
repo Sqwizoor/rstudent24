@@ -74,7 +74,39 @@ const HeroSection = () => {
       const trimmedQuery = searchQuery.trim();
       if (!trimmedQuery) return;
 
-      // ✅ PRIORITY 1: Try geocoding FIRST for location searches
+      // ✅ PRIORITY 1: Check if it's a property name search first
+      // Try property name search for ALL queries (not just non-cities)
+      try {
+        const propertySearchResponse = await fetch(
+          `/api/properties?propertyName=${encodeURIComponent(trimmedQuery)}`
+        );
+
+        if (propertySearchResponse.ok) {
+          const properties = await propertySearchResponse.json();
+
+          if (properties && properties.length > 0) {
+            // Found properties matching the name
+            const propertyFilters = {
+              location: "",
+              coordinates: [0, 0] as [number, number],
+              propertyName: trimmedQuery,
+            };
+
+            dispatch(setFilters(propertyFilters));
+
+            const params = new URLSearchParams({
+              propertyName: trimmedQuery,
+            });
+
+            router.push(`/search?${params.toString()}`);
+            return;
+          }
+        }
+      } catch (error) {
+        console.log("Property name search failed, trying geocoding:", error);
+      }
+
+      // ✅ PRIORITY 2: Try geocoding for location searches
       // This ensures city/suburb searches work correctly with 20km radius
       const geocodeQuery = trimmedQuery.toLowerCase().includes('south africa')
         ? trimmedQuery
@@ -139,44 +171,6 @@ const HeroSection = () => {
               return;
             }
           }
-        }
-      }
-
-      // ✅ PRIORITY 2: Only try property name search if geocoding failed
-      // AND the query looks like a property name (not a common city name)
-      const commonCities = ['johannesburg', 'pretoria', 'cape town', 'durban', 'port elizabeth', 
-                            'bloemfontein', 'kimberley', 'nelspruit', 'polokwane', 'sandton',
-                            'centurion', 'maboneng', 'rosebank', 'woodstock'];
-      const isLikelyCity = commonCities.some(city => trimmedQuery.toLowerCase().includes(city));
-      
-      if (!isLikelyCity) {
-        try {
-          const propertySearchResponse = await fetch(
-            `/api/properties?propertyName=${encodeURIComponent(trimmedQuery)}`
-          );
-
-          if (propertySearchResponse.ok) {
-            const properties = await propertySearchResponse.json();
-
-            if (properties && properties.length > 0) {
-              const propertyFilters = {
-                location: "",
-                coordinates: [0, 0] as [number, number],
-                propertyName: trimmedQuery,
-              };
-
-              dispatch(setFilters(propertyFilters));
-
-              const params = new URLSearchParams({
-                propertyName: trimmedQuery,
-              });
-
-              router.push(`/search?${params.toString()}`);
-              return;
-            }
-          }
-        } catch (error) {
-          console.error("Property search fallback failed:", error);
         }
       }
 
@@ -352,7 +346,7 @@ const HeroSection = () => {
                       value={searchQuery}
                       onChange={handleInputChange}
                       onKeyPress={handleKeyPress}
-                      placeholder="Search by city or address"
+                      placeholder="Search by property name, city, or address"
                       className="border-0 bg-white focus-visible:ring-0 focus-visible:ring-offset-0 p-2 bg-transparent text-gray-800 placeholder-gray-400 placeholder:font-bold placeholder:text-lg transition-all duration-300 group-hover:placeholder-[#00acee] focus:placeholder-[#00acee] text-lg w-full"
                     />
                     <div className="h-0.5 w-0 bg-[#00acee] transition-all duration-300 group-hover:w-full group-focus-within:w-full"></div>

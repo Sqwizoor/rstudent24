@@ -280,27 +280,27 @@ const FiltersBar = () => {
       <div className="relative w-full md:w-auto md:flex-grow md:max-w-sm flex gap-2">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-blue-300" />
+            <Search className="h-4 w-4 text-gray-400" />
           </div>
           <Input
             placeholder="Search by city, suburb, or property name"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="pl-10 pr-10 rounded-full border-blue-200 bg-blue-50 hover:bg-white focus:bg-white transition-all shadow-sm"
+            className="pl-10 pr-10 rounded-full border-gray-200 bg-gray-50 hover:bg-white focus:bg-white transition-all shadow-sm"
           />
           {searchInput && (
             <Button
               onClick={() => setSearchInput("")}
               className="absolute inset-y-0 right-0 px-3 rounded-l-none rounded-full bg-transparent hover:bg-transparent"
             >
-              <X className="w-4 h-4 text-blue-300 hover:text-slate-700" />
+              <X className="w-4 h-4 text-gray-400 hover:text-slate-700" />
             </Button>
           )}
         </div>
         <Button
           onClick={handleLocationSearch}
-          className="rounded-full bg-blue-500 hover:bg-blue-600 text-white px-4 shadow-sm"
+          className="rounded-full bg-[#00acee] hover:bg-[#0099d4] text-white px-4 shadow-sm"
           disabled={!searchInput.trim()}
         >
           <Search className="h-4 w-4" />
@@ -313,7 +313,7 @@ const FiltersBar = () => {
           value={filters.priceRange[0]?.toString() || "any"}
           onValueChange={(value) => handleFilterChange("priceRange", value, true)}
         >
-          <SelectTrigger className="w-32 rounded-full border-blue-200 bg-blue-50 hover:bg-white focus:bg-white transition-all shadow-sm">
+          <SelectTrigger className="w-32 rounded-full border-gray-200 bg-gray-50 hover:bg-white focus:bg-white transition-all shadow-sm">
             <SelectValue className="mr-4">{formatPriceValue(filters.priceRange[0], true)}</SelectValue>
           </SelectTrigger>
           <SelectContent className="bg-white ">
@@ -330,7 +330,7 @@ const FiltersBar = () => {
           value={filters.priceRange[1]?.toString() || "any"}
           onValueChange={(value) => handleFilterChange("priceRange", value, false)}
         >
-          <SelectTrigger className="w-32 rounded-full border-blue-200 bg-blue-50 hover:bg-white focus:bg-white transition-all shadow-sm">
+          <SelectTrigger className="w-32 rounded-full border-gray-200 bg-gray-50 hover:bg-white focus:bg-white transition-all shadow-sm">
             <SelectValue className="pr-4">{formatPriceValue(filters.priceRange[1], false)}</SelectValue>
           </SelectTrigger>
           <SelectContent className="bg-white">
@@ -346,7 +346,7 @@ const FiltersBar = () => {
 
       {/* Beds */}
       <Select value={filters.beds} onValueChange={(value) => handleFilterChange("beds", value, null)}>
-        <SelectTrigger className="w-24 rounded-full border-blue-200 bg-blue-50 hover:bg-white focus:bg-white transition-all shadow-sm">
+        <SelectTrigger className="w-24 rounded-full border-gray-200 bg-gray-50 hover:bg-white focus:bg-white transition-all shadow-sm">
           <SelectValue placeholder="Beds" />
         </SelectTrigger>
         <SelectContent className="bg-white">
@@ -360,7 +360,7 @@ const FiltersBar = () => {
 
       {/* Baths */}
       <Select value={filters.baths} onValueChange={(value) => handleFilterChange("baths", value, null)}>
-        <SelectTrigger className="w-24 rounded-full border-blue-200 bg-blue-50 hover:bg-white focus:bg-white transition-all shadow-sm">
+        <SelectTrigger className="w-24 rounded-full border-gray-200 bg-gray-50 hover:bg-white focus:bg-white transition-all shadow-sm">
           <SelectValue placeholder="Baths" />
         </SelectTrigger>
         <SelectContent className="bg-white">
@@ -376,7 +376,7 @@ const FiltersBar = () => {
         value={filters.propertyType || "any"}
         onValueChange={(value) => handleFilterChange("propertyType", value, null)}
       >
-        <SelectTrigger className="w-32 rounded-full border-blue-200 bg-blue-50 hover:bg-white focus:bg-white transition-all shadow-sm">
+        <SelectTrigger className="w-32 rounded-full border-gray-200 bg-gray-50 hover:bg-white focus:bg-white transition-all shadow-sm">
           <SelectValue placeholder="Home Type" />
         </SelectTrigger>
         <SelectContent className="bg-white">
@@ -395,7 +395,7 @@ const FiltersBar = () => {
   )
 
   return (
-    <div className="sticky top-0 z-10 bg-white backdrop-blur-md bg-opacity-95 shadow-lg px-4 py-3 rounded-full border border-blue-100 mb-3">
+    <div className="sticky top-0 z-10 bg-white backdrop-blur-md bg-opacity-95 shadow-lg px-4 py-3 rounded-full border border-gray-100 mb-3">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4">
         {/* Mobile View */}
         {isMobile ? (
@@ -403,27 +403,27 @@ const FiltersBar = () => {
             <div className="relative flex-grow flex gap-2">
               <div className="relative flex-1">
                 <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 text-blue-300" />
+                  <Search className="h-4 w-4 text-gray-400" />
                 </div>
                 <Input
                   placeholder="Search by city, suburb, or property name"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="pl-10 pr-10 rounded-full border-blue-200 bg-blue-50 hover:bg-white focus:bg-white transition-all shadow-sm"
+                  className="pl-10 pr-10 rounded-full border-gray-200 bg-gray-50 hover:bg-white focus:bg-white transition-all shadow-sm"
                 />
                 {searchInput && (
                   <Button
                     onClick={() => setSearchInput("")}
                     className="absolute inset-y-0 right-0 px-3 rounded-l-none rounded-full bg-transparent hover:bg-transparent"
                   >
-                    <X className="w-4 h-4 text-blue-300 hover:text-slate-700" />
+                    <X className="w-4 h-4 text-gray-400 hover:text-slate-700" />
                   </Button>
                 )}
               </div>
               <Button
                 onClick={handleLocationSearch}
-                className="rounded-full bg-blue-500 hover:bg-blue-600 text-white px-3 shadow-sm"
+                className="rounded-full bg-[#00acee] hover:bg-[#0099d4] text-white px-3 shadow-sm"
                 disabled={!searchInput.trim()}
               >
                 <Search className="h-4 w-4" />
@@ -437,13 +437,13 @@ const FiltersBar = () => {
                   <Button
                     variant="outline"
                     className={cn(
-                      "gap-2 rounded-full border-blue-200 bg-blue-50 hover:bg-white focus:bg-white transition-all shadow-sm relative",
-                      isFiltersFullOpen && "bg-blue-500 text-white hover:bg-blue-600",
+                      "gap-2 rounded-full border-gray-200 bg-gray-50 hover:bg-white focus:bg-white transition-all shadow-sm relative",
+                      isFiltersFullOpen && "bg-[#00acee] text-white hover:bg-[#0099d4]",
                     )}
                   >
                     <SlidersHorizontal className="w-4 h-4" />
                     {activeFilterCount > 0 && (
-                      <Badge className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs">
+                      <Badge className="absolute -top-2 -right-2 bg-[#00acee] text-white text-xs">
                         {activeFilterCount}
                       </Badge>
                     )}
@@ -471,19 +471,19 @@ const FiltersBar = () => {
                       </Button>
                     )}
                     <SheetClose asChild>
-                      <Button className="rounded-full bg-blue-500 hover:bg-blue-600 ml-auto">Apply filters</Button>
+                      <Button className="rounded-full bg-[#00acee] hover:bg-[#0099d4] ml-auto">Apply filters</Button>
                     </SheetClose>
                   </SheetFooter>
                 </SheetContent>
               </Sheet>
 
               {/* View Mode Selector */}
-              <div className="flex border rounded-full shadow-sm overflow-hidden bg-blue-50">
+              <div className="flex border rounded-full shadow-sm overflow-hidden bg-gray-50">
                 <Button
                   variant="ghost"
                   className={cn(
-                    "px-2 py-1 rounded-none hover:bg-blue-500 hover:text-white transition-all",
-                    viewMode === "list" ? "bg-blue-500 text-white" : "",
+                    "px-2 py-1 rounded-none hover:bg-[#00acee] hover:text-white transition-all",
+                    viewMode === "list" ? "bg-[#00acee] text-white" : "",
                   )}
                   onClick={() => dispatch(setViewMode("list"))}
                 >
@@ -493,8 +493,8 @@ const FiltersBar = () => {
                 <Button
                   variant="ghost"
                   className={cn(
-                    "px-2 py-1 rounded-none hover:bg-blue-500 hover:text-white transition-all",
-                    viewMode === "grid" ? "bg-blue-500 text-white" : "",
+                    "px-2 py-1 rounded-none hover:bg-[#00acee] hover:text-white transition-all",
+                    viewMode === "grid" ? "bg-[#00acee] text-white" : "",
                   )}
                   onClick={() => dispatch(setViewMode("grid"))}
                 >
@@ -514,15 +514,15 @@ const FiltersBar = () => {
                     <Button
                       variant="outline"
                       className={cn(
-                        "gap-2 rounded-full border-blue-200 bg-blue-50 hover:bg-white focus:bg-white transition-all shadow-sm relative",
-                        isFiltersFullOpen && "bg-blue-500 text-white hover:bg-blue-600",
+                        "gap-2 rounded-full border-gray-200 bg-gray-50 hover:bg-white focus:bg-white transition-all shadow-sm relative",
+                        isFiltersFullOpen && "bg-[#00acee] text-white hover:bg-[#0099d4]",
                       )}
                       onClick={() => dispatch(toggleFiltersFullOpen())}
                     >
                       <SlidersHorizontal className="w-4 h-4" />
                       <span className="hidden sm:inline">Filters</span>
                       {activeFilterCount > 0 && (
-                        <Badge className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs">
+                        <Badge className="absolute -top-2 -right-2 bg-[#00acee] text-white text-xs">
                           {activeFilterCount}
                         </Badge>
                       )}
@@ -561,15 +561,15 @@ const FiltersBar = () => {
 
             {/* View Mode Selector */}
             <div className="flex ml-auto">
-              <div className="flex border rounded-full shadow-sm overflow-hidden bg-blue-50">
+              <div className="flex border rounded-full shadow-sm overflow-hidden bg-gray-50">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
                         className={cn(
-                          "px-3 py-1 rounded-none hover:bg-blue-500 hover:text-white transition-all",
-                          viewMode === "list" ? "bg-blue-500 text-white" : "",
+                          "px-3 py-1 rounded-none hover:bg-[#00acee] hover:text-white transition-all",
+                          viewMode === "list" ? "bg-[#00acee] text-white" : "",
                         )}
                         onClick={() => dispatch(setViewMode("list"))}
                       >
@@ -588,8 +588,8 @@ const FiltersBar = () => {
                       <Button
                         variant="ghost"
                         className={cn(
-                          "px-3 py-1 rounded-none hover:bg-blue-500 hover:text-white transition-all",
-                          viewMode === "grid" ? "bg-blue-500 text-white" : "",
+                          "px-3 py-1 rounded-none hover:bg-[#00acee] hover:text-white transition-all",
+                          viewMode === "grid" ? "bg-[#00acee] text-white" : "",
                         )}
                         onClick={() => dispatch(setViewMode("grid"))}
                       >

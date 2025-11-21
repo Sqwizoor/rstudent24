@@ -239,7 +239,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // text search (name/description/location)
+    // text search (name/description/location) - ALWAYS search by property name if provided
     let nameSearchCondition: Prisma.Sql | null = null;
     if (propertyName && propertyName !== 'any') {
       const searchTerm = `%${propertyName.toLowerCase()}%`;
@@ -249,6 +249,7 @@ export async function GET(request: NextRequest) {
         'with search term:',
         searchTerm
       );
+      // Property name search is ALWAYS applied regardless of coordinates
       nameSearchCondition = Prisma.sql`(
         LOWER(p.name) LIKE ${searchTerm} OR 
         LOWER(p.description) LIKE ${searchTerm} OR
@@ -257,6 +258,8 @@ export async function GET(request: NextRequest) {
         LOWER(l.suburb) LIKE ${searchTerm} OR
         LOWER(l.state) LIKE ${searchTerm}
       )`;
+      // Add directly to whereConditions to ensure it's always applied
+      whereConditions.push(nameSearchCondition);
     }
 
     if (propertyType && propertyType !== 'any') {
@@ -322,20 +325,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // combine name/location filters
+    // combine location filters (but NOT name filters - those are already added)
     if (!hasValidCoordinates) {
-      if (nameSearchCondition && locationSearchCondition) {
-        whereConditions.push(
-          Prisma.sql`(${nameSearchCondition} OR ${locationSearchCondition})`
-        );
-      } else if (nameSearchCondition) {
-        whereConditions.push(nameSearchCondition);
-      } else if (locationSearchCondition) {
+      if (locationSearchCondition) {
         whereConditions.push(locationSearchCondition);
       }
-    } else if (nameSearchCondition) {
-      whereConditions.push(nameSearchCondition);
     }
+    // Note: nameSearchCondition is already added above if it exists
 
     // geographic radius filter when coordinates present
     if (hasValidCoordinates) {
