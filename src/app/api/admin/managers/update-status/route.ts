@@ -73,8 +73,8 @@ export async function GET(request: NextRequest) {
    if (['Disabled', 'Banned'].includes(status)) {
      try {
        console.log(`Manager ${existingManager.name} (${cognitoId}) was blocked. Removing their properties...`);
-       const props = await prisma.property.findMany({ where: { managerCognitoId: cognitoId }, select: { id: true } });
-       const propIds = props.map(p => p.id);
+       const props = await prisma.property.findMany({ where: { managerCognitoId: cognitoId }, select: { id: true } }) as { id: number }[];
+       const propIds = props.map((p: { id: number }) => p.id);
        if (propIds.length > 0) {
          // Delete dependent records first to avoid foreign key errors
          await prisma.$transaction([
