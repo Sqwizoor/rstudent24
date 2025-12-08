@@ -176,6 +176,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ message: "Property not found" }, { status: 404 });
     }
 
+    // Ensure property's manager is Active. If manager is disabled/banned, treat property as not found.
+    try {
+      const manager = await prisma.manager.findUnique({ where: { cognitoId: property.managerCognitoId } });
+      if (manager && manager.status !== 'Active') {
+        console.warn(`[API] GET /api/properties/${id} - Manager is not active, hiding property`);
+        return NextResponse.json({ message: "Property not found" }, { status: 404 });
+      }
+    } catch (mgrErr) {
+      console.error('Error checking manager status for property:', mgrErr);
+    }
+
     console.log(`[API] GET /api/properties/${id} - Property found, location: ${property.location?.id}`);
 
     // Handle case where location is null

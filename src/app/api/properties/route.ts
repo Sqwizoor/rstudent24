@@ -381,10 +381,12 @@ export async function GET(request: NextRequest) {
         ) as location
       FROM "Property" p
       JOIN "Location" l ON p."locationId" = l.id
+      JOIN "Manager" m ON p."managerCognitoId" = m."cognitoId"
       ${
+        // Always require the manager to be Active so properties from disabled/banned managers don't show
         whereConditions.length > 0
-          ? Prisma.sql`WHERE ${Prisma.join(whereConditions, ' AND ')}`
-          : Prisma.empty
+          ? Prisma.sql`WHERE m.status = 'Active'::"ManagerStatus" AND ${Prisma.join(whereConditions, ' AND ')}`
+          : Prisma.sql`WHERE m.status = 'Active'::"ManagerStatus"`
       }
     `;
 
@@ -507,6 +509,14 @@ export async function POST(request: NextRequest) {
 
     // Create location first
     try {
+      // Ensure manager exists and is Active - prevent blocked landlords from creating properties
+      const manager = await prisma.manager.findUnique({ where: { cognitoId: managerCognitoId } });
+      if (!manager) {
+        return NextResponse.json({ message: 'Manager account not found' }, { status: 404 });
+      }
+      if (manager.status !== 'Active') {
+        return NextResponse.json({ message: 'Manager account is not active. Cannot create property.' }, { status: 403 });
+      }
       // Construct address string dynamically based on available components
   const addressParts = [address, suburb && suburb.trim() !== '' ? suburb : null, city].filter(Boolean) as string[];
       

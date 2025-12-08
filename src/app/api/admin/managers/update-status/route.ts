@@ -69,6 +69,31 @@ export async function GET(request: NextRequest) {
     });
 
     console.log(`Successfully updated manager status. New status: ${updatedManager.status}`);
+   // If manager was disabled or banned, remove their properties and dependent records
+   if (['Disabled', 'Banned'].includes(status)) {
+     try {
+       console.log(`Manager ${existingManager.name} (${cognitoId}) was blocked. Removing their properties...`);
+       const props = await prisma.property.findMany({ where: { managerCognitoId: cognitoId }, select: { id: true } });
+       const propIds = props.map(p => p.id);
+       if (propIds.length > 0) {
+         // Delete dependent records first to avoid foreign key errors
+         await prisma.$transaction([
+           prisma.review.deleteMany({ where: { propertyId: { in: propIds } } }),
+           prisma.application.deleteMany({ where: { propertyId: { in: propIds } } }),
+           prisma.lease.deleteMany({ where: { propertyId: { in: propIds } } }),
+           prisma.room.deleteMany({ where: { propertyId: { in: propIds } } }),
+           prisma.property.deleteMany({ where: { id: { in: propIds } } }),
+         ]);
+         console.log(`Deleted ${propIds.length} properties and their dependent records for manager ${cognitoId}`);
+       } else {
+         console.log('No properties found for manager to delete');
+       }
+     } catch (delErr) {
+       console.error('Error deleting manager properties:', delErr);
+       // Do not fail the whole status update if cleanup fails; return success but include warning
+       return NextResponse.json({ updatedManager, warning: 'Failed to fully delete properties for this manager. Check server logs.' });
+     }
+   }
     return NextResponse.json(updatedManager);
   } catch (error: any) {
     console.error("Unhandled error in manager status update:", error);
