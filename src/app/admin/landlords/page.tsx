@@ -72,7 +72,7 @@ export default function LandlordsPage() {
     
     try {
       await updateManagerStatus({
-        cognitoId: selectedManager.cognitoId,
+        cognitoId: (selectedManager.cognitoId ?? selectedManager.userId) as string,
         status: newStatus,
         notes: notes
       }).unwrap();
@@ -102,7 +102,7 @@ export default function LandlordsPage() {
     if (!selectedManager) return;
     
     try {
-      await deleteManager(selectedManager.cognitoId).unwrap();
+      await deleteManager((selectedManager.cognitoId ?? selectedManager.userId) as string).unwrap();
       setIsDeleteDialogOpen(false);
       setSelectedManager(null);
   // refetch(); // Not needed for Cognito API
