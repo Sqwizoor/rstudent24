@@ -26,16 +26,16 @@ export default function LandlordsPage() {
   const statusFilter = searchParams.get("status") || "";
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState(statusFilter || "all");
-  // Define Manager type for TypeScript
+  // Define Manager (Cognito landlord) type for TypeScript
   type Manager = {
-    id: number;
-    cognitoId: string;
-    name: string;
-    email: string;
-    phoneNumber?: string; // Optional to match prismaTypes.ts definition
-    status: 'Pending' | 'Active' | 'Disabled' | 'Banned';
+    username: string;
+    userId: string;
+    cognitoId?: string;
+    email?: string;
+    phoneNumber?: string;
+    status?: 'Pending' | 'Active' | 'Disabled' | 'Banned' | string;
   };
-  
+
   const [selectedManager, setSelectedManager] = useState<Manager | null>(null);
   const [newStatus, setNewStatus] = useState("");
   const [notes, setNotes] = useState("");
@@ -173,7 +173,11 @@ export default function LandlordsPage() {
       ) : (
         <div className="grid gap-4">
           {paginatedManagers?.map((manager) => (
-            <Card key={manager.userId} className="p-4 bg-white dark:bg-gray-800">
+            <Card
+              key={manager.userId}
+              className="p-4 bg-white dark:bg-gray-800 cursor-pointer hover:shadow-md"
+              onClick={() => openStatusDialog(manager as Manager, manager.status || 'Active')}
+            >
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <div className="flex items-center gap-2">
@@ -184,7 +188,14 @@ export default function LandlordsPage() {
                   <p className="text-sm text-gray-500 dark:text-gray-400">{manager.phoneNumber}</p>
                   <div className="mt-2">{getStatusBadge(manager.status || "Active")}</div>
                 </div>
-                {/* You can add buttons for status changes or delete if you implement Cognito admin actions */}
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); openStatusDialog(manager as Manager, manager.status || 'Active'); }}>
+                    Change Status
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={(e) => { e.stopPropagation(); openDeleteDialog(manager as Manager); }}>
+                    Delete
+                  </Button>
+                </div>
               </div>
             </Card>
           ))}
@@ -208,7 +219,7 @@ export default function LandlordsPage() {
           <DialogHeader>
             <DialogTitle>Update Landlord Status</DialogTitle>
             <DialogDescription>
-              You are about to change {selectedManager?.name}&apos;s status to <strong>{newStatus}</strong>.
+              You are about to change {selectedManager?.username || selectedManager?.email}&apos;s status to <strong>{newStatus}</strong>.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -238,12 +249,12 @@ export default function LandlordsPage() {
             <DialogDescription>
               {selectedManager?.email === 'manager@example.com' ? (
                 <>
-                  You are about to delete the demo account for <strong>{selectedManager?.name}</strong>. 
+                  You are about to delete the demo account for <strong>{selectedManager?.username || selectedManager?.email}</strong>. 
                   This will remove the account and all associated demo properties.
                 </>
               ) : (
                 <>
-                  Are you sure you want to permanently delete <strong>{selectedManager?.name}</strong>? 
+                  Are you sure you want to permanently delete <strong>{selectedManager?.username || selectedManager?.email}</strong>? 
                   This action cannot be undone and will remove all properties managed by this account.
                 </>
               )}

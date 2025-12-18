@@ -37,6 +37,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from 'sonner';
 
 export default function AdminPropertiesPage() {
   const router = useRouter();
@@ -443,6 +444,35 @@ export default function AdminPropertiesPage() {
                       >
                         {property.status || "Available"}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline">Actions</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onSelect={async () => {
+                            try {
+                              // Call admin delete property endpoint
+                              const res = await fetch(`/api/admin/properties/delete?id=${property.id}`, { method: 'POST' });
+                              if (!res.ok) {
+                                const txt = await res.text();
+                                throw new Error(txt || 'Failed to block property');
+                              }
+                              toast.success('Property blocked/deleted successfully');
+                              router.refresh();
+                            } catch (err: any) {
+                              console.error('Failed to block property', err);
+                              toast.error(err?.message || 'Failed to block property');
+                            }
+                          }}>
+                            Disable / Block Property
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={async () => { router.push(`/admin/properties/${property.id}`); }}>
+                            View Details
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
