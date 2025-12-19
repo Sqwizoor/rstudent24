@@ -71,8 +71,10 @@ export async function verifyAuth(
   }
 
   // Fall back to Cognito authentication (for managers/landlords)
+  // First try admin auth cookie (set during admin login), then Authorization header
+  const cookieToken = request.cookies?.get?.('admin_auth_token')?.value;
   const authHeader = request.headers.get('authorization');
-  const token = authHeader?.split(' ')[1];
+  const token = cookieToken ?? authHeader?.split(' ')[1];
 
   if (!token) {
     return { isAuthenticated: false, message: 'No authentication token provided' };
@@ -85,6 +87,7 @@ export async function verifyAuth(
     
     // Log token info for debugging (safely)
     console.log("Received Cognito token info:", {
+      source: cookieToken ? 'admin_cookie' : (authHeader ? 'authorization_header' : 'unknown'),
       tokenLength: token.length,
       hasDecodedData: !!decoded,
       decodedFields: decoded ? Object.keys(decoded) : []

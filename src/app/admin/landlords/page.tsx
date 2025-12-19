@@ -49,7 +49,7 @@ export default function LandlordsPage() {
   const { data: authUser } = useGetAuthUserQuery();
   const normalizedRole = typeof authUser?.userRole === "string" ? authUser.userRole.toLowerCase() : undefined;
 
-  const { landlords, isLoading, error } = useCognitoLandlords();
+  const { landlords, isLoading, error, refetch } = useCognitoLandlords();
   const [updateManagerStatus] = useUpdateManagerStatusMutation();
   const [deleteManager] = useDeleteManagerMutation();
 
@@ -81,7 +81,8 @@ export default function LandlordsPage() {
       setSelectedManager(null);
       setNewStatus("");
       setNotes("");
-  // refetch(); // Not needed for Cognito API
+      // Refresh landlords list from Cognito
+      try { refetch?.(); } catch (e) { console.error('Failed to refetch landlords', e); }
     } catch (error) {
       console.error("Failed to update manager status:", error);
     }
@@ -105,7 +106,8 @@ export default function LandlordsPage() {
       await deleteManager((selectedManager.cognitoId ?? selectedManager.userId) as string).unwrap();
       setIsDeleteDialogOpen(false);
       setSelectedManager(null);
-  // refetch(); // Not needed for Cognito API
+      // Refresh landlords list from Cognito
+      try { refetch?.(); } catch (e) { console.error('Failed to refetch landlords', e); }
     } catch (error) {
       console.error("Failed to delete manager:", error);
     }
@@ -223,6 +225,20 @@ export default function LandlordsPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <Select value={newStatus} onValueChange={(val) => setNewStatus(val)}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Disabled">Disabled</SelectItem>
+                  <SelectItem value="Banned">Banned</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Notes (optional)</label>
               <Textarea
