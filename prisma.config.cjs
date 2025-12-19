@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 module.exports = {
-  migrate: {
+  datasource: {
     url: process.env.DATABASE_URL || ''
   }
 };
