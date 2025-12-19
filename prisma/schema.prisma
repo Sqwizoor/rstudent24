@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider   = "postgresql"
-  // Connection URL moved to `prisma.config.ts` for Prisma v7+ compatibility
+  // Connection URL moved to `prisma.config.cjs` for Prisma v7+ compatibility
 }
 
 

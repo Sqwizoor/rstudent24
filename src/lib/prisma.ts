@@ -16,17 +16,24 @@ const globalForPrisma = global as unknown as { prisma: typeof PrismaClient };
 const customLogger = process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'];
 
 // Build Prisma client options. For Prisma v7+, prefer passing an `adapter` or `accelerateUrl`.
-// We also keep a safe fallback so older Prisma runtimes still work.
+// Keep a safe fallback for older Prisma versions by also supplying `datasources` when available.
 const clientOptions: any = {
   log: customLogger,
 };
 
 if (process.env.DATABASE_URL) {
-  // Prefer `adapter` (direct DB connection) for Prisma v7+; many platforms also accept accelerateUrl
+  // Preferred v7+ shape
   clientOptions.adapter = {
-    // `type` is optional and depends on the adapter implementation; we include it for clarity
+    // Some adapters accept a `type` field; `url` is required
     type: 'postgresql',
     url: process.env.DATABASE_URL,
+  };
+
+  // Backward-compatible runtime override for older Prisma versions
+  clientOptions.datasources = {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
   };
 }
 
