@@ -1,16 +1,10 @@
-/**
- * Prisma configuration for migrations (Prisma v7+):
- * Move connection URL for Migrate here instead of schema.prisma.
- *
- * Note: Keep this file minimal. Migration tooling will read `migrate.url`.
- */
+// Use CommonJS export so Prisma can read the config without requiring TypeScript compilation
+// This avoids parse errors on build servers that do not transpile TypeScript files.
+require('dotenv').config();
 
-import 'dotenv/config';
-
-const config = {
+module.exports = {
   migrate: {
-    url: process.env.DATABASE_URL || '',
-  },
+    url: process.env.DATABASE_URL || ''
+  }
 };
 
-export default config;
