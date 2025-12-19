@@ -1,10 +1,5 @@
-// Use CommonJS export so Prisma can read the config without requiring TypeScript compilation
-// This avoids parse errors on build servers that do not transpile TypeScript files.
-require('dotenv').config();
-
-module.exports = {
-  migrate: {
-    url: process.env.DATABASE_URL || ''
-  }
-};
+// Delegate to the CJS config so build servers that can't parse TypeScript will still succeed.
+// Keeping this file minimal prevents Prisma from failing when it tries to parse .ts files on hosts
+// that don't transpile TypeScript.
+module.exports = require('./prisma.config.cjs');
 
