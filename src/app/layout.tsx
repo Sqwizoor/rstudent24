@@ -15,8 +15,6 @@ const barlow = Barlow({
 });
 import "@aws-amplify/ui-react/styles.css";
 import Providers from "./providers";
-import { useGetAuthUserQuery } from "@/state/api";
-import { useEffect, useState } from 'react';
 
 export const metadata: Metadata = {
   title: "Student24 - Your Best Student Housing Platform",
