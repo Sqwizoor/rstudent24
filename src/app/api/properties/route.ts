@@ -382,11 +382,12 @@ export async function GET(request: NextRequest) {
       FROM "Property" p
       JOIN "Location" l ON p."locationId" = l.id
       JOIN "Manager" m ON p."managerCognitoId" = m."cognitoId"
+      LEFT JOIN disabled_properties dp ON dp.property_id = p.id
       ${
-        // Always require the manager to be Active so properties from disabled/banned managers don't show
+        // Always require the manager to be Active and the property not to be present in disabled_properties so disabled properties don't show
         whereConditions.length > 0
-          ? Prisma.sql`WHERE m.status = 'Active'::"ManagerStatus" AND ${Prisma.join(whereConditions, ' AND ')}`
-          : Prisma.sql`WHERE m.status = 'Active'::"ManagerStatus"`
+          ? Prisma.sql`WHERE m.status = 'Active'::"ManagerStatus" AND ${Prisma.join(whereConditions, ' AND ')} AND dp.property_id IS NULL`
+          : Prisma.sql`WHERE m.status = 'Active'::"ManagerStatus" AND dp.property_id IS NULL`
       }
     `;
 

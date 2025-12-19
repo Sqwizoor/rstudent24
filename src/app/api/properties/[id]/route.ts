@@ -187,6 +187,29 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       console.error('Error checking manager status for property:', mgrErr);
     }
 
+    // Check if property has been disabled by an admin
+    try {
+      const disabled = await prisma.$queryRaw`SELECT 1 FROM disabled_properties WHERE property_id = ${id} LIMIT 1`;
+      if (disabled && (Array.isArray(disabled) ? disabled.length > 0 : true)) {
+        console.warn(`[API] GET /api/properties/${id} - Property is disabled, hiding property`);
+        return NextResponse.json({ message: "Property not found" }, { status: 404 });
+      }
+    } catch (dpErr) {
+      // If the table doesn't exist, ignore and continue
+      if ((dpErr as any)?.message?.includes('relation "disabled_properties" does not exist')) {
+        console.log('disabled_properties table not present; continuing');
+      } else {
+        console.error('Error checking disabled_properties table:', dpErr);
+      }
+    }
+      if (manager && manager.status !== 'Active') {
+        console.warn(`[API] GET /api/properties/${id} - Manager is not active, hiding property`);
+        return NextResponse.json({ message: "Property not found" }, { status: 404 });
+      }
+    } catch (mgrErr) {
+      console.error('Error checking manager status for property:', mgrErr);
+    }
+
     console.log(`[API] GET /api/properties/${id} - Property found, location: ${property.location?.id}`);
 
     // Handle case where location is null

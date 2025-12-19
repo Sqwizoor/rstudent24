@@ -15,17 +15,38 @@ const globalForPrisma = global as unknown as { prisma: typeof PrismaClient };
 // Create a custom logger when in development mode
 const customLogger = process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'];
 
-// Initialize Prisma with optimized settings for high traffic
+// Build Prisma client options. For Prisma v7+, prefer passing an `adapter` or `accelerateUrl`.
+// We also keep a safe fallback so older Prisma runtimes still work.
+const clientOptions: any = {
+  log: customLogger,
+};
+
+if (process.env.DATABASE_URL) {
+  // Prefer `adapter` (direct DB connection) for Prisma v7+; many platforms also accept accelerateUrl
+  clientOptions.adapter = {
+    // `type` is optional and depends on the adapter implementation; we include it for clarity
+    type: 'postgresql',
+    url: process.env.DATABASE_URL,
+  };
+}
+
+// Initialize Prisma client (cast to any to avoid type errors across Prisma versions)
 export const prisma =
   globalForPrisma.prisma ||
-  new PrismaClient({
-    log: customLogger,
-    datasources: process.env.DATABASE_URL ? {
-      db: {
-        url: process.env.DATABASE_URL
-      }
-    } : undefined
+  new PrismaClient(clientOptions as any);
+
+// Configure dynamic properties if needed (e.g., timeouts)
+if (!globalForPrisma.prisma && process.env.NODE_ENV === 'production') {
+  // For production, adjust connection timeouts
+  // Note: Modern Prisma versions handle connection pooling internally
+  // Since Prisma 5.0.0, beforeExit hook is not applicable to the library engine
+  // Use process.on('beforeExit') instead
+  process.on('beforeExit', () => {
+    console.log('Closing Prisma connections');
   });
+}
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 // Configure dynamic properties if needed (e.g., timeouts)
 if (!globalForPrisma.prisma && process.env.NODE_ENV === 'production') {

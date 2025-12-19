@@ -25,17 +25,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Property not found' }, { status: 404 });
     }
 
-    // Delete dependent records in a transaction
-    const propIds = [id];
-    await prisma.$transaction([
-      prisma.review.deleteMany({ where: { propertyId: { in: propIds } } }),
-      prisma.application.deleteMany({ where: { propertyId: { in: propIds } } }),
-      prisma.lease.deleteMany({ where: { propertyId: { in: propIds } } }),
-      prisma.room.deleteMany({ where: { propertyId: { in: propIds } } }),
-      prisma.property.deleteMany({ where: { id: { in: propIds } } }),
-    ]);
+    // Ensure disabled_properties table exists (non-destructive, used to track disabled properties without a schema migration)
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS disabled_properties (
+        property_id INTEGER PRIMARY KEY,
+        disabled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        disabled_by TEXT
+      )
+    `);
 
-    return NextResponse.json({ message: 'Property deleted', id });
+    // Record the disabled property (upsert)
+    const adminId = authResult.userId || 'unknown';
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO disabled_properties (property_id, disabled_at, disabled_by)
+       VALUES (${id}, NOW(), ${adminId})
+       ON CONFLICT (property_id) DO UPDATE SET disabled_at = NOW(), disabled_by = EXCLUDED.disabled_by`
+    );
+
+    return NextResponse.json({ message: 'Property disabled', id });
   } catch (error: any) {
     console.error('Error deleting property (admin):', error);
     return NextResponse.json({ message: error?.message || 'Error deleting property' }, { status: 500 });

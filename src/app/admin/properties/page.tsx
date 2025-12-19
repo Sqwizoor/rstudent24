@@ -457,9 +457,9 @@ export default function AdminPropertiesPage() {
                               const res = await fetch(`/api/admin/properties/delete?id=${property.id}`, { method: 'POST' });
                               if (!res.ok) {
                                 const txt = await res.text();
-                                throw new Error(txt || 'Failed to block property');
+                                throw new Error(txt || 'Failed to disable property');
                               }
-                              toast.success('Property blocked/deleted successfully');
+                              toast.success('Property disabled successfully');
                               router.refresh();
                             } catch (err: any) {
                               console.error('Failed to block property', err);
