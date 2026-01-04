@@ -1,1 +1,1 @@
-export * from "./default"
+export * from '.prisma/client/edge'
