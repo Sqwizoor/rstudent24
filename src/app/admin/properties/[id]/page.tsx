@@ -47,7 +47,7 @@ export default function AdminPropertyDetails() {
     try {
       const res = await fetch(`/api/admin/properties/delete?id=${id}`, { method: 'POST' });
       if (!res.ok) throw new Error(await res.text());
-      toast.success('Property disabled');
+      toast.success('Property blocked');
       // Refresh and navigate back to list
       router.push('/admin/properties');
     } catch (err: any) {

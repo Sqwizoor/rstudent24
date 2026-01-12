@@ -285,9 +285,7 @@ export default function AdminLogin() {
         )}
         <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
           <p>This page is for authorized administrators only.</p>
-          <p className="mt-2">
-            Need an admin account? <a href="/admin-signup" className="text-blue-600 hover:underline">Register here</a>
-          </p>
+
           <div className="mt-4 flex justify-center">
             <picture>
               <source srcSet="/student24-logo.avif" type="image/avif" />

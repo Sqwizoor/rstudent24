@@ -38,7 +38,7 @@ export default function AdminLayout({
 
   useEffect(() => {
     // Store the current path in case we need to redirect back after login
-    if (pathname !== '/admin-login' && pathname !== '/admin-signup') {
+    if (pathname !== '/admin-login') {
       localStorage.setItem('adminIntendedPath', pathname);
     }
     
@@ -75,7 +75,7 @@ export default function AdminLayout({
       if (!isAdminAuthenticated) {
         console.log('No admin authentication in localStorage, redirecting to login');
         // Only redirect to login if we're not already on the login or signup page
-        if (pathname !== '/admin-login' && pathname !== '/admin-signup') {
+        if (pathname !== '/admin-login') {
           router.replace("/admin-login");
         }
       } else {

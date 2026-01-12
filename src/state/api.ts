@@ -1373,6 +1373,22 @@ export const api = createApi({
       },
     }),
 
+    getAdminProperties: build.query<Property[], void>({
+      query: () => ({
+        url: `admin/properties`,
+        method: "GET",
+      }),
+      providesTags: (result) =>
+        result
+          ? [...result.map(({ id }) => ({ type: "Properties" as const, id })), { type: "Properties", id: "LIST" }]
+          : [{ type: "Properties", id: "LIST" }],
+      async onQueryStarted(_, { queryFulfilled }) {
+        await withToast(queryFulfilled, {
+          error: "Failed to fetch properties.",
+        });
+      },
+    }),
+
     updateManagerStatus: build.mutation<Manager, { cognitoId: string; status: string; notes?: string }>({
       query: ({ cognitoId, status, notes }) => {
         // Build query string with parameters
@@ -1722,4 +1738,5 @@ export const {
   useCreateReviewMutation,
   useUpdateReviewMutation,
   useDeleteReviewMutation,
+  useGetAdminPropertiesQuery,
 } = api;

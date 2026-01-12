@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useGetAuthUserQuery, useGetPropertiesQuery } from "@/state/api";
+import { useGetAuthUserQuery, useGetAdminPropertiesQuery } from "@/state/api";
 import { configureAdminAuth } from "../adminAuth";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { Button } from "@/components/ui/button";
@@ -73,7 +73,7 @@ export default function AdminPropertiesPage() {
     skip: !authInitialized
   });
   
-  const { data: rawProperties, isLoading: propertiesLoading, error } = useGetPropertiesQuery({}, {
+  const { data: rawProperties, isLoading: propertiesLoading, error } = useGetAdminPropertiesQuery(undefined, {
     skip: !authInitialized || !authUser
   });
   
@@ -117,6 +117,7 @@ export default function AdminPropertiesPage() {
       cognitoId: string;
     };
     status: string;
+    isDisabled?: boolean;
   }
 
   // Transform properties to ensure consistent structure with location and manager objects
@@ -146,7 +147,8 @@ export default function AdminPropertiesPage() {
           cognitoId: typedProperty.managerCognitoId || ''
         },
         // Add status field if missing
-        status: typedProperty.status || 'available'
+        status: typedProperty.status || 'available',
+        isDisabled: typedProperty.isDisabled === true
       };
       
       return enhancedProperty;
@@ -439,10 +441,17 @@ export default function AdminPropertiesPage() {
                     </TableCell>
                     <TableCell>
                       <Badge 
-                        variant={property.status === "available" ? "default" : 
-                               property.status === "rented" ? "secondary" : "outline"}
+                        variant={
+                          property.isDisabled
+                            ? "destructive"
+                            : property.status === "available"
+                              ? "default"
+                              : property.status === "rented"
+                                ? "secondary"
+                                : "outline"
+                        }
                       >
-                        {property.status || "Available"}
+                        {property.isDisabled ? "Blocked" : (property.status || "Available")}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -459,7 +468,7 @@ export default function AdminPropertiesPage() {
                                 const txt = await res.text();
                                 throw new Error(txt || 'Failed to disable property');
                               }
-                              toast.success('Property disabled successfully');
+                              toast.success('Property blocked successfully');
                               router.refresh();
                             } catch (err: any) {
                               console.error('Failed to block property', err);

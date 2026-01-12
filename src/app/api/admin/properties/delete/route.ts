@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: 'Property disabled', id });
   } catch (error: any) {
-    console.error('Error deleting property (admin):', error);
-    return NextResponse.json({ message: error?.message || 'Error deleting property' }, { status: 500 });
+    console.error('Error disabling property (admin):', error);
+    return NextResponse.json({ message: error?.message || 'Error disabling property' }, { status: 500 });
   }
 }
