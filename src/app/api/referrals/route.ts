@@ -69,10 +69,10 @@ export async function GET(request: NextRequest) {
 
     const stats = {
       totalReferrals: referrals.length,
-      completedReferrals: referrals.filter((r) => r.isCompleted).length,
-      pendingReferrals: referrals.filter((r) => !r.isCompleted).length,
+      completedReferrals: referrals.filter((r: { isCompleted: boolean }) => r.isCompleted).length,
+      pendingReferrals: referrals.filter((r: { isCompleted: boolean }) => !r.isCompleted).length,
       totalVouchers: vouchers.length,
-      activeVouchers: vouchers.filter((v) => v.status === "Active").length,
+      activeVouchers: vouchers.filter((v: { status: string }) => v.status === "Active").length,
     };
 
     return NextResponse.json({
