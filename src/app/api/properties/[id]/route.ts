@@ -203,13 +203,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         console.error('Error checking disabled_properties table:', dpErr);
       }
     }
-      if (manager && manager.status !== 'Active') {
-        console.warn(`[API] GET /api/properties/${id} - Manager is not active, hiding property`);
-        return NextResponse.json({ message: "Property not found" }, { status: 404 });
-      }
-    } catch (mgrErr) {
-      console.error('Error checking manager status for property:', mgrErr);
-    }
 
     console.log(`[API] GET /api/properties/${id} - Property found, location: ${property.location?.id}`);
 
