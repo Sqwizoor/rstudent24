@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { wktToGeoJSON } from '@terraformer/wkt';
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
@@ -743,56 +744,28 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       }
     }
 
-    // Delete photos from S3
-    if (existingProperty.photoUrls && existingProperty.photoUrls.length > 0) {
-      try {
-        await Promise.all(existingProperty.photoUrls.map((url: string) => deleteFileFromS3(url)));
-        console.log('Successfully deleted property photos');
-      } catch (deleteError) {
-        console.error('Error deleting property photos:', deleteError);
-        // Continue with the deletion even if photo deletion fails
-      }
-    }
+    // Ensure disabled_properties table exists so we can hide the property without deleting data
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS disabled_properties (
+        property_id INTEGER PRIMARY KEY,
+        disabled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        disabled_by TEXT
+      )
+    `);
 
-    // Delete related records first to avoid foreign key constraint errors
-    // Delete all applications related to this property
-    await prisma.application.deleteMany({
-      where: { propertyId: id },
-    });
+    const actingUserId = authResult.userId || authResult.userRole || 'unknown';
 
-    // Delete all leases related to this property
-    await prisma.lease.deleteMany({
-      where: { propertyId: id },
-    });
+    // Record disable action instead of deleting any property data
+    await prisma.$executeRaw(
+      Prisma.sql`INSERT INTO disabled_properties (property_id, disabled_at, disabled_by)
+                  VALUES (${id}, NOW(), ${actingUserId})
+                  ON CONFLICT (property_id) DO UPDATE SET disabled_at = NOW(), disabled_by = EXCLUDED.disabled_by`
+    );
 
-    // Delete all payments related to this property's leases
-    await prisma.payment.deleteMany({
-      where: {
-        lease: {
-          propertyId: id
-        }
-      }
-    });
-
-    // Delete all rooms related to this property
-    await prisma.room.deleteMany({
-      where: { propertyId: id },
-    });
-
-    // Delete property
-    await prisma.property.delete({
-      where: { id },
-    });
-
-    // Delete location
-    await prisma.location.delete({
-      where: { id: existingProperty.location.id },
-    });
-
-    // ✅ Invalidate cache after deletion
+    // ✅ Invalidate cache after disabling the property
     queryCache.invalidateAll();
 
-    return NextResponse.json({ message: "Property deleted successfully", id });
+    return NextResponse.json({ message: "Property disabled successfully", id });
   } catch (err: any) {
     console.error("Error deleting property:", err);
     return NextResponse.json(
