@@ -292,10 +292,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     console.error("Error retrieving property:", err);
-    return NextResponse.json(
-      { message: `Error retrieving property: ${errorMessage}` },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      message: `Error retrieving property: ${errorMessage}`,
+    }, { status: 500 });
   }
 }
 
