@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     if (properties.length > 0) {
       await Promise.all(
-        properties.map(({ id }) =>
+        properties.map(({ id }: { id: number }) =>
           prisma.$executeRaw(
             Prisma.sql`INSERT INTO disabled_properties (property_id, disabled_at, disabled_by)
                         VALUES (${id}, NOW(), ${actingUserId})
