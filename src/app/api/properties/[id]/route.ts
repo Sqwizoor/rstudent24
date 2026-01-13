@@ -274,7 +274,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           'Content-Type': 'application/json',
         },
       });
-    } catch (coordError: any) {
+    } catch (coordError) {
+      const coordMessage = coordError instanceof Error ? coordError.message : String(coordError);
       console.error(`[API] GET /api/properties/${id} - Error fetching coordinates:`, coordError);
       
       // ✅ Step 4: Store in cache for 1 hour (without coordinates)
@@ -288,10 +289,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         },
       });
     }
-  } catch (err: any) {
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
     console.error("Error retrieving property:", err);
     return NextResponse.json(
-      { message: `Error retrieving property: ${err.message}` },
+      { message: `Error retrieving property: ${errorMessage}` },
       { status: 500 }
     );
   }
