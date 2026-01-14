@@ -182,7 +182,7 @@ export async function GET(
 
       for (const lease of leases) {
         if (lease.rent) {
-          totalRent += parseFloat(lease.rent.replace(/[^0-9.]/g, ''));
+          totalRent += lease.rent;
           rentCount++;
         }
       }
