@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
+import { ManagerStatus } from '@prisma/client';
 
 // GET handler for updating manager status (admin only)
 // Using GET with URL parameters to avoid body parsing issues in Next.js
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
     const updatedManager = await prisma.manager.update({
       where: { cognitoId },
       data: {
-        status,
+        status: status as ManagerStatus,
         // If status is Active and manager wasn't previously Active, set approvedAt
         ...(status === 'Active' && existingManager.status !== 'Active' ? { approvedAt: new Date() } : {}),
         // We ignore notes since there's no notes field in the Manager schema
