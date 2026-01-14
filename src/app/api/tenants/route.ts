@@ -35,11 +35,8 @@ export async function GET(request: NextRequest) {
         id: true,
         cognitoId: true,
         email: true,
-        firstName: true,
-        lastName: true,
+        name: true,
         phoneNumber: true,
-        createdAt: true,
-        updatedAt: true,
       },
     });
     
