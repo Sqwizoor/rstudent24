@@ -79,7 +79,7 @@ export async function GET(
 
     // Fetch properties managed by this landlord
     const properties = await prisma.property.findMany({
-      where: { managerCognitoId: managerId },
+      where: { managerCognitoId: manager.cognitoId },
       select: {
         id: true,
         name: true,
