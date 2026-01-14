@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Fetch all payments for the lease
     const payments = await prisma.payment.findMany({
       where: { leaseId },
-      orderBy: { date: 'desc' },
+      orderBy: { paymentDate: 'desc' },
     });
 
     return NextResponse.json(payments);
