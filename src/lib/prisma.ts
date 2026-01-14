@@ -1,11 +1,13 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 // PrismaClient is attached to the `global` object in development to prevent
 // exhausting your database connection limit.
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 // Create a custom logger when in development mode
-const customLogger = process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] as const : ['error'] as const;
+const customLogger: Prisma.LogLevel[] = process.env.NODE_ENV === 'development' 
+  ? ['query', 'error', 'warn'] 
+  : ['error'];
 
 // Initialize Prisma client
 // In Prisma v7+, DATABASE_URL is read automatically from environment variables
