@@ -187,14 +187,15 @@ export async function POST(request: NextRequest) {
     
     if (authResult.provider === 'google') {
       // For Google auth, use the email as the tenant ID, or get it from the body
-      tenantCognitoId = body.tenantCognitoId || authResult.userId || '';
+      const searchId = body.tenantCognitoId || authResult.userId || '';
+      tenantCognitoId = searchId;
       
       // For Google auth, try to find tenant by cognitoId (which might be email) or email field
       tenant = await prisma.tenant.findFirst({
         where: {
           OR: [
-            { cognitoId: tenantCognitoId },
-            { email: tenantCognitoId },
+            { cognitoId: searchId },
+            { email: searchId },
             { email: authResult.userId }
           ]
         }
