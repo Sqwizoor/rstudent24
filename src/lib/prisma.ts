@@ -1,4 +1,6 @@
 import { PrismaClient, Prisma } from '@prisma/client';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 // PrismaClient is attached to the `global` object in development to prevent
 // exhausting your database connection limit.
@@ -9,16 +11,19 @@ const customLogger: Prisma.LogLevel[] = process.env.NODE_ENV === 'development'
   ? ['query', 'error', 'warn'] 
   : ['error'];
 
-// Initialize Prisma client
-// In Prisma v7+, DATABASE_URL is read automatically from environment variables
+// Initialize Prisma client with Driver Adapter
+const connectionString = process.env.DATABASE_URL;
+
+// Initialize the pool
+const pool = new Pool({ connectionString });
+
+// Initialize the adapter
+const adapter = new PrismaPg(pool);
+
 export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
+    adapter,
     log: customLogger,
   });
 
