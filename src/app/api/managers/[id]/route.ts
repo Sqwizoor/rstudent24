@@ -76,11 +76,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       where: { cognitoId: id },
       data: {
         email: body.email || existingManager.email,
-        firstName: body.firstName || existingManager.firstName,
-        lastName: body.lastName || existingManager.lastName,
-        phone: body.phone || existingManager.phone,
-        companyName: body.companyName || existingManager.companyName,
-        // Add any other fields that can be updated
+        name: body.name || (body.firstName && body.lastName ? `${body.firstName} ${body.lastName}` : existingManager.name),
+        phoneNumber: body.phoneNumber || body.phone || existingManager.phoneNumber,
+        // companyName is not in the schema, so we ignore it
       },
     });
 
