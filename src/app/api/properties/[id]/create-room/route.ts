@@ -285,7 +285,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           securityDeposit: roomData.securityDeposit || 0,
           topUp: roomData.topUp ?? 0,
           squareFeet: roomData.squareFeet || 0,
-          roomType: roomData.roomType || 'PRIVATE',
+          roomType: (roomData.roomType as RoomType) || RoomType.PRIVATE) || RoomType.PRIVATE,
           capacity: roomData.capacity || 1,
           isAvailable: roomData.isAvailable === false ? false : true,
           propertyId: propertyId,
