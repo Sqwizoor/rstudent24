@@ -4,6 +4,19 @@ import { Prisma } from '@prisma/client';
 import { verifyAuth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+  // Ensure disabled_properties table exists before querying
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS disabled_properties (
+        property_id INTEGER PRIMARY KEY,
+        disabled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        disabled_by TEXT
+      )
+    `);
+  } catch (tableErr) {
+    console.warn('Warning: Could not verify disabled_properties table:', tableErr);
+  }
+
   try {
     const authResult = await verifyAuth(request, ['admin']);
     if (!authResult.isAuthenticated) {
