@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
+import { ManagerStatus } from '@prisma/client';
 
 // PUT handler for updating manager status (admin only)
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -84,7 +85,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       const updatedManager = await prisma.manager.update({
         where: { cognitoId: id },
         data: {
-          status,
+          status: status as ManagerStatus,
           // If status is Active and manager wasn't previously Active, set approvedAt
           ...(status === 'Active' && existingManager.status !== 'Active' ? { approvedAt: new Date() } : {}),
           // Store notes if provided
