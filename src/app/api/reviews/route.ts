@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       where: {
         propertyId_tenantCognitoId: {
           propertyId: parseInt(propertyId),
-          tenantCognitoId: authResult.userId,
+          tenantCognitoId: authResult.userId!,
         },
       },
     });
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
     const review = await prisma.review.create({
       data: {
         propertyId: parseInt(propertyId),
-        tenantCognitoId: authResult.userId,
+        tenantCognitoId: authResult.userId!,
         tenantName: tenant.name,
         rating: parseInt(rating),
         comment: comment || null,
