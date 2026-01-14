@@ -5,8 +5,7 @@ import { verifyAuth } from "@/lib/auth";
 // Define types for property and related entities
 type Tenant = {
   id: number;
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
 };
 
@@ -41,8 +40,7 @@ type PrismaProperty = {
     id: number;
     tenant: {
       id: number;
-      firstName: string;
-      lastName: string;
+      name: string;
       email: string;
     } | null;
   }[];
@@ -97,8 +95,7 @@ export async function GET(
             tenant: {
               select: {
                 id: true,
-                firstName: true,
-                lastName: true,
+                name: true,
                 email: true,
               },
             },
@@ -148,7 +145,7 @@ export async function GET(
         if (hasTenant) {
           tenantsWithProperties.push({
             id: tenant.id,
-            name: `${tenant.firstName} ${tenant.lastName}`,
+            name: tenant.name,
             email: tenant.email,
             propertyName: property.name
           });
