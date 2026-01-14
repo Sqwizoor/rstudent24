@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { verifyAuth } from "@/lib/auth";
-
-const prisma = new PrismaClient();
 
 // GET - Get user's vouchers
 export async function GET(request: NextRequest) {
