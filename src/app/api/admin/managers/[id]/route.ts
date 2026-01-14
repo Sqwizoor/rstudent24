@@ -32,9 +32,11 @@ type Property = {
 type PrismaProperty = {
   id: number;
   name: string;
-  address: string;
-  city: string;
-  state: string;
+  location: {
+    address: string;
+    city: string;
+    state: string;
+  };
   rooms: { id: number }[];
   leases: {
     id: number;
@@ -81,9 +83,13 @@ export async function GET(
       select: {
         id: true,
         name: true,
-        address: true,
-        city: true,
-        state: true,
+        location: {
+          select: {
+            address: true,
+            city: true,
+            state: true,
+          }
+        },
         rooms: {
           select: {
             id: true,
@@ -117,7 +123,7 @@ export async function GET(
       return {
         id: property.id,
         name: property.name,
-        address: `${property.address}, ${property.city}, ${property.state}`,
+        address: `${property.location.address}, ${property.location.city}, ${property.location.state}`,
         tenantCount: tenantSet.size,
         roomCount: property.rooms.length
       };
