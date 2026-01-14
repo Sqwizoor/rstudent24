@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { S3Client } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
+import { RoomType } from '@prisma/client';
 
 // Export route configuration for file upload limits
 export const maxDuration = 60; // Maximum execution time in seconds
