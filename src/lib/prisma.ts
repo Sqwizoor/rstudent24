@@ -14,6 +14,11 @@ const customLogger: Prisma.LogLevel[] = process.env.NODE_ENV === 'development'
 export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
     log: customLogger,
   });
 
