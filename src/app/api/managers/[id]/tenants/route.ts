@@ -30,8 +30,8 @@ interface Tenant {
 interface Application {
   id: number;
   status: string;
-  tenant: Tenant;
-  property: Property;
+  tenant?: Tenant;
+  property?: Property;
 }
 
 // GET handler for tenants associated with a manager's properties
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Extract unique tenants from applications
     const tenantMap = new Map();
     
-    applications.forEach((app: Application) => {
+    applications.forEach((app: any) => {
       if (app.tenant && app.property) {
         const tenant = app.tenant;
         const property = app.property;
