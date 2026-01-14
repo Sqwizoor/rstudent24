@@ -210,11 +210,12 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // For Cognito auth, use the standard tenantCognitoId from body
-      tenantCognitoId = body.tenantCognitoId || '';
+      const searchId = body.tenantCognitoId || '';
+      tenantCognitoId = searchId;
       
       // For Cognito auth, use standard lookup
       tenant = await prisma.tenant.findUnique({
-        where: { cognitoId: tenantCognitoId }
+        where: { cognitoId: searchId }
       });
       
       // If authenticated but tenant not found, log warning but allow submission
