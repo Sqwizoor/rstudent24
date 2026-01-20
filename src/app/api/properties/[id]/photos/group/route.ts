@@ -16,14 +16,15 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 // Adjusted signature: loosen context typing to satisfy Next.js route validation
-export async function POST(request: NextRequest, context: any) {
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const contentLength = request.headers.get('content-length');
     if (contentLength && parseInt(contentLength) > MAX_TOTAL_BYTES) {
       return NextResponse.json({ message: 'Grouped payload too large', maxTotalBytes: MAX_TOTAL_BYTES }, { status: 413 });
     }
 
-  const { id } = context?.params || {};
+    // Await params (Next.js 15+ uses Promise-based params)
+    const { id } = await context.params;
     const propertyId = parseInt(id);
     if (isNaN(propertyId)) {
       return NextResponse.json({ message: 'Invalid property id' }, { status: 400 });
