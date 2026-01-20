@@ -25,6 +25,10 @@ const s3Client = new S3Client({
 // Enhanced upload function with better error handling
 async function uploadFileToS3(file: Buffer, originalName: string, mimeType: string): Promise<string> {
   // Validate S3 configuration
+  if (!process.env.S24_AWS_ACCESS_KEY_ID || !process.env.S24_AWS_SECRET_ACCESS_KEY) {
+    throw new Error("S3 credentials (S24_AWS_ACCESS_KEY_ID, S24_AWS_SECRET_ACCESS_KEY) are not configured in environment variables");
+  }
+
   if (!process.env.S24_AWS_BUCKET_NAME) {
     throw new Error("S24_AWS_BUCKET_NAME is not configured in environment variables");
   }

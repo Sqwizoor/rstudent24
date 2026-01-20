@@ -23,6 +23,14 @@ const s3Client = new S3Client({
 
 // Helper function to upload file to S3
 async function uploadFileToS3(file: Buffer, originalName: string, mimeType: string): Promise<string> {
+  // Validate S3 configuration
+  if (!process.env.S24_AWS_ACCESS_KEY_ID || !process.env.S24_AWS_SECRET_ACCESS_KEY) {
+    throw new Error('S3 credentials (S24_AWS_ACCESS_KEY_ID, S24_AWS_SECRET_ACCESS_KEY) are not configured in environment variables');
+  }
+  if (!process.env.S24_AWS_BUCKET_NAME) {
+    throw new Error('S24_AWS_BUCKET_NAME is not configured in environment variables');
+  }
+
   // Clean up the filename
   const cleanFileName = originalName.replace(/[^a-zA-Z0-9.-]/g, '-').toLowerCase();
   
@@ -36,7 +44,7 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
     const upload = new Upload({
       client: s3Client,
       params: {
-  Bucket: process.env.S24_AWS_BUCKET_NAME || 'realstatee',
+        Bucket: process.env.S24_AWS_BUCKET_NAME,
         Key: fileName,
         Body: file,
         ContentType: mimeType,
@@ -47,10 +55,8 @@ async function uploadFileToS3(file: Buffer, originalName: string, mimeType: stri
     await upload.done();
     console.log('Successfully uploaded file:', fileName);
     
-  // ACL not set: rely on bucket policy / ownership settings
-    
     // Generate the URL
-  const fileUrl = `https://${process.env.S24_AWS_BUCKET_NAME || 'realstatee'}.s3.${process.env.S24_AWS_REGION || 'eu-north-1'}.amazonaws.com/${fileName}`;
+    const fileUrl = `https://${process.env.S24_AWS_BUCKET_NAME}.s3.${process.env.S24_AWS_REGION || 'eu-north-1'}.amazonaws.com/${fileName}`;
     console.log('Generated file URL:', fileUrl);
     
     return fileUrl;
