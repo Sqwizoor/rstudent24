@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { S3Client } from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
 import { RoomType } from '@prisma/client';
+import { uploadFileToS3 } from '@/lib/s3';
 
 // Export route configuration for file upload limits
 export const maxDuration = 60; // Maximum execution time in seconds
@@ -11,60 +10,6 @@ export const dynamic = 'force-dynamic'; // Disable static optimization for this 
 // File size limits
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB per file
 const MAX_TOTAL_SIZE = 20 * 1024 * 1024; // 20MB total
-
-// S3 configuration
-const s3Client = new S3Client({
-  region: process.env.S24_AWS_REGION || 'eu-north-1',
-  credentials: {
-    accessKeyId: process.env.S24_AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.S24_AWS_SECRET_ACCESS_KEY || ''
-  }
-});
-
-// Helper function to upload file to S3
-async function uploadFileToS3(file: Buffer, originalName: string, mimeType: string): Promise<string> {
-  // Validate S3 configuration
-  if (!process.env.S24_AWS_ACCESS_KEY_ID || !process.env.S24_AWS_SECRET_ACCESS_KEY) {
-    throw new Error('S3 credentials (S24_AWS_ACCESS_KEY_ID, S24_AWS_SECRET_ACCESS_KEY) are not configured in environment variables');
-  }
-  if (!process.env.S24_AWS_BUCKET_NAME) {
-    throw new Error('S24_AWS_BUCKET_NAME is not configured in environment variables');
-  }
-
-  // Clean up the filename
-  const cleanFileName = originalName.replace(/[^a-zA-Z0-9.-]/g, '-').toLowerCase();
-  
-  // Create a unique filename with timestamp to prevent overwriting
-  const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 1000000000);
-  const fileName = `rooms/${timestamp}-${random}-${cleanFileName}`;
-  
-  try {
-    // Upload to S3
-    const upload = new Upload({
-      client: s3Client,
-      params: {
-        Bucket: process.env.S24_AWS_BUCKET_NAME,
-        Key: fileName,
-        Body: file,
-        ContentType: mimeType,
-      },
-    });
-
-    // Wait for upload to complete
-    await upload.done();
-    console.log('Successfully uploaded file:', fileName);
-    
-    // Generate the URL
-    const fileUrl = `https://${process.env.S24_AWS_BUCKET_NAME}.s3.${process.env.S24_AWS_REGION || 'eu-north-1'}.amazonaws.com/${fileName}`;
-    console.log('Generated file URL:', fileUrl);
-    
-    return fileUrl;
-  } catch (error) {
-    console.error('Error uploading to S3:', error);
-    throw error;
-  }
-}
 
 // Define interface for room data
 interface RoomData {

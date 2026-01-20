@@ -1,41 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { verifyAuth } from '@/lib/auth';
-
-// Configure S3 client with credentials
-const s3Client = new S3Client({
-  region: process.env.S24_AWS_REGION || 'eu-north-1',
-  credentials: {
-    accessKeyId: process.env.S24_AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.S24_AWS_SECRET_ACCESS_KEY!,
-  },
-});
-
-// Helper function to delete a file from S3
-async function deleteFileFromS3(fileUrl: string): Promise<void> {
-  // Validate S3 configuration
-  if (!process.env.S24_AWS_BUCKET_NAME) {
-    throw new Error("S24_AWS_BUCKET_NAME is not configured in environment variables");
-  }
-
-  try {
-    // Extract the key from the URL
-    const urlPath = new URL(fileUrl).pathname;
-    const key = urlPath.startsWith('/') ? urlPath.substring(1) : urlPath;
-
-    const deleteParams = {
-  Bucket: process.env.S24_AWS_BUCKET_NAME,
-      Key: key,
-    };
-
-    await s3Client.send(new DeleteObjectCommand(deleteParams));
-    console.log(`Successfully deleted file from S3: ${key}`);
-  } catch (error) {
-    console.error('Error deleting file from S3:', error);
-    throw new Error(`Failed to delete file from S3: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
+import { deleteFileFromS3 } from '@/lib/s3';
 
 // DELETE handler for removing a photo from a property
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

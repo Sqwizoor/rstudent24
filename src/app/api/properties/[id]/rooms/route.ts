@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { S3Client } from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
+import { uploadFileToS3 } from '@/lib/s3';
 
 // GET handler for retrieving all rooms for a property
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -127,45 +126,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
               console.log(`Received ${photoFiles.length} photo files for upload`);
               
               try {
-                // Configure S3 client with credentials
-                const s3Client = new S3Client({
-                  region: process.env.S24_AWS_REGION || 'eu-north-1',
-                  credentials: {
-                    accessKeyId: process.env.S24_AWS_ACCESS_KEY_ID!,
-                    secretAccessKey: process.env.S24_AWS_SECRET_ACCESS_KEY!,
-                  },
-                });
-                
                 // Upload each photo to S3 and collect URLs
                 const photoUrls = [];
                 
                 for (const fileEntry of photoFiles) {
                   if (fileEntry instanceof File) {
-                    // Create a unique file name based on timestamp and original name
-                    const timestamp = Date.now();
-                    const fileName = fileEntry.name.replace(/\s+/g, '-').toLowerCase();
-                    const uniqueFileName = `rooms/${timestamp}-${fileName}`;
-                    
                     // Convert file to buffer
                     const arrayBuffer = await fileEntry.arrayBuffer();
                     const buffer = Buffer.from(arrayBuffer);
                     
-                    // Upload to S3
-                    const uploadResult = await new Upload({
-                      client: s3Client,
-                      params: {
-                        Bucket: process.env.S24_AWS_BUCKET_NAME!,
-                        Key: uniqueFileName,
-                        Body: buffer,
-                        ContentType: fileEntry.type,
-                        CacheControl: 'max-age=31536000',
-                      },
-                    }).done();
-                    
-                    if (uploadResult.Location) {
-                      photoUrls.push(uploadResult.Location);
-                      console.log(`Uploaded room photo to: ${uploadResult.Location}`);
-                    }
+                    // Upload using shared S3 utility
+                    const photoUrl = await uploadFileToS3(buffer, fileEntry.name, fileEntry.type, 'rooms');
+                    photoUrls.push(photoUrl);
+                    console.log(`Uploaded room photo to: ${photoUrl}`);
                   }
                 }
                 

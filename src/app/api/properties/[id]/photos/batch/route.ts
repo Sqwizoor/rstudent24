@@ -1,64 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { S3Client } from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
-
-// Configure S3 client with credentials
-const s3Client = new S3Client({
-  region: process.env.S24_AWS_REGION || 'eu-north-1',
-  credentials: {
-    accessKeyId: process.env.S24_AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.S24_AWS_SECRET_ACCESS_KEY!,
-  },
-});
-
-// Upload function for single file
-async function uploadFileToS3(file: Buffer, originalName: string, mimeType: string): Promise<string> {
-  // Validate S3 configuration
-  if (!process.env.S24_AWS_BUCKET_NAME) {
-    throw new Error("S24_AWS_BUCKET_NAME is not configured in environment variables");
-  }
-
-  if (!process.env.S24_AWS_REGION) {
-    throw new Error("S24_AWS_REGION is not configured in environment variables");
-  }
-
-  // Create a unique file name
-  const uniquePrefix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-  const safeFileName = originalName.replace(/[^a-zA-Z0-9.-]/g, '');
-  const key = `properties/${uniquePrefix}-${safeFileName}`;
-  
-  const params = {
-  Bucket: process.env.S24_AWS_BUCKET_NAME,
-    Key: key,
-    Body: file,
-    ContentType: mimeType,
-    CacheControl: 'public, max-age=86400',
-  };
-
-  try {
-    console.log(`Starting S3 upload for file: ${params.Key}`);
-    
-    // Use the Upload utility for better handling of large files
-    const upload = new Upload({
-      client: s3Client,
-      params: params,
-    });
-
-    const result = await upload.done();
-    console.log(`Successfully uploaded file: ${params.Key}`);
-    // ACL removed; bucket policy or proxy must handle public access
-
-    // Construct URL in a consistent way
-  const fileUrl = `https://${process.env.S24_AWS_BUCKET_NAME}.s3.${process.env.S24_AWS_REGION}.amazonaws.com/${key}`;
-    console.log(`Generated file URL: ${fileUrl}`);
-    
-    return fileUrl;
-  } catch (error) {
-    console.error('Error uploading to S3:', error);
-    throw new Error(`Failed to upload file to S3: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
+import { uploadFileToS3 } from '@/lib/s3';
 
 // POST handler for batch uploading photos to a property with featured image support
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

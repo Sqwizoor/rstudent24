@@ -2,99 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { wktToGeoJSON } from '@terraformer/wkt';
-import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
 import { verifyAuth } from '@/lib/auth';
 import { queryCache } from '@/lib/queryCache';
+import { uploadFileToS3, deleteFileFromS3 } from '@/lib/s3';
 
 // ✅ ISR: Cache responses for 1 hour
 export const revalidate = 3600;
 
 // Using the shared Prisma client instance from @/lib/prisma
-
-// Configure S3 client with credentials
-const s3Client = new S3Client({
-  region: process.env.S24_AWS_REGION || 'eu-north-1',
-  credentials: {
-    accessKeyId: process.env.S24_AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.S24_AWS_SECRET_ACCESS_KEY!,
-  },
-});
-
-// Helper function to upload file to S3 (same as in the main properties route)
-async function uploadFileToS3(file: Buffer, originalName: string, mimeType: string): Promise<string> {
-  // Implementation same as in properties/route.ts
-  // Validate S3 configuration
-  if (!process.env.S24_AWS_BUCKET_NAME) {
-    throw new Error("S24_AWS_BUCKET_NAME is not configured in environment variables");
-  }
-
-  if (!process.env.S24_AWS_REGION) {
-    throw new Error("S24_AWS_REGION is not configured in environment variables");
-  }
-
-  // Create a more unique file name to prevent collisions
-  const uniquePrefix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-  const safeFileName = originalName.replace(/[^a-zA-Z0-9.-]/g, '');
-  const key = `properties/${uniquePrefix}-${safeFileName}`;
-  
-  const params = {
-  Bucket: process.env.S24_AWS_BUCKET_NAME,
-    Key: key,
-    Body: file,
-    ContentType: mimeType,
-    // No ACL: Bucket Owner Enforced. Public access handled via bucket policy or CDN.
-    CacheControl: 'public, max-age=86400',
-  };
-
-  try {
-    console.log(`Starting S3 upload for file: ${params.Key}`);
-    
-    // Use the Upload utility for better handling of large files
-    const upload = new Upload({
-      client: s3Client,
-      params: params,
-    });
-
-    const result = await upload.done();
-    console.log(`Successfully uploaded file: ${params.Key}`);
-
-    // Construct URL in a consistent way
-  const fileUrl = `https://${process.env.S24_AWS_BUCKET_NAME}.s3.${process.env.S24_AWS_REGION}.amazonaws.com/${key}`;
-    console.log(`Generated file URL: ${fileUrl}`);
-    
-    return fileUrl;
-  } catch (error) {
-    console.error('Error uploading to S3:', error);
-    throw new Error(`Failed to upload file to S3: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
-
-// Helper function to delete a file from S3
-async function deleteFileFromS3(fileUrl: string): Promise<void> {
-  // Implementation same as in properties/route.ts
-  // Validate S3 configuration
-  if (!process.env.S24_AWS_BUCKET_NAME) {
-    throw new Error("S24_AWS_BUCKET_NAME is not configured in environment variables");
-  }
-
-  try {
-    // Extract the key from the URL
-    const urlPath = new URL(fileUrl).pathname;
-    const key = urlPath.startsWith('/') ? urlPath.substring(1) : urlPath;
-
-    const deleteParams = {
-  Bucket: process.env.S24_AWS_BUCKET_NAME,
-      Key: key,
-    };
-
-    await s3Client.send(new DeleteObjectCommand(deleteParams));
-    console.log(`Successfully deleted file: ${key}`);
-  } catch (error) {
-    console.error('Error deleting from S3:', error);
-    throw new Error(`Failed to delete file from S3: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
 
 // Ensure this route uses the Node.js runtime (Edge has smaller limits)
 export const runtime = 'nodejs';
