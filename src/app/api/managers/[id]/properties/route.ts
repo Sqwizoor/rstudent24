@@ -20,6 +20,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (authResult.userRole !== 'admin' && authResult.userId !== id) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
+
+    // Ensure disabled_properties table exists before querying
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS disabled_properties (
+          property_id INTEGER PRIMARY KEY,
+          disabled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          disabled_by TEXT
+        )
+      `);
+    } catch (tableErr) {
+      console.warn('Warning: Could not verify disabled_properties table:', tableErr);
+    }
     
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
@@ -58,7 +71,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         ) as location
       FROM "Property" p
       JOIN "Location" l ON p."locationId" = l.id
-      ${whereConditions.length > 0 ? Prisma.sql`WHERE ${Prisma.join(whereConditions, ' AND ')}` : Prisma.empty}
+      LEFT JOIN disabled_properties dp ON p.id = dp.property_id
+      ${whereConditions.length > 0 
+        ? Prisma.sql`WHERE ${Prisma.join(whereConditions, ' AND ')} AND dp.property_id IS NULL` 
+        : Prisma.sql`WHERE dp.property_id IS NULL`}
       ORDER BY p.id DESC
     `;
 

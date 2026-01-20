@@ -33,10 +33,10 @@ const nextConfig = {
   // Add environment variables from .env files
   env: {
     // AWS Configuration
-    S24_AWS_REGION: process.env.S24_AWS_REGION,
-    S24_AWS_ACCESS_KEY_ID: process.env.S24_AWS_ACCESS_KEY_ID,
-    S24_AWS_SECRET_ACCESS_KEY: process.env.S24_AWS_SECRET_ACCESS_KEY,
-    S24_AWS_BUCKET_NAME: process.env.S24_AWS_BUCKET_NAME,
+    AWS_REGION: process.env.AWS_REGION,
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+    AWS_BUCKET_NAME: process.env.AWS_BUCKET_NAME,
     // Google Maps API Key
     GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
     // Cognito Configuration

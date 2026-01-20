@@ -14,20 +14,20 @@ export function getS3Client(): S3Client {
     return cachedS3Client;
   }
 
-  const accessKeyId = process.env.S24_AWS_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.S24_AWS_SECRET_ACCESS_KEY;
-  const region = process.env.S24_AWS_REGION || 'eu-north-1';
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+  const region = process.env.AWS_REGION || 'eu-north-1';
 
   console.log('[S3] Initializing client with:', {
     hasAccessKey: !!accessKeyId,
     hasSecretKey: !!secretAccessKey,
     region,
-    bucket: process.env.S24_AWS_BUCKET_NAME || 'NOT SET',
+    bucket: process.env.AWS_BUCKET_NAME || 'NOT SET',
   });
 
   if (!accessKeyId || !secretAccessKey) {
     throw new Error(
-      'S3 credentials (S24_AWS_ACCESS_KEY_ID, S24_AWS_SECRET_ACCESS_KEY) are not configured in environment variables'
+      'S3 credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) are not configured in environment variables'
     );
   }
 
@@ -52,11 +52,11 @@ export async function uploadFileToS3(
   prefix: string = 'properties'
 ): Promise<string> {
   // Validate S3 configuration
-  if (!process.env.S24_AWS_BUCKET_NAME) {
-    throw new Error('S24_AWS_BUCKET_NAME is not configured in environment variables');
+  if (!process.env.AWS_BUCKET_NAME) {
+    throw new Error('AWS_BUCKET_NAME is not configured in environment variables');
   }
 
-  const region = process.env.S24_AWS_REGION || 'eu-north-1';
+  const region = process.env.AWS_REGION || 'eu-north-1';
 
   // Get S3 client (lazy initialization)
   const s3Client = getS3Client();
@@ -67,7 +67,7 @@ export async function uploadFileToS3(
   const key = `${prefix}/${uniquePrefix}-${safeFileName}`;
 
   const params = {
-    Bucket: process.env.S24_AWS_BUCKET_NAME,
+    Bucket: process.env.AWS_BUCKET_NAME,
     Key: key,
     Body: file,
     ContentType: mimeType,
@@ -86,7 +86,7 @@ export async function uploadFileToS3(
     console.log(`[S3] Successfully uploaded file: ${params.Key}`);
 
     // Construct URL
-    const fileUrl = `https://${process.env.S24_AWS_BUCKET_NAME}.s3.${region}.amazonaws.com/${key}`;
+    const fileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${region}.amazonaws.com/${key}`;
     console.log(`[S3] Generated file URL: ${fileUrl}`);
 
     return fileUrl;
@@ -103,8 +103,8 @@ export async function uploadFileToS3(
  */
 export async function deleteFileFromS3(fileUrl: string): Promise<void> {
   // Validate S3 configuration
-  if (!process.env.S24_AWS_BUCKET_NAME) {
-    throw new Error('S24_AWS_BUCKET_NAME is not configured in environment variables');
+  if (!process.env.AWS_BUCKET_NAME) {
+    throw new Error('AWS_BUCKET_NAME is not configured in environment variables');
   }
 
   // Get S3 client (lazy initialization)
@@ -116,7 +116,7 @@ export async function deleteFileFromS3(fileUrl: string): Promise<void> {
     const key = urlPath.startsWith('/') ? urlPath.substring(1) : urlPath;
 
     const deleteParams = {
-      Bucket: process.env.S24_AWS_BUCKET_NAME,
+      Bucket: process.env.AWS_BUCKET_NAME,
       Key: key,
     };
 
