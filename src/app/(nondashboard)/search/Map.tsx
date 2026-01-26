@@ -8,7 +8,8 @@ import { Property } from "@/types/prismaTypes";
 import { getRoomStats } from "@/lib/roomUtils";
 
 // Extended Property type with location and other properties needed for the map
-interface PropertyWithLocation extends Property {
+// Use Omit to avoid type conflict with the overridden location field
+interface PropertyWithLocation extends Omit<Property, "location"> {
   location?: {
     address?: string;
     city?: string;
