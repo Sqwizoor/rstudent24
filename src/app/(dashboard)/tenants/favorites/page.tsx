@@ -140,7 +140,7 @@ const FavoritesContent = () => {
           try {
             // Transform property to add any missing required fields
             const locationData = (property.location && typeof property.location === 'object')
-              ? (property.location as Record<string, unknown>)
+              ? (property.location as unknown as Record<string, unknown>)
               : {};
 
             const normalizedPhotoUrls = Array.isArray(property.photoUrls)
