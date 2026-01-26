@@ -17,22 +17,24 @@ const PropertyLocation = ({ propertyId }: PropertyDetailsProps) => {
   const mapContainerRef = useRef(null);
 
   useEffect(() => {
-    if (isLoading || isError || !property) return;
+    if (isLoading || isError || !property || !property.location?.coordinates) return;
+
+    const coordinates = property.location.coordinates;
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current!,
       style: "mapbox://styles/alexbsibanda/cm9r6ojpt008m01s046hwhlbp",
       center: [
-        property.location.coordinates.longitude,
-        property.location.coordinates.latitude,
+        coordinates.longitude,
+        coordinates.latitude,
       ],
       zoom: 14,
     });
 
     const marker = new mapboxgl.Marker()
       .setLngLat([
-        property.location.coordinates.longitude,
-        property.location.coordinates.latitude,
+        coordinates.longitude,
+        coordinates.latitude,
       ])
       .addTo(map);
 
