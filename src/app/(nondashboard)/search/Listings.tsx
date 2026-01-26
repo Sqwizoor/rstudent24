@@ -66,9 +66,11 @@ const Listings = () => {
       numberOfReviews: typeof property.numberOfReviews === 'number' ? property.numberOfReviews : 0,
       // Ensure other required fields have defaults
       location: property.location || {
+        id: 0,
         address: 'No address provided',
         city: 'Unknown location',
-        province: ''
+        state: '',
+        country: 'South Africa',
       }
     }));
   }, [allProperties]);
