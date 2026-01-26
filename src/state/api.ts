@@ -477,7 +477,7 @@ export const api = createApi({
     }),
 
     // Property related endpoints
-    getProperties: build.query<Property[], Partial<FiltersState> & { favoriteIds?: number[]; propertyName?: string }>({
+    getProperties: build.query<Property[], Partial<FiltersState> & { favoriteIds?: number[]; propertyName?: string; orderBy?: string; limit?: number }>({
       query: (filters) => {
         // Check if coordinates exist and are not [0, 0]
         const coords = filters.coordinates;
@@ -502,6 +502,8 @@ export const api = createApi({
           // Send coordinates in lng,lat format as expected by API
           coordinates: hasCoordinates ? `${coords[0]},${coords[1]}` : undefined,
           propertyName: filters.propertyName,
+          orderBy: filters.orderBy,
+          limit: filters.limit,
         });
 
         return { url: "properties", params };

@@ -8,7 +8,11 @@ import FiltersBar from "./FiltersBar";
 import FiltersFull from "./FiltersFull";
 import { cleanParams } from "@/lib/utils";
 import { setFilters } from "@/state";
-import Map from "./Map";
+import dynamic from "next/dynamic";
+const Map = dynamic(() => import("./Map"), {
+  ssr: false,
+  loading: () => <div className="h-full w-full bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />,
+});
 import Listings from "./Listings";
 
 // Component that uses useSearchParams wrapped in Suspense

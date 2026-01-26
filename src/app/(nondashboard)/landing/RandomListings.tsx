@@ -51,118 +51,18 @@ const RandomListings = () => {
     }));
   }, [selectedCity]);
   
-  // Fetch ALL properties without location filter for random display
-  const { data: allProperties, isLoading } = useGetPropertiesQuery({
-    // Don't pass any filters - fetch all properties
+  // Fetch properties based on selected city
+  const { data: properties, isLoading } = useGetPropertiesQuery({
+    location: `${selectedCity}, South Africa`,
+    orderBy: 'random',
+    limit: 9
   }, {
-    // Add staleTime to reduce unnecessary refetches
-    pollingInterval: 0, // Disable polling for home page
-    refetchOnMountOrArgChange: false, // Don't refetch unnecessarily
+    // Cache for 1 hour (matching server revalidate)
+    pollingInterval: 0,
+    refetchOnMountOrArgChange: true, // Refetch when city changes
   });
   
-  // State for filtered properties
-  const [filteredProperties, setFilteredProperties] = useState<any[]>([]);
-  
-  // Process and randomize properties
-  const randomProperties = React.useMemo(() => {
-    if (!allProperties || allProperties.length === 0) return [];
-
-    try {
-      const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-      const storageKey = `randomListings:${selectedCity}`;
-
-      let storedIds: number[] | null = null;
-      if (typeof window !== 'undefined') {
-        const raw = localStorage.getItem(storageKey);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && parsed.date === today && Array.isArray(parsed.ids)) {
-            storedIds = parsed.ids as number[];
-          }
-        }
-      }
-
-      // Build a quick index by id
-      const byId = new Map<number, any>(allProperties.map((p: any) => [p.id, p]));
-
-      let chosen: any[] = [];
-      if (storedIds && storedIds.length) {
-        chosen = storedIds.map((id) => byId.get(id)).filter(Boolean);
-      }
-
-      // If not enough chosen (first load or new items), fill up with shuffled remainder
-      if (chosen.length < 9) {
-        const remaining = allProperties.filter((p: any) => !chosen.some((c: any) => c.id === p.id));
-        const shuffled = [...remaining];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-        const need = 9 - chosen.length;
-        chosen = [...chosen, ...shuffled.slice(0, Math.max(0, need))];
-
-        if (typeof window !== 'undefined') {
-          const idsToStore = chosen.slice(0, 9).map((p: any) => p.id);
-          localStorage.setItem(storageKey, JSON.stringify({ date: today, ids: idsToStore }));
-        }
-      }
-
-      return chosen.slice(0, 9).map((property: any) => ({
-        ...property,
-        price: typeof property.price === 'number' ? property.price : 0,
-        squareFeet: typeof property.squareFeet === 'number' ? property.squareFeet : 0,
-        images: Array.isArray(property.images) && property.images.length > 0 ? property.images : [],
-        numberOfReviews: typeof property.numberOfReviews === 'number' ? property.numberOfReviews : 0,
-        description: property.description || '',
-        closestUniversities: property.closestUniversities || [],
-        closestCampuses: property.closestCampuses || [],
-        location: property.location || {
-          address: 'No address provided',
-          city: 'Unknown location',
-          province: ''
-        }
-      }));
-    } catch (e) {
-      console.error('Error computing daily random properties', e);
-      // Fallback to simple shuffle if anything goes wrong
-      const propertiesCopy = [...allProperties];
-      for (let i = propertiesCopy.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [propertiesCopy[i], propertiesCopy[j]] = [propertiesCopy[j], propertiesCopy[i]];
-      }
-      return propertiesCopy.slice(0, 9).map((property: any) => ({
-        ...property,
-        price: typeof property.price === 'number' ? property.price : 0,
-        squareFeet: typeof property.squareFeet === 'number' ? property.squareFeet : 0,
-        images: Array.isArray(property.images) && property.images.length > 0 ? property.images : [],
-        numberOfReviews: typeof property.numberOfReviews === 'number' ? property.numberOfReviews : 0,
-        description: property.description || '',
-        closestUniversities: property.closestUniversities || [],
-        closestCampuses: property.closestCampuses || [],
-        location: property.location || {
-          address: 'No address provided',
-          city: 'Unknown location',
-          province: ''
-        }
-      }));
-    }
-  }, [allProperties, selectedCity]);
-  
-  // Initialize filtered properties with random properties
-  useEffect(() => {
-    // Always show random properties initially
-    setFilteredProperties(randomProperties);
-  }, [randomProperties]);
-  
-  // Reset to random properties when city changes
-  useEffect(() => {
-    // When city changes, reset to showing random properties
-    if (randomProperties.length > 0) {
-      setFilteredProperties(randomProperties);
-    }
-  }, [selectedCity, randomProperties]);
-  
-  // South African university coordinates - copied from HeroSection
+  // South African university coordinates
   const universityLocations = {
     UP: {
       name: "University of Pretoria",
@@ -198,29 +98,23 @@ const RandomListings = () => {
     }
   };
 
-  // Handle university button click - similar to HeroSection
+  // Handle university button click
   const handleUniversityClick = (universityKey: string) => {
     const university = universityLocations[universityKey as keyof typeof universityLocations];
     if (university) {
-      // Get the coordinates in the correct format
       const [lat, lng] = university.coordinates;
-      
-      // Add city and country for better geocoding results
-      // This is critical for university locations to ensure properties are found
       const formattedLocation = `${university.name}, Johannesburg, South Africa`;
       
-      // Update the filters in the redux store with the correct coordinate format
       dispatch(
         setFilters({
           location: formattedLocation,
-          coordinates: [lng, lat] as [number, number], // Use [lng, lat] format to match search page
+          coordinates: [lng, lat] as [number, number],
         })
       );
 
-      // Navigate to the search page with the university coordinates
       const params = new URLSearchParams({
         location: formattedLocation,
-        coordinates: `${lng},${lat}`, // Format as lng,lat for consistency
+        coordinates: `${lng},${lat}`,
         lat: lat.toString(),
         lng: lng.toString(),
       });
@@ -229,95 +123,6 @@ const RandomListings = () => {
     }
   };
     
-  // Handle filter changes
-  const handleFilterChange = (key: string, value: any) => {
-    if (key === "city") {
-      setSelectedCity(value);
-      return;
-    }
-    
-    let newValue = value;
-    
-    if (key === "priceRange") {
-      const [min, max] = value;
-      newValue = [
-        min === "any" ? null : Number(min),
-        max === "any" ? null : Number(max)
-      ];
-    }
-    
-    setLocalFilters(prev => ({
-      ...prev,
-      [key]: newValue
-    }));
-  };
-  
-  // Apply filters locally instead of navigating to search page
-  const handleApplyFilters = () => {
-    // Create a full location string with city and country for better geocoding
-    const fullLocation = `${selectedCity}, South Africa`;
-    
-    // Prepare filters to apply
-    const filtersToApply = {
-      ...localFilters,
-      location: fullLocation,
-    };
-    
-    // Set the filters in Redux store (still useful for other components)
-    dispatch(setFilters(filtersToApply));
-    
-    // Filter properties locally based on criteria
-    if (!allProperties || allProperties.length === 0) {
-      setFilteredProperties([]);
-      return;
-    }
-    
-    const filtered = allProperties.filter(property => {
-      // Filter by property type if not set to "any"
-      if (localFilters.propertyType !== "any" && property.propertyType !== localFilters.propertyType) {
-        return false;
-      }
-      
-      // Filter by price range
-      const propertyPrice = typeof property.price === 'number' ? property.price : 0;
-      if (propertyPrice < localFilters.priceRange[0] || propertyPrice > localFilters.priceRange[1]) {
-        return false;
-      }
-      
-      // Filter by location text if provided
-      if (localFilters.location && localFilters.location.trim() !== "") {
-        const locationText = localFilters.location.toLowerCase();
-        const propertyAddress = property.location?.address?.toLowerCase() || "";
-        const propertyCity = property.location?.city?.toLowerCase() || "";
-        
-        if (!propertyAddress.includes(locationText) && !propertyCity.includes(locationText)) {
-          return false;
-        }
-      }
-      
-      return true;
-    });
-    
-    // Process filtered properties similar to randomProperties
-    const processedProperties = filtered.map(property => ({
-      ...property,
-      price: typeof property.price === 'number' ? property.price : 0,
-      squareFeet: typeof property.squareFeet === 'number' ? property.squareFeet : 0,
-      images: Array.isArray(property.images) && property.images.length > 0 ? property.images : [],
-      numberOfReviews: typeof property.numberOfReviews === 'number' ? property.numberOfReviews : 0,
-      description: property.description || '',
-      closestUniversities: property.closestUniversities || [],
-      closestCampuses: property.closestCampuses || [],
-      location: property.location || {
-        address: 'No address provided',
-        city: 'Unknown location',
-        province: ''
-      }
-    }));
-    
-    setFilteredProperties(processedProperties);
-  };
-  
   // Handle property card click
   const handlePropertyClick = (propertyId: number) => {
     router.push(`/search/${propertyId}`);
@@ -688,14 +493,14 @@ const RandomListings = () => {
               </div>
             ))}
           </div>
-        ) : filteredProperties.length === 0 ? (
+        ) : !properties || properties.length === 0 ? (
           <div className="flex flex-col justify-center items-center min-h-[300px]">
             <div className="text-xl font-semibold mb-2">No properties found</div>
             <p className="text-gray-600">Try adjusting your filters or selecting a different city</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {filteredProperties.map((property) => (
+            {properties.map((property) => (
               <Card
                 key={property.id}
                 property={property}

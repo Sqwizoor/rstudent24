@@ -46,7 +46,7 @@ export function getS3Client(): S3Client {
  * Upload a file to S3
  */
 export async function uploadFileToS3(
-  file: Buffer,
+  file: Buffer | Uint8Array | Blob | ReadableStream | string,
   originalName: string,
   mimeType: string,
   prefix: string = 'properties'

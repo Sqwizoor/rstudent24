@@ -83,8 +83,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       try {
-        const buf = Buffer.from(await file.arrayBuffer());
-        const url = await uploadFileToS3(buf, file.name, file.type || 'application/octet-stream');
+        // Stream the file directly to S3
+        const url = await uploadFileToS3(file, file.name, file.type || 'application/octet-stream');
         uploadedUrls.push(url);
       } catch (err) {
         return NextResponse.json({ message: `Failed uploading ${file.name}`, error: err instanceof Error ? err.message : String(err) }, { status: 500 });

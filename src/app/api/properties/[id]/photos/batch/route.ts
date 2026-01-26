@@ -91,8 +91,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       console.log(`Processing photo ${index + 1}: ${file.name}, size: ${file.size}, type: ${file.type}`);
       
       try {
-        const buffer = await file.arrayBuffer();
-        const photoUrl = await uploadFileToS3(Buffer.from(buffer), file.name, file.type);
+        // Stream the file directly to S3
+        const photoUrl = await uploadFileToS3(file, file.name, file.type);
         return { url: photoUrl, index };
       } catch (error) {
         console.error(`Error uploading photo ${file.name}:`, error);

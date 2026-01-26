@@ -13,35 +13,12 @@ import { Card } from "@/components/ui/card"
 import { getRoomStats } from "@/lib/roomUtils"
 import { getCampusLabelsByIds } from "@/lib/constants"
 import { optimizedImageLoader, PROPERTY_CARD_SIZES, IMAGE_QUALITY } from "@/lib/imageLoader"
-import type { Room } from "@/types/prismaTypes"
+import type { Property, Room } from "@/types/prismaTypes"
 
 interface PropertyCardProps {
-  property: {
-    id: number
-    name: string
-    description?: string
-    location: {
-      address: string
-      city: string
-    }
-    photoUrls?: string[]
-    images?: string[]
-    beds: number
-    baths: number
-    kitchens?: number
-    squareFeet: number
-    pricePerMonth?: number
-  minRoomPrice?: number
-    price?: number
-    averageRating?: number
-    numberOfReviews: number
-    isPetsAllowed?: boolean
-    isParkingIncluded?: boolean
-    isNsfassAccredited?: boolean
-    availableRooms?: number
+  property: Property & {
     rooms?: Room[] // Add rooms data for calculation
-    closestUniversities?: string[]
-    closestCampuses?: string[]
+    availableRooms?: number
   }
   isFavorite?: boolean
   onFavoriteToggle?: () => void
@@ -119,7 +96,7 @@ function PropertyCard({
   const displayBaths = property.baths || 0;
   const displayKitchens = property.kitchens || 0;
   const displaySquareFeet = property.squareFeet || 0;
-  const displayPrice = (property as any).minRoomPrice ?? roomStats.minPrice ?? property.price ?? property.pricePerMonth ?? 0;
+  const displayPrice = property.minRoomPrice ?? roomStats.minPrice ?? property.price ?? property.pricePerMonth ?? 0;
 
   // Use optimized image loader with quality setting
   const loaderFunc = (props: ImageLoaderProps) => {
@@ -305,11 +282,11 @@ function PropertyCard({
                 if (locationDisplayMode === 'suburbCity') {
                   // Attempt to extract suburb + city from the address string.
                   // Example input: "43 Amanda avenue, Arcadia, Johannesburg" -> "Arcadia, Johannesburg"
-                  const parts = address.split(',').map(p => p.trim()).filter(Boolean);
+                  const parts = address.split(',').map((p: string) => p.trim()).filter(Boolean);
                   if (parts.length >= 2) {
                     // If city prop matches one of the parts, use the preceding part as suburb
                     const cityLower = city.toLowerCase();
-                    let cityIndex = parts.findIndex(p => p.toLowerCase() === cityLower);
+                    let cityIndex = parts.findIndex((p: string) => p.toLowerCase() === cityLower);
                     if (cityIndex === -1 && parts.length >= 2) {
                       // Fallback: assume last part is city if explicit city missing in parts
                       cityIndex = parts.length - 1;

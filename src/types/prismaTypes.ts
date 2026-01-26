@@ -58,6 +58,18 @@ export interface Application {
   room?: Room | null;
 }
 
+// Location model
+export interface Location {
+  id: number;
+  address: string;
+  city: string;
+  suburb?: string;
+  state?: string;
+  country: string;
+  postalCode?: string;
+  coordinates?: any;
+}
+
 // Property model
 export interface Property {
   id: number;
@@ -65,6 +77,7 @@ export interface Property {
   description?: string;
   propertyType?: string;
   price: number;
+  pricePerMonth?: number;
   minRoomPrice?: number;
   securityDeposit?: number;
   beds: number;
@@ -87,7 +100,7 @@ export interface Property {
   closestUniversities?: string[];
   closestCampuses?: string[];
   // Related models
-  location?: any;
+  location?: Location;
   leases?: any[];
 }
 

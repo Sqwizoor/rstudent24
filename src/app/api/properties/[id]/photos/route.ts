@@ -61,8 +61,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Upload the file to S3
     try {
-  const buffer = await photoFile.arrayBuffer();
-  const photoUrl = await uploadFileToS3(Buffer.from(buffer), photoFile.name, photoFile.type);
+      // Stream the file directly to S3
+      const photoUrl = await uploadFileToS3(photoFile, photoFile.name, photoFile.type);
       
       // Get current property to check existing photos
       const currentProperty = await prisma.property.findUnique({

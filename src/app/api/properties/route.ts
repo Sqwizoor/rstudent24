@@ -6,6 +6,7 @@ import { verifyAuth } from '@/lib/auth';
 import type { Property } from '@/types/property';
 import { queryCache } from '@/lib/queryCache';
 import { uploadFileToS3, deleteFileFromS3 } from '@/lib/s3';
+import { unstable_cache, revalidateTag } from 'next/cache';
 
 // ✅ ISR: Cache responses for 1 hour
 export const revalidate = 3600;
@@ -113,13 +114,10 @@ export async function GET(request: NextRequest) {
     };
 
     const cacheKey = queryCache.getKey('properties', cacheParams);
-    const cachedResult = queryCache.get<Property[]>(cacheKey);
-    if (cachedResult) {
-      console.log(
-        `✅ Cache HIT for properties query - returning ${cachedResult.length} results`
-      );
-      return NextResponse.json(cachedResult);
-    }
+    
+    // Using Next.js unstable_cache for better persistence across serverless invocations
+    // Replaces the previous in-memory queryCache check
+    // Replaces the previous in-memory queryCache check
 
     const whereConditions: Prisma.Sql[] = [];
 
@@ -314,20 +312,38 @@ export async function GET(request: NextRequest) {
       }
     `;
 
-    const initialQuery = Prisma.sql`${baseQuery} ORDER BY p.id DESC LIMIT ${limit}`;
-
-    let properties: Property[] = [];
-    try {
-      properties = (await prisma.$queryRaw(initialQuery)) as Property[];
-    } catch (err: any) {
-      if (err?.code === 'P2024' && limit > 10) {
-        console.warn('P2024 timeout – retrying with smaller limit (10)');
-        const retryQuery = Prisma.sql`${baseQuery} ORDER BY p.id DESC LIMIT ${10}`;
-        properties = (await prisma.$queryRaw(retryQuery)) as Property[];
-      } else {
-        throw err;
-      }
+    // Determine ordering
+    let orderByClause = Prisma.sql`ORDER BY p.id DESC`;
+    const orderBy = searchParams.get('orderBy');
+    
+    if (orderBy === 'random') {
+      orderByClause = Prisma.sql`ORDER BY RANDOM()`;
     }
+
+    const initialQuery = Prisma.sql`${baseQuery} ${orderByClause} LIMIT ${limit}`;
+
+    // Wrap the database query with unstable_cache
+    const getCachedProperties = unstable_cache(
+      async () => {
+        let results: Property[] = [];
+        try {
+          results = (await prisma.$queryRaw(initialQuery)) as Property[];
+        } catch (err: any) {
+          if (err?.code === 'P2024' && limit > 10) {
+            console.warn('P2024 timeout – retrying with smaller limit (10)');
+            const retryQuery = Prisma.sql`${baseQuery} ORDER BY p.id DESC LIMIT ${10}`;
+            results = (await prisma.$queryRaw(retryQuery)) as Property[];
+          } else {
+            throw err;
+          }
+        }
+        return results;
+      },
+      [cacheKey], 
+      { tags: ['properties'], revalidate: 3600 }
+    );
+
+    let properties: Property[] = await getCachedProperties();
 
     console.log('========== QUERY RESULTS ==========');
     console.log(`✅ Query returned ${properties.length} properties`);
@@ -339,9 +355,8 @@ export async function GET(request: NextRequest) {
     }
     console.log('====================================');
 
-    const cacheTTL = location || propertyName || hasValidCoordinates ? 60 : 180;
-    queryCache.set(cacheKey, properties, cacheTTL);
-    console.log(`✅ Cache SET - Results cached for ${cacheTTL}s`);
+    // queryCache.set(cacheKey, properties, cacheTTL); // Removed in favor of unstable_cache
+    console.log(`✅ Cache SET - Results cached via unstable_cache`);
 
     const browserCacheTTL = location || propertyName || hasValidCoordinates ? 30 : 180;
     return NextResponse.json(properties, {
@@ -602,7 +617,8 @@ export async function POST(request: NextRequest) {
         console.log("Property created successfully:", propertyWithCoordinates);
         
         // ✅ Invalidate cache after creation
-        queryCache.invalidateAll();
+        // queryCache.invalidateAll();
+        revalidateTag('properties', {});
         
         return NextResponse.json(propertyWithCoordinates, { status: 201 });
       } else {

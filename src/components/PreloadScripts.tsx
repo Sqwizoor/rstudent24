@@ -8,13 +8,7 @@ export function PreloadScripts() {
     <>
       {/* Note: Fonts are handled by Next.js Google Fonts optimization */}
 
-      {/* ✨ Preload hero image (if known) */}
-      <link
-        rel="preload"
-        href="/houses.jpg"
-        as="image"
-        fetchPriority="high"
-      />
+      {/* ✨ Preload hero image - handled by next/image priority */ }
 
       {/* ✨ Preload logo image - use WebP for modern browsers, 84% smaller! */}
       <link
