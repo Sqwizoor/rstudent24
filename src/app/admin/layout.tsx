@@ -18,7 +18,8 @@ import {
   BarChart, 
   Users,
   Settings,
-  FileText
+  FileText,
+  LineChart
 } from "lucide-react";
 
 // Admin access is now controlled by the 'custom:role' attribute only
@@ -200,6 +201,18 @@ export default function AdminLayout({
               >
                 <BarChart className="mr-3 h-5 w-5" />
                 <span>Analytics</span>
+              </Link>
+              <Link 
+                href="/admin/traffic" 
+                className={cn(
+                  "flex items-center px-4 py-3 my-1 mx-2 rounded-md transition-colors",
+                  pathname === "/admin/traffic" 
+                    ? isDark ? "bg-blue-900/30 text-blue-400" : "bg-blue-100 text-blue-700"
+                    : isDark ? "text-slate-300 hover:bg-slate-800" : "text-slate-700 hover:bg-slate-100"
+                )}
+              >
+                <LineChart className="mr-3 h-5 w-5" />
+                <span>Traffic Analytics</span>
               </Link>
               <Link 
                 href="/admin/settings" 

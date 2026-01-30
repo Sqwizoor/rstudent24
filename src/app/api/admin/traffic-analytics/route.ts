@@ -115,9 +115,16 @@ function processAnalyticsData(insights: any, events: any, timeRange: string) {
     const deviceCounts: Record<string, number> = { desktop: 0, mobile: 0, tablet: 0 };
 
     events?.results?.forEach((event: any) => {
-      // Referrer
-      const referrer = event.properties?.$referrer || event.properties?.$referring_domain || 'Direct';
-      const cleanReferrer = referrer === '' ? 'Direct' : new URL(referrer).hostname || referrer;
+      // Referrer - handle URL parsing carefully
+      const referrer = event.properties?.$referrer || event.properties?.$referring_domain || '';
+      let cleanReferrer = 'Direct';
+      if (referrer && referrer !== '') {
+        try {
+          cleanReferrer = new URL(referrer).hostname || referrer;
+        } catch {
+          cleanReferrer = referrer;
+        }
+      }
       referrerCounts[cleanReferrer] = (referrerCounts[cleanReferrer] || 0) + 1;
 
       // Pages
