@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAuth } from "@/lib/auth";
+import { revalidateTag } from "next/cache";
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,6 +42,9 @@ export async function POST(request: NextRequest) {
        VALUES (${id}, NOW(), ${adminId})
        ON CONFLICT (property_id) DO UPDATE SET disabled_at = NOW(), disabled_by = EXCLUDED.disabled_by`
     );
+
+    // Invalidate the Next.js cache so the disabled property disappears from the frontend immediately
+    revalidateTag('properties', {});
 
     return NextResponse.json({ message: 'Property disabled', id });
   } catch (error: any) {

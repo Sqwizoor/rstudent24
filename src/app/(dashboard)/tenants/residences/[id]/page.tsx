@@ -95,7 +95,7 @@ const ResidenceCard = ({
             </div>
 
             <h2 className="text-2xl font-bold my-2">{property.name}</h2>
-            <div className="flex items-center mb-2">
+            <div className="flex items-ce nter mb-2">
               <MapPin className="w-5 h-5 mr-1" />
               <span>
                 {property.location?.city || "Unknown City"}, {property.location?.country || "Unknown Country"}

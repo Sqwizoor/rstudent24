@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
+import { revalidateTag } from 'next/cache';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,6 +28,9 @@ export async function POST(request: NextRequest) {
 
     // Delete the disabled marker
     await prisma.$executeRawUnsafe(`DELETE FROM disabled_properties WHERE property_id = ${id}`);
+
+    // Invalidate the Next.js cache so the re-enabled property appears on the frontend immediately
+    revalidateTag('properties', {});
 
     return NextResponse.json({ message: 'Property enabled', id });
   } catch (err: any) {
