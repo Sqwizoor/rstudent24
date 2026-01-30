@@ -3,6 +3,7 @@
 import React, { useState, Suspense, useMemo } from 'react';
 import { signIn } from "next-auth/react";
 import { useSearchParams } from 'next/navigation';
+import posthog from 'posthog-js';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -56,18 +57,38 @@ function SignInContent() {
     setIsLoading(true);
     console.log('🔐 Google sign-in triggered with callbackUrl:', callbackUrl);
     try {
+      // Track sign-in attempt with PostHog
+      posthog.capture('user_signed_in', {
+        provider: 'google',
+        user_type: 'student',
+      });
+
       // Pass the callbackUrl directly to NextAuth
       // NextAuth will handle the redirect properly
-      const result = await signIn("google", { 
+      const result = await signIn("google", {
         callbackUrl: callbackUrl,
         redirect: true
       });
-      
+
       console.log('✅ Sign-in result:', result);
     } catch (error) {
       console.error("Google sign-in error:", error);
+      posthog.captureException(error);
       setIsLoading(false);
     }
+  };
+
+  const handleCognitoSignIn = () => {
+    // Track Cognito sign-in attempt with PostHog
+    posthog.capture('user_signed_in', {
+      provider: 'cognito',
+      user_type: 'landlord',
+    });
+
+    const url = callbackUrl !== '/'
+      ? `/cognito-signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
+      : '/cognito-signin';
+    window.location.href = url;
   };
 
   return (
@@ -152,12 +173,7 @@ function SignInContent() {
                   Continue as a landlord
                 </p>
                 <Button
-                  onClick={() => {
-                    const url = callbackUrl !== '/' 
-                      ? `/cognito-signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
-                      : '/cognito-signin';
-                    window.location.href = url;
-                  }}
+                  onClick={handleCognitoSignIn}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Continue with Cognito

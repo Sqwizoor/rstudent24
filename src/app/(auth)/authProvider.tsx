@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, Suspense } from "react";
+import React, { useEffect, Suspense, useRef } from "react";
 import { Amplify } from "aws-amplify";
 import {
   Authenticator,
@@ -12,6 +12,7 @@ import {
 } from "@aws-amplify/ui-react";
 import Image from "next/image"
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import posthog from 'posthog-js';
 
 // https://docs.amplify.aws/gen1/javascript/tools/libraries/configure-categories/
 Amplify.configure({
@@ -249,11 +250,38 @@ function AuthContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
+  const identifiedRef = useRef(false);
 
   const isAuthPage = pathname.match(/^\/(signin|signup|cognito-signin|cognito-signup)$/);
   const isCognitoAuthPage = pathname.match(/^\/(cognito-signin|cognito-signup)$/);
   const isDashboardPage =
     pathname.startsWith("/manager") || pathname.startsWith("/tenants");
+
+  // Identify user with PostHog when authenticated via Cognito
+  useEffect(() => {
+    if (user && !identifiedRef.current) {
+      const userId = user.username || user.userId;
+      // Access attributes safely from the user object
+      const userAttributes = (user as unknown as { attributes?: Record<string, string> }).attributes;
+      const userEmail = user.signInDetails?.loginId || userAttributes?.email;
+      const userRole = userAttributes?.['custom:role'] || 'manager';
+
+      // Identify user in PostHog
+      posthog.identify(userId, {
+        email: userEmail,
+        user_type: userRole,
+        provider: 'cognito',
+      });
+
+      // Track user sign-in/sign-up event
+      posthog.capture('user_signed_up', {
+        provider: 'cognito',
+        user_type: userRole,
+      });
+
+      identifiedRef.current = true;
+    }
+  }, [user]);
 
   // Redirect authenticated users away from auth pages
   useEffect(() => {

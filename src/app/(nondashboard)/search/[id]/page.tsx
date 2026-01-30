@@ -4,7 +4,8 @@ import { useGetPropertyQuery, useGetRoomsQuery, useGetPropertiesQuery, useAddFav
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import React, { useState, lazy, Suspense } from "react";
+import React, { useState, lazy, Suspense, useEffect } from "react";
+import posthog from 'posthog-js';
 import Image from "next/image";
 import { optimizedImageLoader, PROPERTY_CARD_SIZES, IMAGE_QUALITY } from "@/lib/imageLoader";
 import ImagePreviews from "./ImagePreviews";
@@ -150,10 +151,22 @@ const SingleListing = () => {
   const { user: authUser, isLoading: authLoading } = useUnifiedAuth();
   const [addFavoriteProperty] = useAddFavoritePropertyMutation();
   const [removeFavoriteProperty] = useRemoveFavoritePropertyMutation();
-  
+
   const { data: property, isLoading, isError } = useGetPropertyQuery(propertyId, {
     skip: !propertyId // Skip if propertyId is not available
   });
+
+  // Track property_viewed event when property loads
+  useEffect(() => {
+    if (property && !isLoading) {
+      posthog.capture('property_viewed', {
+        property_id: property.id,
+        property_name: property.name,
+        city: property.location?.city,
+        price: property.pricePerMonth || (property as any).price,
+      });
+    }
+  }, [property, isLoading]);
   const { data: rooms, isLoading: roomsLoading } = useGetRoomsQuery(propertyId, { 
     skip: isError || !propertyId // Skip if there's an error or no propertyId
   });
@@ -244,11 +257,22 @@ const SingleListing = () => {
       
       if (currentlyFavorite) {
         await removeFavoriteProperty({ cognitoId: userId, propertyId: propId }).unwrap();
+
+        // Track favorite_removed event with PostHog
+        posthog.capture('favorite_removed', {
+          property_id: propId,
+        });
       } else {
         await addFavoriteProperty({ cognitoId: userId, propertyId: propId }).unwrap();
+
+        // Track favorite_added event with PostHog
+        posthog.capture('favorite_added', {
+          property_id: propId,
+        });
       }
     } catch (e) {
       console.error('Error toggling favorite for nearby card:', e);
+      posthog.captureException(e);
     }
   };
 
@@ -671,11 +695,22 @@ const SingleListing = () => {
 
                         {/* Room-specific Apply button */}
                         <div className="mt-4">
-                          <button 
+                          <button
                             onClick={() => {
                               console.log('Apply button clicked for room:', room);
                               console.log('Room ID:', room.id);
                               console.log('Room name:', room.name);
+
+                              // Track room_application_clicked event with PostHog
+                              posthog.capture('room_application_clicked', {
+                                property_id: propertyId,
+                                property_name: property?.name,
+                                room_id: room.id,
+                                room_name: room.name,
+                                room_price: room.pricePerMonth || room.price,
+                                is_available: room.isAvailable,
+                              });
+
                               setSelectedRoom(room);
                               setIsModalOpen(true);
                             }}

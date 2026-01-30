@@ -18,6 +18,7 @@ import {
   Clock,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import posthog from 'posthog-js';
 
 interface Referral {
   id: number;
@@ -96,6 +97,14 @@ export default function ReferralDashboard() {
       navigator.clipboard.writeText(referralCode);
       setCopied(true);
       toast.success("Referral code copied!");
+
+      // Track referral_code_copied event with PostHog
+      posthog.capture('referral_code_copied', {
+        referral_code: referralCode,
+        total_referrals: stats.totalReferrals,
+        completed_referrals: stats.completedReferrals,
+      });
+
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -103,6 +112,12 @@ export default function ReferralDashboard() {
   const handleShare = (platform: "whatsapp" | "email") => {
     const shareUrl = `${window.location.origin}/signup?ref=${referralCode}`;
     const message = `Hey! Check out Student24 for amazing student accommodation. Use my referral code ${referralCode} when you sign up and we both get R500 vouchers! ${shareUrl}`;
+
+    // Track referral_shared event with PostHog
+    posthog.capture('referral_shared', {
+      platform: platform,
+      referral_code: referralCode,
+    });
 
     if (platform === "whatsapp") {
       window.open(

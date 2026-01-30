@@ -43,6 +43,7 @@ import {
 import { type PropertyFormData, propertySchema } from "@/lib/schemas";
 import { processImageFiles } from "@/lib/imageUtils";
 import { useCreatePropertyMutation, useCreateRoomMutation, useGetAuthUserQuery } from "@/state/api";
+import posthog from 'posthog-js';
 import { AmenityEnum, HighlightEnum, PropertyTypeEnum, RedirectTypeEnum, UNIVERSITY_OPTIONS, PROVINCES, getUniversityOptionsByProvince, getCampusOptionsByProvince, getCampusOptionsByUniversity } from "@/lib/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -703,6 +704,17 @@ const NewProperty = () => {
       // Navigate to the properties page
       router.push("/managers/properties");
 
+      // Track property_created event with PostHog
+      posthog.capture('property_created', {
+        property_id: propertyResponse.id,
+        property_name: data.name,
+        city: data.city,
+        province: data.province,
+        property_type: data.propertyType,
+        rooms_count: roomsSuccessfullyCreated,
+        has_photos: photoFiles.length > 0,
+      });
+
       // Show a combined success toast message with property name and room count
       if (propertyResponse && roomsSuccessfullyCreated > 0) {
         toast.success(
@@ -715,7 +727,7 @@ const NewProperty = () => {
         );
       } else if (propertyResponse) {
         toast.success(
-          `Property "${data.name}" created successfully`, 
+          `Property "${data.name}" created successfully`,
           {
             className: "bg-green-500 text-white font-medium",
             position: "top-center",

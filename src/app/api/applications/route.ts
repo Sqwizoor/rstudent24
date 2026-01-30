@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
 import { queryCache } from '@/lib/queryCache';
+import { getPostHogClient } from '@/lib/posthog-server';
 
 // ✅ ISR: Cache application data for 30 minutes (more volatile than properties)
 export const revalidate = 1800;
@@ -288,10 +289,28 @@ export async function POST(request: NextRequest) {
     });
     
     console.log('Application created successfully:', application.id);
-    
+
+    // Track application_created event with PostHog (server-side)
+    const posthog = getPostHogClient();
+    const distinctId = tenantCognitoId || body.email || 'anonymous';
+    posthog.capture({
+      distinctId,
+      event: 'application_created',
+      properties: {
+        application_id: application.id,
+        property_id: application.propertyId,
+        property_name: property.name,
+        room_id: application.roomId,
+        city: application.property?.location?.city,
+        applicant_email: body.email,
+        source: 'api',
+      },
+    });
+    await posthog.shutdown();
+
     // ✅ Invalidate cache after creation
     queryCache.invalidateAll();
-    
+
     return NextResponse.json(application, { status: 201 });
   } catch (err: any) {
     console.error("Error creating application:", err);

@@ -17,6 +17,7 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { fetchAuthSession } from "aws-amplify/auth";
+import posthog from 'posthog-js';
 
 // Extend Window interface for Facebook Pixel
 declare global {
@@ -103,16 +104,23 @@ const ApplicationModal = ({
 
     if (whatsappNumber && whatsappNumber.trim()) {
       const cleanNumber = whatsappNumber.replace(/[^0-9]/g, "");
-      
+
       if (cleanNumber.length < 10) {
         toast.error("Invalid WhatsApp number configured.");
         return;
       }
-      
+
       const whatsappUrl = "https://wa.me/" + cleanNumber + "?text=" + message;
-      
+
+      // Track WhatsApp redirect with PostHog
+      posthog.capture('whatsapp_redirect', {
+        property_id: propertyId,
+        property_name: propertyData?.name,
+        room_id: roomId,
+      });
+
       toast.success("Redirecting to WhatsApp...", { duration: 2000 });
-      
+
       // Use a single, more reliable redirect method
       setTimeout(() => {
         window.open(whatsappUrl, "_blank", "noopener,noreferrer");
@@ -255,7 +263,18 @@ const ApplicationModal = ({
       toast.success("Application Submitted Successfully!", {
         description: "Processing your request..."
       });
-      
+
+      // Track PostHog application_submitted event (key conversion event)
+      posthog.capture('application_submitted', {
+        property_id: propertyId,
+        property_name: propertyData?.name,
+        room_id: roomId,
+        room_name: roomName,
+        price: roomData?.pricePerMonth || propertyData?.minRoomPrice || propertyData?.price || 0,
+        city: propertyData?.location?.city,
+        applicant_email: data.email,
+      });
+
       // Track Facebook Pixel AddToCart event
       if (typeof window !== 'undefined' && (window as any).fbq) {
         try {
@@ -278,6 +297,9 @@ const ApplicationModal = ({
         onClose();
       }, 100);
     } catch (error) {
+      // Capture exception with PostHog
+      posthog.captureException(error);
+
       toast.error("Submission Failed", {
         description: "There was an error submitting your application: " + (error instanceof Error ? error.message : "Unknown error"),
         duration: 10000,

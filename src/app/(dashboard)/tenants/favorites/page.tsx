@@ -14,6 +14,7 @@ import React, { useMemo } from "react";
 import { useSignInRedirect } from "@/hooks/useSignInRedirect";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { skipToken } from "@reduxjs/toolkit/query";
+import posthog from 'posthog-js';
 
 const FavoritesContent = () => {
   const { user, isLoading: authLoading, isAuthenticated } = useUnifiedAuth();
@@ -108,15 +109,25 @@ const FavoritesContent = () => {
   const handleRemoveFavorite = async (propertyId: number) => {
     try {
       // Pass both cognitoId and propertyId as an object to match the expected type
-      await removeFavorite({ 
-        cognitoId: tenantId, 
-        propertyId 
+      await removeFavorite({
+        cognitoId: tenantId,
+        propertyId
       }).unwrap();
+
+      // Track favorite_removed event with PostHog
+      const property = favoriteProperties?.find(p => p.id === propertyId);
+      posthog.capture('favorite_removed', {
+        property_id: propertyId,
+        property_name: property?.name,
+        city: property?.location?.city,
+      });
+
       // Refetch to update the UI
       refetchTenant();
       refetchProperties();
     } catch (err) {
       console.error("Failed to remove from favorites:", err);
+      posthog.captureException(err);
     }
   };
 

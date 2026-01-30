@@ -309,6 +309,20 @@ export default function AdminDashboard() {
             </div>
           </Card>
           
+          {/* Traffic Analytics */}
+          <Card className="p-6 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => router.push('/admin/traffic')}>
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-full">
+                <LineChart className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="font-medium text-lg">Traffic Analytics</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Monitor visitor traffic, referral sources, and engagement metrics</p>
+              </div>
+            </div>
+          </Card>
+          
           {/* System Settings */}
           <Card className="p-6 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
             <div className="flex items-center gap-4">

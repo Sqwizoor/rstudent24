@@ -26,6 +26,7 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
+import posthog from 'posthog-js'
 
 // Define MapboxFeature interface outside of any function
 interface MapboxFeature {
@@ -195,8 +196,22 @@ const FiltersBar = () => {
 
     // ✅ PRIORITY 1: If geocoding succeeded, ALWAYS use those coordinates
     // This ensures location searches (Cape Town, Maboneng, Pretoria) work correctly
-    if (geocodeFilters && geocodeFilters.coordinates && 
+    if (geocodeFilters && geocodeFilters.coordinates &&
         (geocodeFilters.coordinates[0] !== 0 || geocodeFilters.coordinates[1] !== 0)) {
+      // Track property_search_performed event with PostHog
+      posthog.capture('property_search_performed', {
+        search_type: 'location',
+        search_query: trimmedQuery,
+        location: geocodeLocationName,
+        coordinates: geocodeFilters.coordinates,
+        filters: {
+          price_range: filters.priceRange,
+          beds: filters.beds,
+          baths: filters.baths,
+          property_type: filters.propertyType,
+        },
+      });
+
       setSearchInput(geocodeLocationName ?? trimmedQuery);
       dispatch(setFilters(geocodeFilters));
       updateURL(geocodeFilters);
@@ -220,6 +235,13 @@ const FiltersBar = () => {
           const properties = await propertySearchResponse.json();
 
           if (properties && properties.length > 0) {
+            // Track property_search_performed event with PostHog
+            posthog.capture('property_search_performed', {
+              search_type: 'property_name',
+              search_query: trimmedQuery,
+              results_count: properties.length,
+            });
+
             const propertyFilters = {
               ...baseFilters,
               location: "",

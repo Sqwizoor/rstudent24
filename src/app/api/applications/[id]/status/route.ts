@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
+import { getPostHogClient } from '@/lib/posthog-server';
 
 // PUT handler for updating application status
 export async function PUT(
@@ -250,6 +251,24 @@ export async function PUT(
         lease = existingLease;
       }
     }
+
+    // Track application_status_updated event with PostHog (server-side)
+    const posthog = getPostHogClient();
+    const distinctId = application.tenantCognitoId || application.email || 'anonymous';
+    posthog.capture({
+      distinctId,
+      event: 'application_status_updated',
+      properties: {
+        application_id: id,
+        property_id: application.propertyId,
+        property_name: application.property?.name,
+        new_status: normalizedStatus,
+        previous_status: application.status,
+        updated_by: authResult.userId,
+        lease_created: lease !== null,
+      },
+    });
+    await posthog.shutdown();
 
     return NextResponse.json({
       ...updatedApplication,
