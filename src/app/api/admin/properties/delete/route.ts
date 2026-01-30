@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const adminId = authResult.userId || 'unknown';
     await prisma.$executeRawUnsafe(
       `INSERT INTO disabled_properties (property_id, disabled_at, disabled_by)
-       VALUES (${id}, NOW(), ${adminId})
+       VALUES (${id}, NOW(), '${adminId.replace(/'/g, "''")}')
        ON CONFLICT (property_id) DO UPDATE SET disabled_at = NOW(), disabled_by = EXCLUDED.disabled_by`
     );
 

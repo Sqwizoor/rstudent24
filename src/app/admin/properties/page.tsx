@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TableSkeleton } from "@/components/ui/skeletons";
+import { Pagination } from "@/components/ui/pagination";
 import {
   Search,
   BedDouble,
@@ -159,6 +160,8 @@ export default function AdminPropertiesPage() {
   const [sortBy, setSortBy] = useState<"name" | "price" | "rooms" | "city">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [filterCity, setFilterCity] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   // Extract unique cities for filtering
   const cities = properties ? [...new Set(properties.map(property => 
@@ -193,6 +196,18 @@ export default function AdminPropertiesPage() {
     
     return sortOrder === "asc" ? comparison : -comparison;
   }) : [];
+  
+  // Pagination logic
+  const totalPages = Math.ceil(sortedProperties.length / itemsPerPage);
+  const paginatedProperties = sortedProperties.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+  
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterCity, sortBy, sortOrder]);
   
   const toggleSortOrder = () => {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -363,9 +378,134 @@ export default function AdminPropertiesPage() {
         Showing <span className="font-semibold mx-1 text-blue-600 dark:text-blue-400">{sortedProperties.length}</span> of <span className="font-semibold mx-1 text-blue-600 dark:text-blue-400">{properties?.length || 0}</span> properties
       </div>
       
-      {/* Properties table */}
+      {/* Properties - Responsive Layout */}
       <Card className="border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile Card Layout */}
+        <div className="block lg:hidden">
+          {paginatedProperties.length > 0 ? (
+            <div className="divide-y divide-slate-200 dark:divide-slate-700">
+              {paginatedProperties.map((property) => (
+                <div key={property.id} className="p-4 space-y-3">
+                  {/* Property Header */}
+                  <div className="flex items-start gap-3">
+                    <div className="relative h-16 w-16 rounded-lg overflow-hidden flex-shrink-0">
+                      {property.photoUrls && property.photoUrls.length > 0 ? (
+                        <Image
+                          src={property.photoUrls[0]}
+                          alt={property.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="bg-slate-200 dark:bg-slate-700 h-full w-full flex items-center justify-center">
+                          <Home className="h-6 w-6 text-slate-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{property.name}</div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">ID: {property.id}</div>
+                      <Badge 
+                        variant={
+                          property.isDisabled
+                            ? "destructive"
+                            : property.status === "available"
+                              ? "default"
+                              : property.status === "rented"
+                                ? "secondary"
+                                : "outline"
+                        }
+                        className="mt-1"
+                      >
+                        {property.isDisabled ? "Blocked" : (property.status || "Available")}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  {/* Property Details Grid */}
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                      <span className="truncate">{property.location.city || 'Unknown'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                      <span className="truncate">{property.manager.name || "Unknown"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <BedDouble className="h-4 w-4 text-slate-400" />
+                      <span>{property.beds} beds</span>
+                      <Bath className="h-4 w-4 text-slate-400 ml-2" />
+                      <span>{property.baths} baths</span>
+                    </div>
+                    <div className="font-semibold text-blue-600 dark:text-blue-400">
+                      R{property.pricePerMonth.toLocaleString()}/mo
+                    </div>
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="flex gap-2 pt-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => router.push(`/admin/properties/${property.id}`)}
+                    >
+                      View Details
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      className="flex-1"
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(`/api/admin/properties/delete?id=${property.id}`, { method: 'POST' });
+                          if (!res.ok) {
+                            const txt = await res.text();
+                            throw new Error(txt || 'Failed to disable property');
+                          }
+                          toast.success('Property blocked successfully');
+                          router.refresh();
+                        } catch (err: any) {
+                          console.error('Failed to block property', err);
+                          toast.error(err?.message || 'Failed to block property');
+                        }
+                      }}
+                    >
+                      Disable
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-slate-500 dark:text-slate-400">
+              {searchTerm || filterCity ? (
+                <div className="flex flex-col items-center gap-2">
+                  <Search className="h-8 w-8 text-slate-300 dark:text-slate-600" />
+                  <p>No properties match your search criteria</p>
+                  <Button 
+                    variant="link" 
+                    onClick={() => {
+                      setSearchTerm("");
+                      setFilterCity("");
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <Building className="h-8 w-8 text-slate-300 dark:text-slate-600" />
+                  <p>No properties found in the system</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table Layout */}
+        <div className="hidden lg:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -375,11 +515,12 @@ export default function AdminPropertiesPage() {
                 <TableHead>Rooms</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedProperties.length > 0 ? (
-                sortedProperties.map((property) => (
+              {paginatedProperties.length > 0 ? (
+                paginatedProperties.map((property) => (
                   <TableRow key={property.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -424,7 +565,6 @@ export default function AdminPropertiesPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        {/* Using property-level data for efficiency in table view */}
                         <div className="flex items-center gap-1">
                           <BedDouble className="h-4 w-4 text-slate-400" />
                           <span>{property.beds}</span>
@@ -462,7 +602,6 @@ export default function AdminPropertiesPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onSelect={async () => {
                             try {
-                              // Call admin delete property endpoint
                               const res = await fetch(`/api/admin/properties/delete?id=${property.id}`, { method: 'POST' });
                               if (!res.ok) {
                                 const txt = await res.text();
@@ -487,7 +626,7 @@ export default function AdminPropertiesPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-slate-500 dark:text-slate-400">
+                  <TableCell colSpan={7} className="text-center py-8 text-slate-500 dark:text-slate-400">
                     {searchTerm || filterCity ? (
                       <div className="flex flex-col items-center gap-2">
                         <Search className="h-8 w-8 text-slate-300 dark:text-slate-600" />
@@ -514,6 +653,19 @@ export default function AdminPropertiesPage() {
             </TableBody>
           </Table>
         </div>
+        
+        {/* Pagination */}
+        {sortedProperties.length > itemsPerPage && (
+          <div className="p-4 border-t border-slate-200 dark:border-slate-700">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={sortedProperties.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </Card>
       
       {/* Property statistics */}
