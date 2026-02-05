@@ -6,6 +6,8 @@ import { verifyAuth } from '@/lib/auth';
 const POSTHOG_PERSONAL_API_KEY = process.env.POSTHOG_PERSONAL_API_KEY;
 const POSTHOG_PROJECT_ID = process.env.POSTHOG_PROJECT_ID || ''; // Your PostHog project ID
 
+const POSTHOG_API_HOST = 'https://us.posthog.com';
+
 export async function GET(request: NextRequest) {
   try {
     const authResult = await verifyAuth(request, ['admin']);
@@ -42,8 +44,8 @@ export async function GET(request: NextRequest) {
 
     // Fetch analytics from PostHog API
     const [insightsData, eventsData] = await Promise.all([
-      fetchPostHogInsights(startDate, now),
-      fetchPostHogEvents(startDate, now),
+      fetchPostHogInsights(POSTHOG_API_HOST, startDate, now),
+      fetchPostHogEvents(POSTHOG_API_HOST, startDate, now),
     ]);
 
     // Process and structure the data
@@ -58,17 +60,17 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function fetchPostHogInsights(startDate: Date, endDate: Date) {
+async function fetchPostHogInsights(host: string, startDate: Date, endDate: Date) {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_POSTHOG_HOST}/api/projects/${POSTHOG_PROJECT_ID}/insights/trend/?events=[{"id":"$pageview"}]&date_from=${startDate.toISOString()}&date_to=${endDate.toISOString()}`,
-      {
-        headers: {
-          Authorization: `Bearer ${POSTHOG_PERSONAL_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const eventsParam = encodeURIComponent(JSON.stringify([{ id: '$pageview' }]));
+    const url = `${host}/api/projects/${POSTHOG_PROJECT_ID}/insights/trend/?events=${eventsParam}&date_from=${startDate.toISOString()}&date_to=${endDate.toISOString()}`;
+    
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${POSTHOG_PERSONAL_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
     if (!response.ok) return null;
     return response.json();
   } catch {
@@ -76,17 +78,16 @@ async function fetchPostHogInsights(startDate: Date, endDate: Date) {
   }
 }
 
-async function fetchPostHogEvents(startDate: Date, endDate: Date) {
+async function fetchPostHogEvents(host: string, startDate: Date, endDate: Date) {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_POSTHOG_HOST}/api/projects/${POSTHOG_PROJECT_ID}/events/?after=${startDate.toISOString()}&before=${endDate.toISOString()}&limit=1000`,
-      {
-        headers: {
-          Authorization: `Bearer ${POSTHOG_PERSONAL_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const url = `${host}/api/projects/${POSTHOG_PROJECT_ID}/events/?after=${startDate.toISOString()}&before=${endDate.toISOString()}&limit=1000`;
+    
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${POSTHOG_PERSONAL_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
     if (!response.ok) return null;
     return response.json();
   } catch {
