@@ -22,6 +22,7 @@ import { CheckCircle, XCircle, AlertTriangle, Ban, Search } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
 
 export default function LandlordsPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const statusFilter = searchParams.get("status") || "";
   const [searchTerm, setSearchTerm] = useState("");
