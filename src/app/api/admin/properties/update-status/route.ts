@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    revalidateTag('properties');
+    revalidateTag('properties', {});
 
     return NextResponse.json(updatedProperty);
   } catch (error: any) {
