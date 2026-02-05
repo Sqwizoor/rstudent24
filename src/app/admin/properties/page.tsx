@@ -74,7 +74,7 @@ export default function AdminPropertiesPage() {
     skip: !authInitialized
   });
   
-  const { data: rawProperties, isLoading: propertiesLoading, error } = useGetAdminPropertiesQuery(undefined, {
+  const { data: rawProperties, isLoading: propertiesLoading, error, refetch } = useGetAdminPropertiesQuery(undefined, {
     skip: !authInitialized || !authUser
   });
   
@@ -465,7 +465,7 @@ export default function AdminPropertiesPage() {
                             });
                             if (!res.ok) throw new Error('Failed to approve property');
                             toast.success('Property approved successfully');
-                            router.refresh();
+                            refetch();
                           } catch (err: any) {
                             toast.error(err.message);
                           }
@@ -488,7 +488,7 @@ export default function AdminPropertiesPage() {
                             });
                             if (!res.ok) throw new Error('Failed to deny property');
                             toast.success('Property denied');
-                            router.refresh();
+                            refetch();
                           } catch (err: any) {
                             toast.error(err.message);
                           }
@@ -498,27 +498,51 @@ export default function AdminPropertiesPage() {
                       </Button>
                     )}
 
-                    <Button 
-                      size="sm" 
-                      variant="destructive"
-                      className="flex-1 min-w-[100px]"
-                      onClick={async () => {
-                        try {
-                          const res = await fetch(`/api/admin/properties/delete?id=${property.id}`, { method: 'POST' });
-                          if (!res.ok) {
-                            const txt = await res.text();
-                            throw new Error(txt || 'Failed to disable property');
+                    {!property.isDisabled ? (
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        className="flex-1 min-w-[100px]"
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`/api/admin/properties/delete?id=${property.id}`, { method: 'POST' });
+                            if (!res.ok) {
+                              const txt = await res.text();
+                              throw new Error(txt || 'Failed to disable property');
+                            }
+                            toast.success('Property blocked successfully');
+                            refetch();
+                          } catch (err: any) {
+                            console.error('Failed to block property', err);
+                            toast.error(err?.message || 'Failed to block property');
                           }
-                          toast.success('Property blocked successfully');
-                          router.refresh();
-                        } catch (err: any) {
-                          console.error('Failed to block property', err);
-                          toast.error(err?.message || 'Failed to block property');
-                        }
-                      }}
-                    >
-                      Block
-                    </Button>
+                        }}
+                      >
+                        Block
+                      </Button>
+                    ) : (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="flex-1 min-w-[100px] border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`/api/admin/properties/enable?id=${property.id}`, { method: 'POST' });
+                            if (!res.ok) {
+                              const txt = await res.text();
+                              throw new Error(txt || 'Failed to unblock property');
+                            }
+                            toast.success('Property unblocked successfully');
+                            refetch();
+                          } catch (err: any) {
+                            console.error('Failed to unblock property', err);
+                            toast.error(err?.message || 'Failed to unblock property');
+                          }
+                        }}
+                      >
+                        Unblock
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -661,7 +685,7 @@ export default function AdminPropertiesPage() {
                                   });
                                   if (!res.ok) throw new Error('Failed to approve property');
                                   toast.success('Property approved successfully');
-                                  router.refresh();
+                                  refetch();
                                 } catch (err: any) {
                                   toast.error(err.message);
                                 }
@@ -682,7 +706,7 @@ export default function AdminPropertiesPage() {
                                   });
                                   if (!res.ok) throw new Error('Failed to deny property');
                                   toast.success('Property denied');
-                                  router.refresh();
+                                  refetch();
                                 } catch (err: any) {
                                   toast.error(err.message);
                                 }
@@ -692,22 +716,44 @@ export default function AdminPropertiesPage() {
                             </DropdownMenuItem>
                           )}
 
-                          <DropdownMenuItem onSelect={async () => {
-                            try {
-                              const res = await fetch(`/api/admin/properties/delete?id=${property.id}`, { method: 'POST' });
-                              if (!res.ok) {
-                                const txt = await res.text();
-                                throw new Error(txt || 'Failed to disable property');
+                          {!property.isDisabled ? (
+                            <DropdownMenuItem onSelect={async () => {
+                              try {
+                                const res = await fetch(`/api/admin/properties/delete?id=${property.id}`, { method: 'POST' });
+                                if (!res.ok) {
+                                  const txt = await res.text();
+                                  throw new Error(txt || 'Failed to disable property');
+                                }
+                                toast.success('Property blocked successfully');
+                                refetch();
+                              } catch (err: any) {
+                                console.error('Failed to block property', err);
+                                toast.error(err?.message || 'Failed to block property');
                               }
-                              toast.success('Property blocked successfully');
-                              router.refresh();
-                            } catch (err: any) {
-                              console.error('Failed to block property', err);
-                              toast.error(err?.message || 'Failed to block property');
-                            }
-                          }}>
-                            Disable / Block Property
-                          </DropdownMenuItem>
+                            }}>
+                              Disable / Block Property
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem 
+                              className="text-green-600 dark:text-green-400"
+                              onSelect={async () => {
+                                try {
+                                  const res = await fetch(`/api/admin/properties/enable?id=${property.id}`, { method: 'POST' });
+                                  if (!res.ok) {
+                                    const txt = await res.text();
+                                    throw new Error(txt || 'Failed to unblock property');
+                                  }
+                                  toast.success('Property unblocked successfully');
+                                  refetch();
+                                } catch (err: any) {
+                                  console.error('Failed to unblock property', err);
+                                  toast.error(err?.message || 'Failed to unblock property');
+                                }
+                              }}
+                            >
+                              Enable / Unblock Property
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
