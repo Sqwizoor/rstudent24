@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { configureAdminAuth, checkAdminAuth } from "../adminAuth";
 import { fetchAuthSession } from "aws-amplify/auth";
+import { AnalyticsSkeleton } from "./AnalyticsSkeleton";
 
 // Chart colors
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
@@ -146,10 +147,7 @@ export default function TrafficAnalyticsPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-          <span className="ml-2 text-slate-500">Loading analytics...</span>
-        </div>
+        <AnalyticsSkeleton />
       ) : error ? (
         <Card className="p-6 text-center">
           <p className="text-red-500">{error}</p>

@@ -42,11 +42,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(generateMockData(timeRange));
     }
 
+    console.log(`Fetching PostHog analytics for range: ${timeRange} from ${startDate.toISOString()}`);
+
     // Fetch analytics from PostHog API
     const [insightsData, eventsData] = await Promise.all([
       fetchPostHogInsights(POSTHOG_API_HOST, startDate, now),
       fetchPostHogEvents(POSTHOG_API_HOST, startDate, now),
     ]);
+
+    // Debug logging
+    console.log('Insights Data received:', insightsData ? 'Yes' : 'No');
+    console.log('Events Data received:', eventsData ? 'Yes' : 'No');
+    
+    if (insightsData) {
+       console.log('Insights keys:', Object.keys(insightsData));
+       if (insightsData.results) console.log('Insights results length:', insightsData.results.length);
+       if (insightsData.result) console.log('Insights result:', insightsData.result);
+    }
 
     // Process and structure the data
     const analyticsData = processAnalyticsData(insightsData, eventsData, timeRange);
@@ -70,10 +82,18 @@ async function fetchPostHogInsights(host: string, startDate: Date, endDate: Date
         Authorization: `Bearer ${POSTHOG_PERSONAL_API_KEY}`,
         'Content-Type': 'application/json',
       },
+      next: { revalidate: 300 } // Cache for 5 minutes
     });
-    if (!response.ok) return null;
+    
+    if (!response.ok) {
+        console.error('PostHog Insights API error:', response.status, response.statusText);
+        const text = await response.text();
+        console.error('Response body:', text);
+        return null;
+    }
     return response.json();
-  } catch {
+  } catch (err) {
+    console.error('Fetch Insights Exception:', err);
     return null;
   }
 }
@@ -87,26 +107,59 @@ async function fetchPostHogEvents(host: string, startDate: Date, endDate: Date) 
         Authorization: `Bearer ${POSTHOG_PERSONAL_API_KEY}`,
         'Content-Type': 'application/json',
       },
+      next: { revalidate: 300 } // Cache for 5 minutes
     });
-    if (!response.ok) return null;
+    
+    if (!response.ok) {
+        console.error('PostHog Events API error:', response.status, response.statusText);
+        return null;
+    }
     return response.json();
-  } catch {
+  } catch (err) {
+    console.error('Fetch Events Exception:', err);
     return null;
   }
 }
 
 function processAnalyticsData(insights: any, events: any, timeRange: string) {
-  // If we have real data, process it
-  if (insights?.results || events?.results) {
-    const dailyPageviews = insights?.results?.[0]?.data || [];
-    const dailyLabels = insights?.results?.[0]?.labels || [];
+  // Check if we have valid data structures
+  const hasInsightsHandler = (insights?.result || insights?.results);
+  const hasEventsHandler = (events?.results || events?.result); // Events list usually in results
+
+  if (hasInsightsHandler || hasEventsHandler) {
+    // Handle Trend (Insights) Data
+    let dailyPageviews: number[] = [];
+    let dailyLabels: string[] = [];
+
+    // PostHog trend endpoint can return 'result' (array) or 'results' (wrapper)
+    const trendResult = insights?.result || insights?.results?.[0]?.data || insights?.results || [];
     
+    // Attempt to parse standard trend response
+    if (Array.isArray(trendResult) && trendResult.length > 0) {
+        // Standard trend response often has { data: [], labels: [] } inside the result array item
+        // OR it's a direct array of objects if breakdown is used.
+        // Simple trend usually: results: [ { data: [1,2,3], labels: ['Mon','Tue',...], ... } ]
+        
+        // Check finding the specific series for $pageview
+        const series = Array.isArray(insights?.results) ? insights.results[0] : null;
+        if (series && series.data && series.labels) {
+            dailyPageviews = series.data;
+            dailyLabels = series.labels;
+        } else if (Array.isArray(trendResult) && trendResult[0]?.data && trendResult[0]?.labels) {
+             dailyPageviews = trendResult[0].data;
+             dailyLabels = trendResult[0].labels;
+        }
+    }
+
     // Calculate totals
     const totalPageviews = dailyPageviews.reduce((sum: number, val: number) => sum + val, 0);
     
+    // Handle Events Data
+    const eventList = events?.results || [];
+    
     // Get unique visitors from events
     const uniqueVisitors = new Set(
-      events?.results?.map((e: any) => e.distinct_id).filter(Boolean) || []
+      eventList.map((e: any) => e.distinct_id).filter(Boolean) || []
     ).size;
 
     // Extract referrer data
@@ -115,7 +168,7 @@ function processAnalyticsData(insights: any, events: any, timeRange: string) {
     const countryCounts: Record<string, number> = {};
     const deviceCounts: Record<string, number> = { desktop: 0, mobile: 0, tablet: 0 };
 
-    events?.results?.forEach((event: any) => {
+    eventList.forEach((event: any) => {
       // Referrer - handle URL parsing carefully
       const referrer = event.properties?.$referrer || event.properties?.$referring_domain || '';
       let cleanReferrer = 'Direct';
@@ -138,10 +191,14 @@ function processAnalyticsData(insights: any, events: any, timeRange: string) {
 
       // Device
       const deviceType = event.properties?.$device_type || 'desktop';
-      if (deviceType.toLowerCase().includes('mobile')) {
-        deviceCounts.mobile++;
-      } else if (deviceType.toLowerCase().includes('tablet')) {
-        deviceCounts.tablet++;
+      if (typeof deviceType === 'string') {
+        if (deviceType.toLowerCase().includes('mobile')) {
+            deviceCounts.mobile++;
+        } else if (deviceType.toLowerCase().includes('tablet')) {
+            deviceCounts.tablet++;
+        } else {
+            deviceCounts.desktop++;
+        }
       } else {
         deviceCounts.desktop++;
       }
