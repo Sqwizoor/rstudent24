@@ -305,10 +305,10 @@ export async function GET(request: NextRequest) {
       JOIN "Manager" m ON p."managerCognitoId" = m."cognitoId"
       LEFT JOIN disabled_properties dp ON dp.property_id = p.id
       ${
-        // Always require the manager to be Active and the property not to be present in disabled_properties so disabled properties don't show
+        // Always require the manager to be Active, the property to be Approved, and the property not to be present in disabled_properties
         whereConditions.length > 0
-          ? Prisma.sql`WHERE m.status = 'Active'::"ManagerStatus" AND ${Prisma.join(whereConditions, ' AND ')} AND dp.property_id IS NULL`
-          : Prisma.sql`WHERE m.status = 'Active'::"ManagerStatus" AND dp.property_id IS NULL`
+          ? Prisma.sql`WHERE m.status = 'Active'::"ManagerStatus" AND p.status = 'Approved'::"PropertyStatus" AND ${Prisma.join(whereConditions, ' AND ')} AND dp.property_id IS NULL`
+          : Prisma.sql`WHERE m.status = 'Active'::"ManagerStatus" AND p.status = 'Approved'::"PropertyStatus" AND dp.property_id IS NULL`
       }
     `;
 

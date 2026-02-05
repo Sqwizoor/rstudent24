@@ -147,8 +147,8 @@ export default function AdminPropertiesPage() {
           name: 'Unknown',
           cognitoId: typedProperty.managerCognitoId || ''
         },
-        // Add status field if missing
-        status: typedProperty.status || 'available',
+        // Use the actual status from the database
+        status: typedProperty.status || 'Pending',
         isDisabled: typedProperty.isDisabled === true
       };
       
@@ -407,17 +407,15 @@ export default function AdminPropertiesPage() {
                       <div className="text-sm text-slate-500 dark:text-slate-400">ID: {property.id}</div>
                       <Badge 
                         variant={
-                          property.isDisabled
-                            ? "destructive"
-                            : property.status === "available"
-                              ? "default"
-                              : property.status === "rented"
-                                ? "secondary"
-                                : "outline"
+                          property.status === "Approved"
+                            ? "default"
+                            : property.status === "Denied" || property.isDisabled
+                              ? "destructive"
+                              : "outline"
                         }
                         className="mt-1"
                       >
-                        {property.isDisabled ? "Blocked" : (property.status || "Available")}
+                        {property.isDisabled ? "Blocked" : (property.status || "Pending")}
                       </Badge>
                     </div>
                   </div>
@@ -444,19 +442,66 @@ export default function AdminPropertiesPage() {
                   </div>
                   
                   {/* Actions */}
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex flex-wrap gap-2 pt-2">
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      className="flex-1"
+                      className="flex-1 min-w-[100px]"
                       onClick={() => router.push(`/admin/properties/${property.id}`)}
                     >
                       View Details
                     </Button>
+                    
+                    {property.status !== "Approved" && (
+                      <Button 
+                        size="sm" 
+                        variant="default"
+                        className="flex-1 min-w-[100px] bg-green-600 hover:bg-green-700"
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`/api/admin/properties/update-status`, { 
+                              method: 'POST',
+                              body: JSON.stringify({ id: property.id, status: 'Approved' })
+                            });
+                            if (!res.ok) throw new Error('Failed to approve property');
+                            toast.success('Property approved successfully');
+                            router.refresh();
+                          } catch (err: any) {
+                            toast.error(err.message);
+                          }
+                        }}
+                      >
+                        Approve
+                      </Button>
+                    )}
+
+                    {property.status === "Pending" && (
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        className="flex-1 min-w-[100px]"
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`/api/admin/properties/update-status`, { 
+                              method: 'POST',
+                              body: JSON.stringify({ id: property.id, status: 'Denied' })
+                            });
+                            if (!res.ok) throw new Error('Failed to deny property');
+                            toast.success('Property denied');
+                            router.refresh();
+                          } catch (err: any) {
+                            toast.error(err.message);
+                          }
+                        }}
+                      >
+                        Deny
+                      </Button>
+                    )}
+
                     <Button 
                       size="sm" 
                       variant="destructive"
-                      className="flex-1"
+                      className="flex-1 min-w-[100px]"
                       onClick={async () => {
                         try {
                           const res = await fetch(`/api/admin/properties/delete?id=${property.id}`, { method: 'POST' });
@@ -472,7 +517,7 @@ export default function AdminPropertiesPage() {
                         }
                       }}
                     >
-                      Disable
+                      Block
                     </Button>
                   </div>
                 </div>
@@ -558,7 +603,10 @@ export default function AdminPropertiesPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div 
+                        className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors"
+                        onClick={() => router.push(`/admin/landlords/${property.manager.id}`)}
+                      >
                         <User className="h-4 w-4 text-slate-400" />
                         <span>{property.manager.name || "Unknown"}</span>
                       </div>
@@ -582,16 +630,14 @@ export default function AdminPropertiesPage() {
                     <TableCell>
                       <Badge 
                         variant={
-                          property.isDisabled
-                            ? "destructive"
-                            : property.status === "available"
-                              ? "default"
-                              : property.status === "rented"
-                                ? "secondary"
-                                : "outline"
+                          property.status === "Approved"
+                            ? "default"
+                            : property.status === "Denied" || property.isDisabled
+                              ? "destructive"
+                              : "outline"
                         }
                       >
-                        {property.isDisabled ? "Blocked" : (property.status || "Available")}
+                        {property.isDisabled ? "Blocked" : (property.status || "Pending")}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -600,6 +646,52 @@ export default function AdminPropertiesPage() {
                           <Button size="sm" variant="outline">Actions</Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onSelect={async () => { router.push(`/admin/properties/${property.id}`); }}>
+                            View Details
+                          </DropdownMenuItem>
+                          
+                          {property.status !== "Approved" && (
+                            <DropdownMenuItem 
+                              className="text-green-600 dark:text-green-400"
+                              onSelect={async () => {
+                                try {
+                                  const res = await fetch(`/api/admin/properties/update-status`, { 
+                                    method: 'POST',
+                                    body: JSON.stringify({ id: property.id, status: 'Approved' })
+                                  });
+                                  if (!res.ok) throw new Error('Failed to approve property');
+                                  toast.success('Property approved successfully');
+                                  router.refresh();
+                                } catch (err: any) {
+                                  toast.error(err.message);
+                                }
+                              }}
+                            >
+                              Approve Property
+                            </DropdownMenuItem>
+                          )}
+
+                          {property.status === "Pending" && (
+                            <DropdownMenuItem 
+                              className="text-red-600 dark:text-red-400"
+                              onSelect={async () => {
+                                try {
+                                  const res = await fetch(`/api/admin/properties/update-status`, { 
+                                    method: 'POST',
+                                    body: JSON.stringify({ id: property.id, status: 'Denied' })
+                                  });
+                                  if (!res.ok) throw new Error('Failed to deny property');
+                                  toast.success('Property denied');
+                                  router.refresh();
+                                } catch (err: any) {
+                                  toast.error(err.message);
+                                }
+                              }}
+                            >
+                              Deny Property
+                            </DropdownMenuItem>
+                          )}
+
                           <DropdownMenuItem onSelect={async () => {
                             try {
                               const res = await fetch(`/api/admin/properties/delete?id=${property.id}`, { method: 'POST' });
@@ -615,9 +707,6 @@ export default function AdminPropertiesPage() {
                             }
                           }}>
                             Disable / Block Property
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={async () => { router.push(`/admin/properties/${property.id}`); }}>
-                            View Details
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

@@ -5,6 +5,7 @@ import type { ExtendedAuthUser } from "@/types/cognito";
 export interface CognitoLandlord {
   username: string;
   userId: string;
+  id?: number;
   email?: string;
   phoneNumber?: string;
   status?: string;

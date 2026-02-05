@@ -116,6 +116,12 @@ enum RoomType {
   ENTIRE_UNIT
 }
 
+enum PropertyStatus {
+  Pending
+  Approved
+  Denied
+}
+
 enum RedirectType {
   NONE
   WHATSAPP
@@ -144,6 +150,7 @@ model Property {
   kitchens          Int          @default(0)
   squareFeet        Int
   propertyType      PropertyType
+  status            PropertyStatus @default(Pending)
   postedDate        DateTime     @default(now())
   averageRating     Float?       @default(0)
   numberOfReviews   Int?         @default(0)
@@ -164,6 +171,17 @@ model Property {
   tenants      Tenant[]      @relation("TenantProperties")
   rooms        Room[]        @relation("PropertyRooms")
   reviews      Review[]
+  disabledProperty DisabledProperty?
+}
+
+model DisabledProperty {
+  propertyId Int      @id @map("property_id")
+  disabledAt DateTime @default(now()) @map("disabled_at")
+  disabledBy String?  @map("disabled_by")
+
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  @@map("disabled_properties")
 }
 
 model Room {

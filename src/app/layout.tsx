@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Barlow } from 'next/font/google';
 import "./globals.css";
 import { PreloadScripts } from "@/components/PreloadScripts";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 // Load Barlow font with essential weights only (400 and 700)
 const barlow = Barlow({
@@ -60,6 +61,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <PreloadScripts />
+        {/* Google Analytics */}
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS || 'G-3W05VRQPJF'} />
         {/* Meta Pixel Code */}
         <script
           dangerouslySetInnerHTML={{

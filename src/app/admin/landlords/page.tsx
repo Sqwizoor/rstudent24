@@ -30,6 +30,7 @@ export default function LandlordsPage() {
   type Manager = {
     username: string;
     userId: string;
+    id?: number;
     cognitoId?: string;
     email?: string;
     phoneNumber?: string;
@@ -191,6 +192,9 @@ export default function LandlordsPage() {
                   <div className="mt-2">{getStatusBadge(manager.status || "Active")}</div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); router.push(`/admin/landlords/${manager.id}`); }}>
+                    View Profile
+                  </Button>
                   <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); openStatusDialog(manager as Manager, manager.status || 'Active'); }}>
                     Change Status
                   </Button>

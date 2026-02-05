@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     }
 
     type ManagerRecord = {
+      id: number;
       name: string | null;
       email: string | null;
       phoneNumber: string | null;
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest) {
     // Use DB to list managers/landlords; avoid direct SDK dependency
     const managers: ManagerRecord[] = await prisma.manager.findMany({
       select: {
+        id: true,
         name: true,
         email: true,
         phoneNumber: true,
@@ -32,6 +34,7 @@ export async function GET(request: NextRequest) {
 
     const landlords = managers.map((m: ManagerRecord) => ({
       username: m.email ?? m.cognitoId,
+      id: m.id,
       userId: m.cognitoId,
       email: m.email ?? undefined,
       phoneNumber: m.phoneNumber ?? undefined,

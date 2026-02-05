@@ -60,12 +60,16 @@ export async function GET(request: NextRequest) {
             'latitude', ST_Y(l."coordinates"::geometry)
           )
         ) as location,
+        json_build_object(
+          'id', m.id,
+          'name', m.name,
+          'cognitoId', m."cognitoId"
+        ) as manager,
         CASE WHEN dp.property_id IS NOT NULL THEN true ELSE false END AS "isDisabled"
       FROM "Property" p
       JOIN "Location" l ON p."locationId" = l.id
       JOIN "Manager" m ON p."managerCognitoId" = m."cognitoId"
       LEFT JOIN disabled_properties dp ON dp.property_id = p.id
-      WHERE m.status = 'Active'::"ManagerStatus"
       ORDER BY p.id DESC
       LIMIT ${limit}
     `;
