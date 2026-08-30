@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     await prisma.$executeRawUnsafe(`DELETE FROM disabled_properties WHERE property_id = ${id}`);
 
     // Invalidate the Next.js cache so the re-enabled property appears on the frontend immediately
-    revalidateTag('properties', {});
+    revalidateTag('properties');
 
     return NextResponse.json({ message: 'Property enabled', id });
   } catch (err: any) {

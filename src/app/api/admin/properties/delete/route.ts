@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Invalidate the Next.js cache so the disabled property disappears from the frontend immediately
-    revalidateTag('properties', {});
+    revalidateTag('properties');
 
     return NextResponse.json({ message: 'Property disabled', id });
   } catch (error: any) {

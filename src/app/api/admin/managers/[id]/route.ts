@@ -113,8 +113,8 @@ export async function GET(
     // Transform properties to include tenant count
     const transformedProperties = properties.map((property: PrismaProperty) => {
       // Get unique tenants from leases
-      const tenantSet = new Set();
-      property.leases.forEach(lease => {
+      const tenantSet = new Set<number>();
+      property.leases.forEach((lease: { id: number; tenant: { id: number; name: string; email: string } | null }) => {
         if (lease.tenant) {
           tenantSet.add(lease.tenant.id);
         }
@@ -130,22 +130,22 @@ export async function GET(
     });
 
     // Get all tenants from this manager's properties
-    const tenants = properties.flatMap((property: PrismaProperty) => 
-      property.leases.map(lease => lease.tenant)
+    const tenants: Tenant[] = properties.flatMap((property: PrismaProperty) => 
+      property.leases.map((lease: { id: number; tenant: Tenant | null }) => lease.tenant)
     ).filter((t: Tenant | null | undefined): t is Tenant => t !== null && t !== undefined);
 
     // Remove duplicates (tenants with multiple leases)
-    const uniqueTenants = Array.from(
-      new Map(tenants.map((tenant) => [tenant.id, tenant])).values()
+    const uniqueTenants: Tenant[] = Array.from(
+      new Map(tenants.map((tenant: Tenant) => [tenant.id, tenant])).values()
     );
 
     // Map tenants to include property name
     const tenantsWithProperties = [];
-    for (const tenant of uniqueTenants as Tenant[]) {
+    for (const tenant of uniqueTenants) {
       // Find which property this tenant has a lease in
       for (const property of properties as PrismaProperty[]) {
         const hasTenant = property.leases.some(
-          lease => lease.tenant && lease.tenant.id === tenant.id
+          (lease: { id: number; tenant: Tenant | null }) => lease.tenant && lease.tenant.id === tenant.id
         );
         
         if (hasTenant) {

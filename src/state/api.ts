@@ -4,6 +4,7 @@ import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils"
 import type { Application, Lease, Manager, Payment, Property, Room, Tenant } from "@/types/prismaTypes"
 // Import the Cognito User type if available, or define a minimal structure
 import type { ExtendedAuthUser as CognitoAuthUser } from '@/types/cognito';
+import { fetchAuthSession } from "aws-amplify/auth";
 // Import RTK Query types
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';

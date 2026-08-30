@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { Property } from '@/types/property';
+import { verifyAuth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import axios from 'axios';
+import { revalidateTag } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -397,7 +401,7 @@ export async function POST(request: NextRequest) {
         
         // ✅ Invalidate cache after creation
         // queryCache.invalidateAll();
-        revalidateTag('properties', {});
+        revalidateTag('properties');
         
         return NextResponse.json(propertyWithCoordinates, { status: 201 });
       } else {
