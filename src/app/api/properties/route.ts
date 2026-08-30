@@ -14,6 +14,10 @@ function mapConvexProperty(p: any, idx: number): Property {
     ? p.photoUrls 
     : (Array.isArray(p.imageUrls) && p.imageUrls.length > 0 ? p.imageUrls : []);
 
+  // Use already-resolved price from Convex (which includes room price rollup)
+  // p.price and p.pricePerMonth come from Convex already computed
+  const resolvedPrice = Number(p.pricePerMonth) || Number(p.price) || 0;
+
   return {
     id: (p._id || p.legacyId || (idx + 1)) as any,
     name: p.name || 'Student Residence',
@@ -25,8 +29,8 @@ function mapConvexProperty(p: any, idx: number): Property {
     baths: p.baths ?? 1,
     kitchens: p.kitchens ?? 1,
     squareFeet: p.squareFeet ?? 45,
-    pricePerMonth: p.pricePerMonth ?? p.price ?? 3500,
-    price: p.pricePerMonth ?? p.price ?? 3500,
+    pricePerMonth: resolvedPrice,
+    price: resolvedPrice,
     isPetsAllowed: p.isPetsAllowed ?? false,
     isParkingIncluded: p.isParkingIncluded ?? false,
     isNsfassAccredited: p.isNsfassAccredited ?? true,

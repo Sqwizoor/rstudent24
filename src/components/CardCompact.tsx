@@ -102,7 +102,10 @@ export default function PropertyCardCompact({
   const displayBaths = property.baths || 0;
   const displayKitchens = property.kitchens || 0;
   const displaySquareFeet = property.squareFeet || 0;
-  const displayPrice = (property as any).minRoomPrice ?? roomStats.minPrice ?? property.price ?? property.pricePerMonth ?? 0;
+  const resolvedPropertyPrice = Number(property.pricePerMonth) || Number(property.price) || 0;
+  const displayPrice = resolvedPropertyPrice > 0
+    ? resolvedPropertyPrice
+    : ((property as any).minRoomPrice || roomStats.minPrice || 0);
 
   return (
     <Card 

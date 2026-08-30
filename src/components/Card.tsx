@@ -101,7 +101,12 @@ function PropertyCard({
   const displayBaths = property.baths || 0;
   const displayKitchens = property.kitchens || 0;
   const displaySquareFeet = property.squareFeet || 0;
-  const displayPrice = property.minRoomPrice ?? roomStats.minPrice ?? property.price ?? property.pricePerMonth ?? 0;
+
+  // Resolve price: prefer resolved property price, then room min price
+  const resolvedPropertyPrice = Number(property.pricePerMonth) || Number(property.price) || 0;
+  const displayPrice = resolvedPropertyPrice > 0
+    ? resolvedPropertyPrice
+    : (property.minRoomPrice || roomStats.minPrice || 0);
 
   // Use optimized image loader with quality setting
   const loaderFunc = (props: ImageLoaderProps) => {

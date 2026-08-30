@@ -63,11 +63,28 @@ export const getNearbyProperties = query({
         const validStorage = storageUrls.filter(Boolean);
         const finalImages = validStorage.length > 0 ? validStorage : (p.photoUrls || []);
 
+        // Fetch rooms to compute min price
+        const rooms = await ctx.db
+          .query("rooms")
+          .withIndex("by_property", (q) => q.eq("propertyId", p._id))
+          .collect();
+
+        const roomPrices = rooms
+          .map((r) => Number(r.pricePerMonth) || 0)
+          .filter((price) => price > 0);
+        const minRoomPrice = roomPrices.length > 0 ? Math.min(...roomPrices) : 0;
+        const resolvedPrice = (p.pricePerMonth && p.pricePerMonth > 0)
+          ? p.pricePerMonth
+          : minRoomPrice;
+
         matched.push({
           ...p,
+          pricePerMonth: resolvedPrice,
+          price: resolvedPrice,
           distanceKm: Math.round(distance * 10) / 10,
           imageUrls: finalImages,
           photoUrls: finalImages,
+          rooms,
         });
       }
     }
@@ -105,7 +122,7 @@ export const getProperties = query({
       properties = properties.slice(0, args.limit);
     }
 
-    // Resolve images
+    // Resolve images + compute price from rooms
     return await Promise.all(
       properties.map(async (p) => {
         const storageUrls = await Promise.all(
@@ -114,10 +131,27 @@ export const getProperties = query({
         const validStorage = storageUrls.filter(Boolean);
         const finalImages = validStorage.length > 0 ? validStorage : (p.photoUrls || []);
 
+        // Fetch rooms to compute min price if property price is 0 or missing
+        const rooms = await ctx.db
+          .query("rooms")
+          .withIndex("by_property", (q) => q.eq("propertyId", p._id))
+          .collect();
+
+        const roomPrices = rooms
+          .map((r) => Number(r.pricePerMonth) || 0)
+          .filter((price) => price > 0);
+        const minRoomPrice = roomPrices.length > 0 ? Math.min(...roomPrices) : 0;
+        const resolvedPrice = (p.pricePerMonth && p.pricePerMonth > 0)
+          ? p.pricePerMonth
+          : minRoomPrice;
+
         return {
           ...p,
+          pricePerMonth: resolvedPrice,
+          price: resolvedPrice,
           imageUrls: finalImages,
           photoUrls: finalImages,
+          rooms,
         };
       })
     );
