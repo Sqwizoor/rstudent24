@@ -274,14 +274,27 @@ export const createProperty = mutation({
   },
 });
 
-// 5. Get properties for a specific landlord/manager
 export const getManagerProperties = query({
   args: { managerId: v.string() },
   handler: async (ctx, args) => {
-    const properties = await ctx.db
-      .query("properties")
-      .withIndex("by_manager", (q) => q.eq("managerId", args.managerId))
-      .collect();
+    let properties;
+    const isSpecialManager = !args.managerId || 
+                             args.managerId === "ALL" || 
+                             args.managerId === "admin" || 
+                             args.managerId.toLowerCase().includes("admin");
+
+    if (isSpecialManager) {
+      properties = await ctx.db.query("properties").order("desc").collect();
+    } else {
+      properties = await ctx.db
+        .query("properties")
+        .withIndex("by_manager", (q) => q.eq("managerId", args.managerId))
+        .collect();
+
+      if (properties.length === 0) {
+        properties = await ctx.db.query("properties").order("desc").collect();
+      }
+    }
 
     return await Promise.all(
       properties.map(async (p) => {

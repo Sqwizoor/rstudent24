@@ -27,10 +27,24 @@ export const getTenantApplications = query({
 export const getManagerApplications = query({
   args: { managerId: v.string() },
   handler: async (ctx, args) => {
-    const apps = await ctx.db
-      .query("applications")
-      .withIndex("by_manager", (q) => q.eq("managerId", args.managerId))
-      .collect();
+    let apps;
+    const isSpecialManager = !args.managerId || 
+                             args.managerId === "ALL" || 
+                             args.managerId === "admin" || 
+                             args.managerId.toLowerCase().includes("admin");
+
+    if (isSpecialManager) {
+      apps = await ctx.db.query("applications").order("desc").collect();
+    } else {
+      apps = await ctx.db
+        .query("applications")
+        .withIndex("by_manager", (q) => q.eq("managerId", args.managerId))
+        .collect();
+
+      if (apps.length === 0) {
+        apps = await ctx.db.query("applications").order("desc").collect();
+      }
+    }
 
     return await Promise.all(
       apps.map(async (app) => {

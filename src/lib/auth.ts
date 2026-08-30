@@ -59,8 +59,9 @@ export async function verifyAuth(
         };
       }
 
-      // Check if user has the required role
-      const hasAccess = allowedRoles.includes(userRole.toLowerCase());
+      // Check if user has the required role (admins always have full access)
+      const isSuperAdmin = userRole.toLowerCase() === 'admin';
+      const hasAccess = isSuperAdmin || allowedRoles.includes(userRole.toLowerCase());
       if (!hasAccess) {
         console.error(`Access denied for role: ${userRole}, required roles: ${allowedRoles.join(', ')}`);
         return { 
@@ -133,8 +134,9 @@ export async function verifyAuth(
       };
     }
 
-    // Check if user has the required role
-    const hasAccess = allowedRoles.includes(userRole.toLowerCase());
+    // Check if user has the required role (admins always have full access)
+    const isCognitoAdmin = userRole.toLowerCase() === 'admin';
+    const hasAccess = isCognitoAdmin || allowedRoles.includes(userRole.toLowerCase());
     if (!hasAccess) {
       console.error(`Access denied for role: ${userRole}, required roles: ${allowedRoles.join(', ')}`);
       return { 

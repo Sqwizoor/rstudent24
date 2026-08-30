@@ -37,14 +37,8 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
       
       // Handle admin users
       if (userRole === "admin") {
-        if (!pathname.startsWith("/admin")) {
-          const isAdminAuthenticated = localStorage.getItem('isAdminAuthenticated');
-          if (isAdminAuthenticated === 'true') {
-            router.replace("/admin");
-          } else {
-            setIsLoading(false);
-          }
-        }
+        localStorage.setItem('isAdminAuthenticated', 'true');
+        setIsLoading(false);
         return;
       }
       
@@ -107,14 +101,9 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
     );
   }
   
-  // Redirect admin users to admin dashboard
-  if (user.role?.toLowerCase() === "admin") {
-    router.push("/admin");
-    return null;
-  }
-
-  const userRole = user.role?.toLowerCase() as "tenant" | "manager" | "student";
-  const displayRole = userRole === "student" ? "tenant" : userRole;
+  // For admin users, allow access to both admin console and manager/tenant views
+  const rawRole = user.role?.toLowerCase();
+  const displayRole = rawRole === "admin" ? "manager" : (rawRole === "student" ? "tenant" : rawRole);
 
   return (
     <SidebarProvider>

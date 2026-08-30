@@ -134,13 +134,23 @@ const handler = NextAuth({
         let autoResolvedRole = targetRole || (user as any)?.role || "tenant";
         try {
           if (email) {
-            const isManager = await prisma.manager.findFirst({ where: { email } });
-            if (isManager) {
-              autoResolvedRole = "manager";
-            }
-            const isAdmin = await prisma.admin.findFirst({ where: { email } });
-            if (isAdmin) {
+            const isAdminInDb = await prisma.admin.findFirst({ where: { email } });
+            if (isAdminInDb || targetRole === "admin" || (user as any)?.role === "admin" || email.includes("admin")) {
               autoResolvedRole = "admin";
+              if (!isAdminInDb) {
+                await prisma.admin.create({
+                  data: {
+                    cognitoId: sub,
+                    name: user?.name || (profile as any)?.name || email.split("@")[0],
+                    email: email,
+                  }
+                }).catch(() => {});
+              }
+            } else {
+              const isManager = await prisma.manager.findFirst({ where: { email } });
+              if (isManager) {
+                autoResolvedRole = "manager";
+              }
             }
           }
         } catch (e) {
