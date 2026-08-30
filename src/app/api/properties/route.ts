@@ -15,7 +15,7 @@ function mapConvexProperty(p: any, idx: number): Property {
     : (Array.isArray(p.imageUrls) && p.imageUrls.length > 0 ? p.imageUrls : []);
 
   return {
-    id: p.legacyId ?? (idx + 1),
+    id: (p._id || p.legacyId || (idx + 1)) as any,
     name: p.name || 'Student Residence',
     description: p.description || '',
     propertyType: (p.propertyType as any) || 'APARTMENT',

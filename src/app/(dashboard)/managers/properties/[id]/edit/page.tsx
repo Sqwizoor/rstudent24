@@ -193,20 +193,20 @@ function FormSection({ title, icon, children, defaultOpen = false, actions }: Fo
   const [isOpen, setIsOpen] = React.useState(defaultOpen);
 
   return (
-    <div className="mb-6 last:mb-0 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50">
+    <div className="mb-6 last:mb-0 rounded-2xl overflow-hidden border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl shadow-xl">
       <div
-        className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors"
+        className="flex items-center justify-between p-5 cursor-pointer hover:bg-zinc-900/50 transition-colors"
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-full text-blue-500 bg-blue-50 dark:bg-blue-500/10 dark:text-blue-400 transition-colors">
+          <div className="p-2.5 rounded-xl text-zinc-200 bg-zinc-900 border border-zinc-800 transition-colors">
             {icon}
           </div>
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{title}</h3>
+          <h3 className="text-lg font-semibold text-zinc-100">{title}</h3>
         </div>
         <div className="flex items-center gap-4">
           {actions}
-          <div className="text-slate-400 dark:text-slate-500 transition-transform duration-200 transform">
+          <div className="text-zinc-400 transition-transform duration-200 transform">
             {isOpen ? (
               <ChevronUp className="h-5 w-5" />
             ) : (
@@ -223,7 +223,7 @@ function FormSection({ title, icon, children, defaultOpen = false, actions }: Fo
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="p-5 border-t border-slate-200 dark:border-slate-700">
+            <div className="p-6 border-t border-zinc-800/80 bg-zinc-900/20">
               {children}
             </div>
           </motion.div>
@@ -259,12 +259,12 @@ export default function EditPropertyPage() {
   const [editingRoomInitialData, setEditingRoomInitialData] = usePageState<Partial<RoomFormData> | null>(null);
 
   // RTK Query Hooks
-  const { data: fetchedPropertyData, isLoading: isLoadingProperty, isError: isPropertyError, refetch: refetchProperty } = useGetPropertyQuery(propertyIdNumber, { skip: !propertyIdNumber || isNaN(propertyIdNumber) }) as { data: Property | undefined, isLoading: boolean, isError: boolean, refetch: () => void };
+  const { data: fetchedPropertyData, isLoading: isLoadingProperty, isError: isPropertyError, refetch: refetchProperty } = useGetPropertyQuery(propertyIdString, { skip: !propertyIdString }) as { data: Property | undefined, isLoading: boolean, isError: boolean, refetch: () => void };
   const [updateProperty, { isLoading: isUpdatingProperty }] = useUpdatePropertyMutation();
   const [deleteProperty, { isLoading: isDeletingProperty }] = useDeletePropertyMutation();
 
-  const { data: fetchedRoomsData, isLoading: isLoadingRooms, isError: isRoomsError, error: roomsError, refetch: refetchRooms } = useGetRoomsQuery(propertyIdNumber, { 
-    skip: !propertyIdNumber || isNaN(propertyIdNumber)
+  const { data: fetchedRoomsData, isLoading: isLoadingRooms, isError: isRoomsError, error: roomsError, refetch: refetchRooms } = useGetRoomsQuery(propertyIdString, { 
+    skip: !propertyIdString
   });
 
   useEffect(() => {
@@ -659,23 +659,19 @@ export default function EditPropertyPage() {
   const isAnyMutationLoading = isUpdatingProperty || isDeletingProperty || isDeletingRoom;
 
   return (
-    <div className="min-h-screen dark:text-slate-800 text-white">
+    <div className="min-h-screen bg-[#000000] text-zinc-100">
       <Toaster richColors position="top-center" />
-      <div className="relative container mx-auto px-4 py-8 mb-20">
-        {/* Decorative elements */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl"></div>
-       
+      <div className="relative container mx-auto px-4 py-8 mb-20 max-w-6xl">
         {/* Header */}
         <div className="mb-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <UIButton variant="outline" size="icon" className="rounded-full h-10 w-10" onClick={() => router.back()}>
+            <UIButton variant="outline" size="icon" className="rounded-xl h-10 w-10 bg-zinc-900 border-zinc-800 text-zinc-200 hover:bg-zinc-800" onClick={() => router.back()}>
               <ArrowLeft size={20} />
             </UIButton>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 dark:text-white">Edit Property</h1>
-              <p className="text-sm text-muted-foreground dark:text-gray-400 mt-1 truncate max-w-md">
-                {fetchedPropertyData?.name || "Loading name..."}
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">Edit Property</h1>
+              <p className="text-sm text-zinc-400 mt-1 truncate max-w-md">
+                {fetchedPropertyData?.name || "Loading details..."}
               </p>
             </div>
           </div>

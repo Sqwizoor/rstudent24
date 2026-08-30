@@ -41,7 +41,7 @@ import { getRoomStats } from "@/lib/roomUtils";
 const PropertyDetails = () => {
   const { id } = useParams();
   const router = useRouter();
-  const propertyId = Number(id);
+  const propertyId = id as string;
   const [activeTab, setActiveTab] = useState<'overview' | 'tenants' | 'rooms'>('overview');
 
   const { data: property, isLoading: propertyLoading, error: propertyError } =

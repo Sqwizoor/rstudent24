@@ -21,7 +21,7 @@ function mapSingleConvexProperty(p: any): any {
     : (Array.isArray(p.imageUrls) && p.imageUrls.length > 0 ? p.imageUrls : []);
 
   return {
-    id: p.legacyId ?? 1,
+    id: p._id || p.legacyId || 1,
     name: p.name || 'Student Residence',
     description: p.description || '',
     propertyType: p.propertyType || 'APARTMENT',
@@ -54,6 +54,7 @@ function mapSingleConvexProperty(p: any): any {
         longitude: p.longitude ?? 28.0473,
       }
     },
+    rooms: p.rooms || [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -63,32 +64,61 @@ function mapSingleConvexProperty(p: any): any {
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: paramId } = await params;
-    
-    // Query Convex for all properties to find matching item or return first
-    const convexRes = await fetch(`${CONVEX_URL}/api/query`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        path: 'properties:getProperties',
-        args: { limit: 50 },
-      }),
-      cache: 'no-store',
-    });
+    if (!paramId) {
+      return NextResponse.json({ message: "Property ID required" }, { status: 400 });
+    }
 
-    if (convexRes.ok) {
-      const data = await convexRes.json();
-      const list = Array.isArray(data.value) ? data.value : [];
-      const numId = Number(paramId);
-      
-      const found = list.find((p: any) => p._id === paramId || p.legacyId === numId) || list[0];
-      if (found) {
-        return NextResponse.json(mapSingleConvexProperty(found), {
-          headers: {
-            'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-            'Content-Type': 'application/json',
-          },
-        });
+    let found: any = null;
+
+    // 1. Try getPropertyById directly if it looks like a Convex ID (alphanumeric string)
+    try {
+      const byIdRes = await fetch(`${CONVEX_URL}/api/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          path: 'properties:getPropertyById',
+          args: { id: paramId },
+        }),
+        cache: 'no-store',
+      });
+      if (byIdRes.ok) {
+        const byIdData = await byIdRes.json();
+        if (byIdData && byIdData.value) {
+          found = byIdData.value;
+        }
       }
+    } catch (e) {
+      // Ignore and fallback to list query
+    }
+
+    // 2. Fallback: Search all Convex properties for matching _id or legacyId
+    if (!found) {
+      const convexRes = await fetch(`${CONVEX_URL}/api/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          path: 'properties:getProperties',
+          args: { limit: 100 },
+        }),
+        cache: 'no-store',
+      });
+
+      if (convexRes.ok) {
+        const data = await convexRes.json();
+        const list = Array.isArray(data.value) ? data.value : [];
+        const numId = Number(paramId);
+        
+        found = list.find((p: any) => p._id === paramId || (numId && p.legacyId === numId));
+      }
+    }
+
+    if (found) {
+      return NextResponse.json(mapSingleConvexProperty(found), {
+        headers: {
+          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+          'Content-Type': 'application/json',
+        },
+      });
     }
 
     return NextResponse.json({ message: "Property not found" }, { status: 404 });

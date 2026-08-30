@@ -521,7 +521,7 @@ export const api = createApi({
       },
     }),
 
-    getProperty: build.query<Property, number>({
+    getProperty: build.query<Property, number | string>({
       query: (id) => {
         return {
           url: `properties/${id}`,
@@ -923,7 +923,7 @@ export const api = createApi({
     }),
 
     // Room related endpoints
-    getRooms: build.query<Room[], number>({
+    getRooms: build.query<Room[], number | string>({
       query: (propertyId) => ({
         url: `properties/${propertyId}/rooms`,
         method: 'GET',
@@ -1223,7 +1223,7 @@ export const api = createApi({
       },
     }),
 
-    getPropertyLeases: build.query<Lease[], number>({
+    getPropertyLeases: build.query<Lease[], number | string>({
       query: (propertyId) => ({
         url: `properties/${propertyId}/leases`,
         method: 'GET',

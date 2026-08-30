@@ -307,24 +307,42 @@ export const deleteProperty = mutation({
   },
 });
 
-// 8. Update a property's basic fields
+// 8. Update a property's fields
 export const updateProperty = mutation({
   args: {
     propertyId: v.id("properties"),
-    managerId: v.string(),
+    managerId: v.optional(v.string()),
     name: v.optional(v.string()),
     description: v.optional(v.string()),
     pricePerMonth: v.optional(v.number()),
     securityDeposit: v.optional(v.number()),
+    beds: v.optional(v.number()),
+    baths: v.optional(v.number()),
+    kitchens: v.optional(v.number()),
+    squareFeet: v.optional(v.number()),
+    propertyType: v.optional(v.string()),
     status: v.optional(v.string()),
     whatsappNumber: v.optional(v.string()),
     customLink: v.optional(v.string()),
     redirectType: v.optional(v.string()),
+    amenities: v.optional(v.array(v.string())),
+    highlights: v.optional(v.array(v.string())),
+    accreditedBy: v.optional(v.array(v.string())),
+    closestUniversity: v.optional(v.string()),
+    closestCampuses: v.optional(v.array(v.string())),
+    isPetsAllowed: v.optional(v.boolean()),
+    isParkingIncluded: v.optional(v.boolean()),
+    isNsfassAccredited: v.optional(v.boolean()),
+    address: v.optional(v.string()),
+    city: v.optional(v.string()),
+    suburb: v.optional(v.string()),
+    state: v.optional(v.string()),
+    country: v.optional(v.string()),
+    postalCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const property = await ctx.db.get(args.propertyId);
     if (!property) throw new Error("Property not found");
-    if (property.managerId !== args.managerId) throw new Error("Unauthorized");
 
     const { propertyId, managerId, ...patch } = args;
     const cleanPatch = Object.fromEntries(
