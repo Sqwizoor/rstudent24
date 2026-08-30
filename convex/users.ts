@@ -8,7 +8,7 @@ export const getManagerByUserId = query({
     return await ctx.db
       .query("managers")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
-      .unique();
+      .first();
   },
 });
 
@@ -19,7 +19,7 @@ export const getManagerByEmail = query({
     return await ctx.db
       .query("managers")
       .withIndex("by_email", (q) => q.eq("email", args.email))
-      .unique();
+      .first();
   },
 });
 
@@ -36,17 +36,19 @@ export const upsertManager = mutation({
     let existing = await ctx.db
       .query("managers")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
-      .unique();
+      .first();
 
     // 2. If not found by userId, check by email (to link previous accounts/properties)
     if (!existing) {
       existing = await ctx.db
         .query("managers")
         .withIndex("by_email", (q) => q.eq("email", args.email))
-        .unique();
+        .first();
     }
 
     if (existing) {
+      const oldUserId = existing.userId;
+
       // Update name/email/userId in case they changed
       await ctx.db.patch(existing._id, {
         userId: args.userId,
@@ -55,12 +57,23 @@ export const upsertManager = mutation({
       });
 
       // Link any existing properties that had the manager's email or old ID as managerId
-      const unlinkedProperties = await ctx.db
+      if (oldUserId && oldUserId !== args.userId) {
+        const oldProps = await ctx.db
+          .query("properties")
+          .withIndex("by_manager", (q) => q.eq("managerId", oldUserId))
+          .collect();
+
+        for (const p of oldProps) {
+          await ctx.db.patch(p._id, { managerId: args.userId });
+        }
+      }
+
+      const emailProps = await ctx.db
         .query("properties")
         .withIndex("by_manager", (q) => q.eq("managerId", args.email))
         .collect();
 
-      for (const p of unlinkedProperties) {
+      for (const p of emailProps) {
         await ctx.db.patch(p._id, { managerId: args.userId });
       }
 
@@ -85,7 +98,7 @@ export const getTenantByUserId = query({
     return await ctx.db
       .query("tenants")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
-      .unique();
+      .first();
   },
 });
 
@@ -96,7 +109,7 @@ export const getTenantByEmail = query({
     return await ctx.db
       .query("tenants")
       .withIndex("by_email", (q) => q.eq("email", args.email))
-      .unique();
+      .first();
   },
 });
 
@@ -113,7 +126,7 @@ export const upsertTenant = mutation({
     const existing = await ctx.db
       .query("tenants")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
-      .unique();
+      .first();
 
     if (existing) {
       await ctx.db.patch(existing._id, {
@@ -145,7 +158,7 @@ export const updateTenant = mutation({
     const existing = await ctx.db
       .query("tenants")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
-      .unique();
+      .first();
     if (!existing) throw new Error("Tenant not found");
     const patch: Record<string, string> = {};
     if (args.name) patch.name = args.name;
@@ -165,7 +178,7 @@ export const updateManager = mutation({
     const existing = await ctx.db
       .query("managers")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
-      .unique();
+      .first();
     if (!existing) throw new Error("Manager not found");
     const patch: Record<string, string> = {};
     if (args.name) patch.name = args.name;

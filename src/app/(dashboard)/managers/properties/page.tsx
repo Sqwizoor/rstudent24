@@ -46,7 +46,13 @@ const Properties = () => {
   const managerId = (session?.user as any)?.id || (session?.user as any)?.sub || "";
   const managerEmail = session?.user?.email || "";
 
-  // ── Convex queries (Query by ID and Email separately to match Convex validator) ──
+  // ── Convex queries (Query by Session ID, Email, and Stored DB Manager ID) ──
+  // @ts-ignore
+  const managerRecord = useQuery(
+    anyApi.users.getManagerByEmail,
+    managerEmail ? { email: managerEmail } : "skip"
+  );
+
   // @ts-ignore
   const propertiesById = useQuery(
     anyApi.properties.getManagerProperties,
@@ -57,10 +63,34 @@ const Properties = () => {
     anyApi.properties.getManagerProperties,
     managerEmail && managerEmail !== managerId ? { managerId: managerEmail } : "skip"
   );
+  // @ts-ignore
+  const propertiesByConvexUserId = useQuery(
+    anyApi.properties.getManagerProperties,
+    managerRecord?.userId && managerRecord.userId !== managerId ? { managerId: managerRecord.userId } : "skip"
+  );
+
+  // Automatically link manager and properties in Convex upon sign-in
+  // @ts-ignore
+  const upsertManagerMutation = useMutation(anyApi.users.upsertManager);
+  React.useEffect(() => {
+    if (managerId && managerEmail) {
+      upsertManagerMutation({
+        userId: managerId,
+        email: managerEmail,
+        name: session?.user?.name || managerEmail.split("@")[0],
+      }).catch((err) => console.warn("Convex auto-link sync:", err));
+    }
+  }, [managerId, managerEmail]);
 
   const managerProperties = useMemo(() => {
-    if (propertiesById === undefined && propertiesByEmail === undefined) return undefined;
-    const list = [...(propertiesById ?? []), ...(propertiesByEmail ?? [])];
+    if (propertiesById === undefined && propertiesByEmail === undefined && propertiesByConvexUserId === undefined) {
+      return undefined;
+    }
+    const list = [
+      ...(propertiesById ?? []),
+      ...(propertiesByEmail ?? []),
+      ...(propertiesByConvexUserId ?? []),
+    ];
     const seen = new Set<string>();
     return list.filter((p: any) => {
       const id = p?._id || p?.id;
@@ -68,7 +98,7 @@ const Properties = () => {
       seen.add(id);
       return true;
     });
-  }, [propertiesById, propertiesByEmail]);
+  }, [propertiesById, propertiesByEmail, propertiesByConvexUserId]);
 
   // @ts-ignore
   const deletePropertyMutation = useMutation(anyApi.properties.deleteProperty);
