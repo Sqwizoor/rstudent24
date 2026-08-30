@@ -88,13 +88,28 @@ export const getProperties = query({
   },
   handler: async (ctx, args) => {
     const limit = args.limit ?? 100;
-    let queryBuilder = ctx.db.query("properties");
 
-    if (args.status) {
-      queryBuilder = queryBuilder.withIndex("by_status", (q) => q.eq("status", args.status!));
+    let properties;
+    if (args.status && args.city) {
+      properties = await ctx.db
+        .query("properties")
+        .withIndex("by_status_city", (q) =>
+          q.eq("status", args.status!).eq("city", args.city!)
+        )
+        .take(limit);
+    } else if (args.status) {
+      properties = await ctx.db
+        .query("properties")
+        .withIndex("by_status", (q) => q.eq("status", args.status!))
+        .take(limit);
+    } else if (args.city) {
+      properties = await ctx.db
+        .query("properties")
+        .withIndex("by_city", (q) => q.eq("city", args.city!))
+        .take(limit);
+    } else {
+      properties = await ctx.db.query("properties").take(limit);
     }
-
-    const properties = await queryBuilder.take(limit);
 
     // Resolve images
     return await Promise.all(
