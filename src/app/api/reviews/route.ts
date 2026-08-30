@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAuth } from '@/lib/auth';
 
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+
 // GET /api/reviews?propertyId=123 - Get all reviews for a property
 export async function GET(request: NextRequest) {
   try {
@@ -10,33 +12,78 @@ export async function GET(request: NextRequest) {
 
     if (!propertyId) {
       return NextResponse.json(
-        { message: 'Property ID is required' },
-        { status: 400 }
+        { reviews: [], averageRating: 0, totalReviews: 0 },
+        { status: 200 }
       );
     }
 
-    const reviews = await prisma.review.findMany({
-      where: {
-        propertyId: parseInt(propertyId),
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      select: {
-        id: true,
-        rating: true,
-        comment: true,
-        createdAt: true,
-        updatedAt: true,
-        tenantName: true,
-        tenant: {
-          select: {
-            name: true,
-            email: true,
+    let reviews: any[] = [];
+
+    // 1. Query Convex
+    try {
+      const convexRes = await fetch(`${CONVEX_URL}/api/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          path: 'reviews:getPropertyReviews',
+          args: { propertyId },
+        }),
+        cache: 'no-store',
+      });
+
+      if (convexRes.ok) {
+        const convexData = await convexRes.json();
+        if (Array.isArray(convexData.value)) {
+          reviews = convexData.value.map((r: any) => ({
+            id: r._id || r.id,
+            rating: r.rating || 5,
+            comment: r.comment || '',
+            createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString(),
+            updatedAt: r.updatedAt ? new Date(r.updatedAt).toISOString() : new Date().toISOString(),
+            tenantName: r.tenantName || 'Student',
+            tenant: {
+              name: r.tenantName || 'Student',
+              email: '',
+            },
+          }));
+        }
+      }
+    } catch (e) {
+      console.warn('Convex reviews fetch failed, trying Prisma fallback:', e);
+    }
+
+    // 2. Fallback to Prisma if numeric ID and Convex returned empty
+    if (reviews.length === 0 && !isNaN(Number(propertyId))) {
+      try {
+        const prismaReviews = await prisma.review.findMany({
+          where: {
+            propertyId: parseInt(propertyId),
           },
-        },
-      },
-    });
+          orderBy: {
+            createdAt: 'desc',
+          },
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true,
+            updatedAt: true,
+            tenantName: true,
+            tenant: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+        });
+        if (prismaReviews && prismaReviews.length > 0) {
+          reviews = prismaReviews;
+        }
+      } catch (prismaErr) {
+        // Ignore Prisma error
+      }
+    }
 
     // Calculate average rating
     const averageRating = reviews.length > 0
@@ -45,7 +92,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       reviews,
-      averageRating,
+      averageRating: Math.round(averageRating * 10) / 10,
       totalReviews: reviews.length,
     }, {
       headers: {
@@ -55,8 +102,8 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching reviews:', error);
     return NextResponse.json(
-      { message: `Error fetching reviews: ${error.message}` },
-      { status: 500 }
+      { reviews: [], averageRating: 0, totalReviews: 0 },
+      { status: 200 }
     );
   }
 }

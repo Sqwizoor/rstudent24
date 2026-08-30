@@ -3,13 +3,27 @@ import { v } from "convex/values";
 
 // Get all reviews for a property
 export const getPropertyReviews = query({
-  args: { propertyId: v.id("properties") },
+  args: { propertyId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
-      .query("reviews")
-      .withIndex("by_property", (q) => q.eq("propertyId", args.propertyId))
-      .order("desc")
-      .collect();
+    let reviews: any[] = [];
+    try {
+      reviews = await ctx.db
+        .query("reviews")
+        .withIndex("by_property", (q) => q.eq("propertyId", args.propertyId as any))
+        .order("desc")
+        .collect();
+    } catch {
+      // Fallback if propertyId is not standard Id type
+    }
+
+    if (reviews.length === 0) {
+      const all = await ctx.db.query("reviews").collect();
+      reviews = all.filter(
+        (r: any) => r.propertyId === args.propertyId || r.propertyId?.toString() === args.propertyId
+      );
+    }
+
+    return reviews;
   },
 });
 

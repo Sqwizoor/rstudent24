@@ -2,39 +2,90 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { uploadFileToS3 } from '@/lib/s3';
 
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+
 // GET handler for retrieving all rooms for a property
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Get property ID from params
     const { id } = await params;
-    const propertyId = parseInt(id);
-    
-    if (isNaN(propertyId)) {
-      return NextResponse.json({ message: 'Invalid property ID' }, { status: 400 });
+    if (!id) {
+      return NextResponse.json([], { status: 200 });
     }
 
-    // Check if property exists
-    const property = await prisma.property.findUnique({
-      where: { id: propertyId },
-    });
+    let rooms: any[] = [];
 
-    if (!property) {
-      return NextResponse.json({ message: 'Property not found' }, { status: 404 });
+    // 1. Query Convex for property and its rooms
+    try {
+      const convexRes = await fetch(`${CONVEX_URL}/api/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          path: 'properties:getPropertyById',
+          args: { id },
+        }),
+        cache: 'no-store',
+      });
+
+      if (convexRes.ok) {
+        const convexData = await convexRes.json();
+        const prop = convexData?.value;
+        if (prop && Array.isArray(prop.rooms)) {
+          rooms = prop.rooms.map((r: any, idx: number) => {
+            const rawImages = Array.isArray(r.imageUrls) && r.imageUrls.length > 0
+              ? r.imageUrls
+              : (Array.isArray(r.photoUrls) && r.photoUrls.length > 0 ? r.photoUrls : []);
+
+            return {
+              id: r._id || r.id || idx + 1,
+              propertyId: id,
+              name: r.name || 'Room',
+              description: r.description || '',
+              pricePerMonth: Number(r.pricePerMonth) || 0,
+              price: Number(r.pricePerMonth) || 0,
+              securityDeposit: Number(r.securityDeposit) || 0,
+              topUp: Number(r.topUp) || 0,
+              beds: Number(r.beds) || 1,
+              baths: Number(r.baths) || 1,
+              squareFeet: Number(r.squareFeet) || 0,
+              roomType: r.roomType || 'PRIVATE',
+              capacity: Number(r.capacity) || 1,
+              features: Array.isArray(r.features) ? r.features : [],
+              amenities: Array.isArray(r.features) ? r.features : [],
+              images: rawImages,
+              photoUrls: rawImages,
+              isAvailable: r.isAvailable !== false,
+              availableFrom: r.availableFrom || null,
+              createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString(),
+              updatedAt: r.updatedAt ? new Date(r.updatedAt).toISOString() : new Date().toISOString(),
+            };
+          });
+        }
+      }
+    } catch (convexErr) {
+      console.warn('Convex rooms query failed, attempting Prisma fallback:', convexErr);
     }
 
-    // Fetch all rooms for the property
-    const rooms = await prisma.room.findMany({
-      where: { propertyId },
-      orderBy: { createdAt: 'desc' },
-    });
+    // 2. Fallback to Prisma if numeric ID and Convex had no rooms
+    if (rooms.length === 0 && !isNaN(Number(id))) {
+      try {
+        const propertyId = parseInt(id);
+        const prismaRooms = await prisma.room.findMany({
+          where: { propertyId },
+          orderBy: { createdAt: 'desc' },
+        });
+        if (prismaRooms && prismaRooms.length > 0) {
+          rooms = prismaRooms;
+        }
+      } catch (prismaErr) {
+        // Ignore Prisma error
+      }
+    }
 
-    return NextResponse.json(rooms);
+    return NextResponse.json(rooms, { status: 200 });
   } catch (error) {
     console.error('Error fetching rooms:', error);
-    return NextResponse.json({ 
-      message: 'Error fetching rooms',
-      error: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+    return NextResponse.json([], { status: 200 });
   }
 }
 
