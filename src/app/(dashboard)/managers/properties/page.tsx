@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { anyApi } from "convex/server";
@@ -46,12 +46,30 @@ const Properties = () => {
   const managerId = (session?.user as any)?.id || (session?.user as any)?.sub || "";
   const managerEmail = session?.user?.email || "";
 
-  // ── Convex queries (Multi-identifier: managerId & managerEmail) ────────────
+  // ── Convex queries (Query by ID and Email separately to match Convex validator) ──
   // @ts-ignore
-  const managerProperties = useQuery(
+  const propertiesById = useQuery(
     anyApi.properties.getManagerProperties,
-    managerId ? { managerId, managerEmail } : "skip"
+    managerId ? { managerId } : "skip"
   );
+  // @ts-ignore
+  const propertiesByEmail = useQuery(
+    anyApi.properties.getManagerProperties,
+    managerEmail && managerEmail !== managerId ? { managerId: managerEmail } : "skip"
+  );
+
+  const managerProperties = useMemo(() => {
+    if (propertiesById === undefined && propertiesByEmail === undefined) return undefined;
+    const list = [...(propertiesById ?? []), ...(propertiesByEmail ?? [])];
+    const seen = new Set<string>();
+    return list.filter((p: any) => {
+      const id = p?._id || p?.id;
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [propertiesById, propertiesByEmail]);
+
   // @ts-ignore
   const deletePropertyMutation = useMutation(anyApi.properties.deleteProperty);
 

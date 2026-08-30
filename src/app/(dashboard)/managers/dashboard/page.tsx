@@ -18,10 +18,26 @@ export default function ManagerDashboard() {
 
   // Query properties from Convex
   // @ts-ignore
-  const properties = useQuery(
+  const propertiesById = useQuery(
     anyApi.properties.getManagerProperties,
-    managerId ? { managerId, managerEmail } : "skip"
+    managerId ? { managerId } : "skip"
   );
+  // @ts-ignore
+  const propertiesByEmail = useQuery(
+    anyApi.properties.getManagerProperties,
+    managerEmail && managerEmail !== managerId ? { managerId: managerEmail } : "skip"
+  );
+
+  const properties = React.useMemo(() => {
+    const list = [...(propertiesById ?? []), ...(propertiesByEmail ?? [])];
+    const seen = new Set<string>();
+    return list.filter((p: any) => {
+      const id = p?._id || p?.id;
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [propertiesById, propertiesByEmail]);
 
   const totalProperties = properties?.length || 0;
 

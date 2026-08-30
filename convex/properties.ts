@@ -215,33 +215,12 @@ export const createProperty = mutation({
 
 // 5. Get properties for a specific landlord/manager
 export const getManagerProperties = query({
-  args: { 
-    managerId: v.string(),
-    managerEmail: v.optional(v.string()),
-  },
+  args: { managerId: v.string() },
   handler: async (ctx, args) => {
-    // 1. Fetch by primary managerId (Google sub)
-    const byId = await ctx.db
+    const properties = await ctx.db
       .query("properties")
       .withIndex("by_manager", (q) => q.eq("managerId", args.managerId))
       .collect();
-
-    // 2. If managerEmail provided, also fetch properties with managerId == email
-    let byEmail: typeof byId = [];
-    if (args.managerEmail && args.managerEmail !== args.managerId) {
-      byEmail = await ctx.db
-        .query("properties")
-        .withIndex("by_manager", (q) => q.eq("managerId", args.managerEmail!))
-        .collect();
-    }
-
-    // Merge and deduplicate by _id
-    const seen = new Set<string>();
-    const properties = [...byId, ...byEmail].filter((p) => {
-      if (seen.has(p._id)) return false;
-      seen.add(p._id);
-      return true;
-    });
 
     return await Promise.all(
       properties.map(async (p) => {
