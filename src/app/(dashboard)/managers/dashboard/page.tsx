@@ -9,20 +9,29 @@ import { Building2, Users, FileText, Plus, ArrowUpRight, TrendingUp, Sparkles } 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+const MIGRATED_LANDLORD_IDS: Record<string, string> = {
+  "clip-plod-lesser@duck.com": "a0dc393c-a001-7078-2d0f-c1281d72a110",
+  "info@staysouthpoint.co.za": "50bc293c-c0c1-70b1-c593-4b2d2a4f1f40",
+  "infokiarashomestay@gmail.com": "d04cc9ac-1001-708d-2b4c-9d877fbdf21b",
+  "parklanejohn@hotmail.com": "e0fce95c-d081-7011-3934-5fe8e083a64d",
+  "marketingadmin@mosaicgroup.co.za": "30bc291c-2021-70ee-bb87-d158fbaebee2",
+  "shaeekahisra@gmail.com": "60fc69fc-7071-702c-c927-f70b14e6d334",
+  "zwelakhe.samuel@gmail.com": "101c293c-5081-7043-8179-30abb82807dc",
+  "unathindlovu28@gmail.com": "d04c697c-f061-7015-5342-9f4fd8909467",
+  "allistairem@gmail.com": "405c093c-2051-702e-e86d-8a625d775b0e",
+  "meevsuu@hotmail.com": "f04cb9ac-6041-7060-a1da-90eacad6fb62",
+  "rosaliefloresfranco@gmail.com": "40ccb93c-60c1-70c0-bfe2-16551e4395a1",
+};
+
 export default function ManagerDashboard() {
   const { user, isLoading: authLoading } = useUnifiedAuth();
   const router = useRouter();
 
   const managerId = (user as any)?.id || (user as any)?.sub || "";
   const managerEmail = user?.email || "";
+  const migratedId = managerEmail ? MIGRATED_LANDLORD_IDS[managerEmail.toLowerCase()] : undefined;
 
   // Query properties from Convex
-  // @ts-ignore
-  const managerRecord = useQuery(
-    anyApi.users.getManagerByEmail,
-    managerEmail ? { email: managerEmail } : "skip"
-  );
-
   // @ts-ignore
   const propertiesById = useQuery(
     anyApi.properties.getManagerProperties,
@@ -34,16 +43,16 @@ export default function ManagerDashboard() {
     managerEmail && managerEmail !== managerId ? { managerId: managerEmail } : "skip"
   );
   // @ts-ignore
-  const propertiesByConvexUserId = useQuery(
+  const propertiesByMigratedId = useQuery(
     anyApi.properties.getManagerProperties,
-    managerRecord?.userId && managerRecord.userId !== managerId ? { managerId: managerRecord.userId } : "skip"
+    migratedId && migratedId !== managerId ? { managerId: migratedId } : "skip"
   );
 
   const properties = React.useMemo(() => {
     const list = [
       ...(propertiesById ?? []),
       ...(propertiesByEmail ?? []),
-      ...(propertiesByConvexUserId ?? []),
+      ...(propertiesByMigratedId ?? []),
     ];
     const seen = new Set<string>();
     return list.filter((p: any) => {
@@ -52,7 +61,7 @@ export default function ManagerDashboard() {
       seen.add(id);
       return true;
     });
-  }, [propertiesById, propertiesByEmail, propertiesByConvexUserId]);
+  }, [propertiesById, propertiesByEmail, propertiesByMigratedId]);
 
   const totalProperties = properties?.length || 0;
 
