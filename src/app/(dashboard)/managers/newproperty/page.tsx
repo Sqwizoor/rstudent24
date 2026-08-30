@@ -42,11 +42,31 @@ import {
 // Data & API
 import { type PropertyFormData, propertySchema } from "@/lib/schemas";
 import { processImageFiles } from "@/lib/imageUtils";
-import { useCreatePropertyMutation, useCreateRoomMutation } from "@/state/api";
+import { useMutation } from "convex/react";
+import { api } from "../../../../../convex/_generated/api";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import posthog from 'posthog-js';
 import { AmenityEnum, HighlightEnum, PropertyTypeEnum, RedirectTypeEnum, UNIVERSITY_OPTIONS, PROVINCES, getUniversityOptionsByProvince, getCampusOptionsByProvince, getCampusOptionsByUniversity } from "@/lib/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const MIGRATED_LANDLORD_IDS: Record<string, string> = {
+  "clip-plod-lesser@duck.com": "a0dc393c-a001-7078-2d0f-c1281d72a110",
+  "info@staysouthpoint.co.za": "50bc293c-c0c1-70b1-c593-4b2d2a4f1f40",
+  "student@student24.co.za": "802c697c-9071-70b7-c6b2-da6a401cbb1e",
+  "fezekile@student24.co.za": "a0dc393c-a001-7078-2d0f-c1281d72a110",
+  "thebe@student24.co.za": "30cc59ec-7031-70c8-47e1-3fe4870f803c",
+  "landlord@student24.co.za": "90cc39ac-d041-701d-5a21-fa363989c445",
+  "respublica@student24.co.za": "b06ce90c-9051-70d5-bb90-b19bf383a54d",
+  "campuskey@student24.co.za": "703c393c-9031-70b1-ce6e-52f65a7bc1d1",
+  "urbanstudent@student24.co.za": "20ac79dc-8031-7006-eb18-8f551c6c5ad3",
+  "dunvegancottages@gmail.com": "007c093c-7051-7043-34e8-8b091f0a205d",
+  "s.v.propdev@gmail.com": "a02c39dc-70c1-7065-02fc-883a8b417e2c",
+  "zwelakhe.samuel@gmail.com": "101c293c-5081-7043-8179-30abb82807dc",
+  "unathindlovu28@gmail.com": "d04c697c-f061-7015-5342-9f4fd8909467",
+  "allistairem@gmail.com": "405c093c-2051-702e-e86d-8a625d775b0e",
+  "meevsuu@hotmail.com": "f04cb9ac-6041-7060-a1da-90eacad6fb62",
+  "rosaliefloresfranco@gmail.com": "40ccb93c-60c1-70c0-bfe2-16551e4395a1",
+};
 
 
 // Form step component for slider form
@@ -171,8 +191,9 @@ const StepNavigation = ({
 
 // Main component
 const NewProperty = () => {
-  const [createProperty, { isLoading: isCreatingProperty }] = useCreatePropertyMutation();
-  const [createRoom, { isLoading: isCreatingRoom }] = useCreateRoomMutation();
+  const createConvexProperty = useMutation(api.properties.createProperty);
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const createConvexRoom = useMutation(api.properties.createRoom);
   const { user, isAuthenticated } = useUnifiedAuth();
   const [submitting, setSubmitting] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]); // For property photo previews
@@ -351,13 +372,11 @@ const NewProperty = () => {
   const onSubmit = async (data: PropertyFormData) => {
     if (submitting) return;
     
-    // Validate the final step before submitting
     if (!validateStep(currentStep)) {
       toast.error("Please complete all required fields before submitting", {
         position: "top-center",
         duration: 3000,
       });
-      setSubmitting(false);
       return;
     }
 
@@ -367,16 +386,11 @@ const NewProperty = () => {
       let roomsSuccessfullyCreated = 0;
       let failedRooms = 0;
 
-      const managerId = (user as any)?.id || (user as any)?.sub || "";
-
-      if (!managerId) {
-        toast.error("You must be logged in to create a property", {
-          position: "top-center",
-          duration: 4000,
-        });
-        setSubmitting(false);
-        return;
-      }
+      // Extract manager info from Unified User / NextAuth / Cognito
+      const sessionUser = (user as any);
+      const managerEmail = user?.email || sessionUser?.email || "";
+      const mappedId = managerEmail ? MIGRATED_LANDLORD_IDS[managerEmail.toLowerCase()] : "";
+      const managerId = sessionUser?.id || sessionUser?.sub || sessionUser?.userId || mappedId || managerEmail || "manager-default";
 
       // Prefer files stored in react-hook-form (FilePond), fallback to local state
       let photoFiles: File[] = [];
@@ -391,364 +405,139 @@ const NewProperty = () => {
         const [feat] = reordered.splice(featuredImageIndex, 1);
         reordered.unshift(feat);
         photoFiles = reordered;
-        console.log(`Reordered photos: featured index ${featuredImageIndex} moved to front.`);
       }
 
-      // Prepare property data as JSON
-      const propertyData = {
-        ...data,
-        managerCognitoId: managerId,
-        // Convert arrays to comma-separated strings if needed
+      // 1. Upload photos to Convex Storage
+      const storageIds: any[] = [];
+      if (photoFiles.length > 0) {
+        toast.info(`Uploading ${photoFiles.length} photo(s) to Convex...`, { position: "top-center", duration: 2500 });
+        for (const file of photoFiles) {
+          try {
+            const uploadUrl = await generateUploadUrl();
+            const res = await fetch(uploadUrl, {
+              method: "POST",
+              headers: { "Content-Type": file.type || "image/jpeg" },
+              body: file,
+            });
+            const { storageId } = await res.json();
+            if (storageId) storageIds.push(storageId);
+          } catch (uploadErr) {
+            console.error("Photo upload error:", uploadErr);
+          }
+        }
+      }
+
+      // Calculate aggregated price / beds / baths from rooms if available
+      let minPrice = Number(data.pricePerMonth) || 0;
+      let totalBeds = Number(data.beds) || 0;
+      let totalBaths = Number(data.baths) || 0;
+      if (rooms.length > 0) {
+        const roomPrices = rooms.map(r => Number(r.pricePerMonth) || 0).filter(p => p > 0);
+        if (roomPrices.length > 0) minPrice = Math.min(...roomPrices);
+        totalBeds = rooms.length;
+        totalBaths = rooms.filter(r => r.bathroomPrivacy === "PRIVATE").length || 1;
+      }
+
+      // 2. Create Property in Convex
+      const propertyId = await createConvexProperty({
+        name: data.name,
+        description: data.description || "",
+        pricePerMonth: minPrice || 3500,
+        securityDeposit: Number(data.securityDeposit) || 0,
+        beds: totalBeds || 1,
+        baths: totalBaths || 1,
+        kitchens: Number(data.kitchens) || 1,
+        squareFeet: Number(data.squareFeet) || undefined,
+        propertyType: data.propertyType || "Apartment",
+        images: storageIds,
         amenities: Array.isArray(data.amenities) ? data.amenities : [],
         highlights: Array.isArray(data.highlights) ? data.highlights : [],
         accreditedBy: Array.isArray(data.accreditedBy) ? data.accreditedBy : [],
         closestUniversity: data.closestUniversity || undefined,
-        closeToUniversity: data.closeToUniversity || undefined,
-        // Remove the FileList which can't be serialized to JSON
-        photoUrls: []
-      };
-
-      // Create property using direct fetch instead of RTK Query
-      // Get the auth token for the request
-      const session = await fetchAuthSession();
-      const idToken = session.tokens?.idToken?.toString();
-      
-      // Create property first (with JSON data)
-      const createResponse = await fetch('/api/properties', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`,
-        },
-        body: JSON.stringify(propertyData),
+        closestCampuses: Array.isArray(data.closestCampuses) ? data.closestCampuses : (data.closestCampuses ? [data.closestCampuses] : undefined),
+        isPetsAllowed: Boolean((data as any).isPetsAllowed),
+        isParkingIncluded: Boolean(data.isParkingIncluded),
+        isNsfassAccredited: Boolean(data.isNsfassAccredited),
+        address: data.address || "",
+        city: data.city || "",
+        suburb: data.suburb || undefined,
+        state: data.province || data.state || undefined,
+        country: data.country || "South Africa",
+        postalCode: data.postalCode || undefined,
+        latitude: -26.2041,
+        longitude: 28.0473,
+        managerId: managerId,
+        redirectType: data.redirectType || undefined,
+        whatsappNumber: data.whatsappNumber || undefined,
+        customLink: data.customLink || undefined,
       });
-      
-      if (!createResponse.ok) {
-        const errorData = await createResponse.json();
-        console.error('Error creating property:', errorData);
-        throw new Error(errorData.message || 'Failed to create property');
-      }
-      
-      const propertyResponse = await createResponse.json();
-      console.log("Property created successfully:", propertyResponse);
 
-      // Upload photos in groups (server handles S3). Max 3 per request.
-      if (photoFiles.length > 0) {
-        if (!idToken) {
-          console.warn('Missing idToken; cannot upload photos.');
-        } else {
-          // Compress / process main property images (reuse room processing constraints but slightly larger total)
-          try {
-            // Allow a larger total budget so many images (9+)
-            // can be compressed without tripping the total cap client-side
-            const processed = await processImageFiles(
-              photoFiles,
-              2 * 1024 * 1024,   // 2MB per file target
-              40 * 1024 * 1024   // 40MB total to accommodate many images
-            );
-            console.log(`Processed main property images: original=${photoFiles.length}, processed=${processed.length}`);
-            photoFiles = processed;
-          } catch (procErr) {
-            console.error('Failed processing main property images, proceeding with originals:', procErr);
-          }
-          // Group files by cumulative size to avoid 413s on hosts with low limits
-          // Aim for <= ~4MB per request and max 2 files per group for safety
-          const MAX_GROUP_BYTES = 4_000_000; // ~3.8MB to leave overhead margin
-          const MAX_FILES_PER_GROUP = 2;
-          const groups: File[][] = [];
-          let current: File[] = [];
-          let currentBytes = 0;
-          for (const f of photoFiles) {
-            const willExceed = currentBytes + f.size > MAX_GROUP_BYTES;
-            const willHitCount = current.length >= MAX_FILES_PER_GROUP;
-            if (current.length > 0 && (willExceed || willHitCount)) {
-              groups.push(current);
-              current = [];
-              currentBytes = 0;
-            }
-            current.push(f);
-            currentBytes += f.size;
-          }
-          if (current.length > 0) groups.push(current);
+      console.log("Convex property created with ID:", propertyId);
 
-          console.log(`Uploading ${photoFiles.length} photos in ${groups.length} size-based group(s) for property ID ${propertyResponse.id}`);
-          let uploadedCount = 0;
-          let failedCount = 0;
-          const failedFiles: File[] = [];
-          let latestPhotoUrls: string[] = [];
-          for (let gi = 0; gi < groups.length; gi++) {
-            const slice = groups[gi];
-            const formData = new FormData();
-            slice.forEach((f) => formData.append('photos', f));
-            if (gi === 0) formData.append('featuredIndex', '0');
-            console.log(`Uploading photo group #${gi + 1}/${groups.length} containing ${slice.length} file(s), totalBytes=${slice.reduce((s, f) => s + f.size, 0)}`);
-            try {
-              const res = await fetch(`/api/properties/${propertyResponse.id}/photos/group`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${idToken}` },
-                body: formData
-              });
-              if (!res.ok) {
-                let err: any = {};
-                try { err = await res.json(); } catch {}
-                console.error('Group upload failed', { status: res.status, err });
-                failedCount += slice.length;
-                failedFiles.push(...slice);
-              } else {
-                const json = await res.json();
-                console.log(`Uploaded group #${gi + 1}:`, json);
-                uploadedCount += slice.length;
-                if (Array.isArray(json.photoUrls)) {
-                  latestPhotoUrls = json.photoUrls;
-                }
-              }
-            } catch (e) {
-              console.error('Error during group upload', e);
-              failedCount += slice.length;
-              failedFiles.push(...slice);
-            }
-          }
-          if (failedCount > 0) {
-            toast.error(`${failedCount} photo(s) failed to upload`, { position: 'top-center' });
-          } else if (uploadedCount > 0) {
-            console.log('All property photos uploaded successfully. Total:', uploadedCount);
-          }
-          console.log(`Grouped upload complete. Success: ${uploadedCount}, Failed: ${failedCount}. Latest photoUrls length: ${latestPhotoUrls.length}`);
-          // Refetch property to confirm persisted photoUrls
-          try {
-            const confirmRes = await fetch(`/api/properties/${propertyResponse.id}`);
-            if (confirmRes.ok) {
-              const confirmed = await confirmRes.json();
-              console.log('Post-upload property refetch photoUrls length:', confirmed.photoUrls?.length, confirmed.photoUrls);
-              // Fallback: if zero persisted OR we have known failed files, upload those sequentially
-              if (((confirmed.photoUrls?.length ?? 0) === 0 && photoFiles.length > 0) || failedFiles.length > 0) {
-                const toUploadSeq = failedFiles.length > 0 ? failedFiles : photoFiles;
-                console.warn(`Initiating sequential fallback uploads for ${toUploadSeq.length} file(s)...`);
-                let seqSuccess = 0; let seqFail = 0;
-                for (let i = 0; i < toUploadSeq.length; i++) {
-                  const f = toUploadSeq[i];
-                  const fd = new FormData();
-                  fd.append('photo', f);
-                  if (i === 0) fd.append('featuredImageIndex', '0');
-                  try {
-                    const resp = await fetch(`/api/properties/${propertyResponse.id}/photos`, { method: 'POST', body: fd });
-                    if (!resp.ok) {
-                      let err: any = {}; try { err = await resp.json(); } catch {}
-                      console.error('Sequential upload failed', f.name, { status: resp.status, err });
-                      seqFail++;
-                    } else {
-                      const js = await resp.json();
-                      console.log('Sequential upload success', f.name, js.photoUrl);
-                      seqSuccess++;
-                    }
-                  } catch (se) {
-                    console.error('Sequential upload exception', f.name, se);
-                    seqFail++;
-                  }
-                }
-                try {
-                  const finalCheck = await fetch(`/api/properties/${propertyResponse.id}`);
-                  if (finalCheck.ok) {
-                    const finalProp = await finalCheck.json();
-                    console.log('After sequential fallback photoUrls length:', finalProp.photoUrls?.length, finalProp.photoUrls);
-                  }
-                } catch {}
-                if (seqSuccess > 0 && seqFail === 0) {
-                  toast.success('Property photos uploaded via fallback', { position: 'top-center' });
-                } else if (seqSuccess > 0) {
-                  toast.warning(`Fallback partial success: ${seqSuccess} ok, ${seqFail} failed`, { position: 'top-center' });
-                } else {
-                  toast.error('All photo uploads failed (group + fallback)', { position: 'top-center' });
-                }
-              }
-            } else {
-              console.warn('Property refetch after uploads failed with status', confirmRes.status);
-            }
-          } catch (confirmErr) {
-            console.warn('Failed to refetch property after uploads:', confirmErr);
-          }
-        }
-      } else {
-        console.log('No property photos selected; skipping grouped upload.');
-      }
-      
-      // If we have rooms to add, create them for this property
-      if (rooms.length > 0) {
+      // 3. Create rooms in Convex
+      if (rooms.length > 0 && propertyId) {
         for (const room of rooms) {
           try {
-            console.log('Creating room for property:', propertyResponse.id, 'room name:', room.name);
-            
-            // Create a clean JSON object from the room data first
-            const cleanRoomData: {
-              name: string;
-              pricePerMonth: number;
-              securityDeposit: number;
-              topUp: number;
-              squareFeet: number;
-              roomType: 'PRIVATE' | 'SHARED';
-              capacity: number;
-              isAvailable: boolean;
-              propertyId: any;
-              bathroomPrivacy?: 'PRIVATE' | 'SHARED';
-              kitchenPrivacy?: 'PRIVATE' | 'SHARED';
-              availableFrom?: string;
-            } = {
-              name: room.name || 'Unnamed Room',
-              pricePerMonth: Math.min(Math.max(0, Number(room.pricePerMonth || 0)), 100000),
-              securityDeposit: Math.min(Math.max(0, Number(room.securityDeposit || 0)), 100000),
-              topUp: Math.min(Math.max(0, Number((room as any).topUp || 0)), 100000),
-              squareFeet: Math.min(Math.max(0, Number(room.squareFeet || 0)), 10000),
-              roomType: room.roomType || 'PRIVATE',
-              capacity: Math.max(1, Number(room.capacity || 1)),
-              isAvailable: room.isAvailable !== false,
-              propertyId: propertyResponse.id,
-              bathroomPrivacy: room.bathroomPrivacy,
-              kitchenPrivacy: room.kitchenPrivacy,
-            };
-            
-            if (room.availableFrom) {
-              cleanRoomData.availableFrom = new Date(room.availableFrom).toISOString();
-            }
-            
-            console.log('Room data (sanitized):', cleanRoomData);
-            
-            // Create a fresh FormData object
-            const roomFormData = new FormData();
-            
-            // Add all sanitized room data to FormData
-            Object.entries(cleanRoomData).forEach(([key, value]) => {
-              if (value !== undefined && value !== null) {
-                if (Array.isArray(value)) {
-                  if (value.length > 0) {
-                    roomFormData.append(key, JSON.stringify(value));
+            const roomStorageIds: any[] = [];
+            if (Array.isArray(room.photoUrls)) {
+              for (const file of room.photoUrls) {
+                if (file instanceof File) {
+                  try {
+                    const roomUploadUrl = await generateUploadUrl();
+                    const rRes = await fetch(roomUploadUrl, {
+                      method: "POST",
+                      headers: { "Content-Type": file.type || "image/jpeg" },
+                      body: file,
+                    });
+                    const { storageId } = await rRes.json();
+                    if (storageId) roomStorageIds.push(storageId);
+                  } catch (rErr) {
+                    console.error("Room photo upload error:", rErr);
                   }
-                } else {
-                  roomFormData.append(key, String(value));
                 }
               }
+            }
+
+            await createConvexRoom({
+              propertyId: propertyId as any,
+              name: room.name || "Room",
+              pricePerMonth: Number(room.pricePerMonth) || 0,
+              securityDeposit: Number(room.securityDeposit) || 0,
+              topUp: Number((room as any).topUp) || undefined,
+              beds: 1,
+              baths: room.bathroomPrivacy === "PRIVATE" ? 1 : 0,
+              squareFeet: Number(room.squareFeet) || undefined,
+              images: roomStorageIds,
+              isAvailable: Boolean(room.isAvailable),
+              roomType: room.roomType || "PRIVATE",
+              capacity: Number(room.capacity) || 1,
+              features: [],
             });
-            
-            // Process and compress image files before adding to FormData
-            if (room.photoUrls && Array.isArray(room.photoUrls)) {
-              console.log(`Room photos array has ${room.photoUrls.length} items:`, 
-                room.photoUrls.map(p => p instanceof File ? `File: ${p.name}` : `Other: ${typeof p}`));
-              
-              // Filter out only the File objects
-              const imageFiles = room.photoUrls.filter(photo => photo instanceof File) as File[];
-              
-              if (imageFiles.length > 0) {
-                try {
-                  // Process and compress images
-                  const processedImages = await processImageFiles(
-                    imageFiles,
-                    2 * 1024 * 1024, // 2MB per file
-                    8 * 1024 * 1024  // 8MB total
-                  );
-                  
-                  console.log(`Processed ${processedImages.length} images for room`);
-                  
-                  // Add processed files to FormData
-                  processedImages.forEach((photo, index) => {
-                    roomFormData.append('photos', photo);
-                    console.log(`Appending processed photo ${index}: ${photo.name}, size: ${Math.round(photo.size / 1024)}KB`);
-                  });
-                } catch (imageError) {
-                  console.error('Error processing images:', imageError);
-                  throw new Error(`Image processing failed: ${imageError instanceof Error ? imageError.message : 'Unknown error'}`);
-                }
-              }
-            }
-            
-            // Log FormData keys
-            const formDataKeys: string[] = [];
-            for (const key of roomFormData.keys()) {
-              formDataKeys.push(key);
-            }
-            console.log('FormData keys:', formDataKeys.join(', '));
-            
-            // Use the updated createRoom mutation
-            const roomResponse = await createRoom({
-              propertyId: propertyResponse.id,
-              body: roomFormData
-            }).unwrap();
-            
-            console.log("Room created successfully:", roomResponse);
             roomsSuccessfullyCreated++;
-          } catch (roomError) {
-            console.error("Error creating a room:", roomError);
-            
-            // Create a safe copy of the room data for logging
-            const safeCopy = { ...room };
-            console.error("Room data that failed:", safeCopy);
+          } catch (roomErr) {
+            console.error("Room creation error:", roomErr);
             failedRooms++;
           }
         }
-        
-        // Log summary to console, but don't show multiple toasts
-        console.log(`Created ${roomsSuccessfullyCreated} of ${rooms.length} rooms. Failed: ${failedRooms}`);
-        
-        // Store the room creation results to use in the final toast message
-        // We'll show a combined property and room toast at the end
-        // Only show immediate toast for failures
-        if (failedRooms > 0) {
-          toast.error(`Failed to create ${failedRooms} room(s)`, {
-            className: "bg-red-500 text-white font-medium",
-            position: "top-center",
-            duration: 3000,
-          });
-        }
       }
 
-      // Reset form and states on overall success
+      // Reset form and navigate
       form.reset();
       setUploadedFiles([]);
-      setRooms([]); // Clear rooms as well
+      setRooms([]);
 
-      // Navigate to the properties page
-      router.push("/managers/properties");
-
-      // Track property_created event with PostHog
-      posthog.capture('property_created', {
-        property_id: propertyResponse.id,
-        property_name: data.name,
-        city: data.city,
-        province: data.province,
-        property_type: data.propertyType,
-        rooms_count: roomsSuccessfullyCreated,
-        has_photos: photoFiles.length > 0,
+      toast.success(`Property "${data.name}" created successfully in Convex!`, {
+        position: "top-center",
+        duration: 4000,
       });
 
-      // Show a combined success toast message with property name and room count
-      if (propertyResponse && roomsSuccessfullyCreated > 0) {
-        toast.success(
-          `Property "${data.name}" created with ${roomsSuccessfullyCreated} room${roomsSuccessfullyCreated > 1 ? 's' : ''}`,
-          {
-            className: "bg-green-500 text-white font-medium",
-            position: "top-center",
-            duration: 4000,
-          }
-        );
-      } else if (propertyResponse) {
-        toast.success(
-          `Property "${data.name}" created successfully`,
-          {
-            className: "bg-green-500 text-white font-medium",
-            position: "top-center",
-            duration: 3000,
-          }
-        );
-      }
-
-    } catch (error: any) {
-      console.error("Error during property/room creation process:", error);
-      toast.error(
-        error?.data?.message || "Failed to complete property creation. Please try again.",
-        {
-          className: "bg-red-500 text-white font-medium",
-          position: "top-center",
-          duration: 4000,
-        }
-      );
+      router.push("/managers/properties");
+    } catch (err: any) {
+      console.error("Failed to create property in Convex:", err);
+      toast.error(err.message || "Failed to create property in Convex. Please try again.", {
+        position: "top-center",
+        duration: 4000,
+      });
     } finally {
       setSubmitting(false);
     }
