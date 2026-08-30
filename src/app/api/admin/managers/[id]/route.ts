@@ -132,7 +132,7 @@ export async function GET(
     // Get all tenants from this manager's properties
     const tenants = properties.flatMap((property: PrismaProperty) => 
       property.leases.map(lease => lease.tenant)
-    ).filter((t): t is Tenant => t !== null);
+    ).filter((t: Tenant | null | undefined): t is Tenant => t !== null && t !== undefined);
 
     // Remove duplicates (tenants with multiple leases)
     const uniqueTenants = Array.from(

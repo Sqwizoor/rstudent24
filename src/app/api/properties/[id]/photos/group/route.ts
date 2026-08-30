@@ -94,7 +94,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     let newOrder: string[];
     if (featuredIndex !== null && featuredIndex >= 0 && featuredIndex < uploadedUrls.length) {
       const featuredUrl = uploadedUrls[featuredIndex];
-      const remainingUploaded = uploadedUrls.filter((u, idx) => idx !== featuredIndex);
+      const remainingUploaded = uploadedUrls.filter((u: string, idx: number) => idx !== featuredIndex);
       newOrder = [featuredUrl, ...existing, ...remainingUploaded];
     } else {
       newOrder = [...existing, ...uploadedUrls];
