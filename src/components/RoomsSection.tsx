@@ -27,20 +27,20 @@ export const RoomsSection = ({ rooms, onAddRoom, onRemoveRoom }: RoomsSectionPro
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden mb-6 shadow-sm dark:bg-[#0B1120]/80 dark:border-[#1E2A45] dark:shadow-lg">
-      <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
+    <div className="bg-zinc-950/70 border border-zinc-800/80 rounded-2xl overflow-hidden mb-6 shadow-xl backdrop-blur-xl">
+      <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-zinc-900/40 transition-colors" onClick={() => setIsOpen(!isOpen)}>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-slate-100 rounded-lg text-blue-600 dark:bg-[#1E2A45] dark:text-[#4F9CF9]">
-            <Bed size={20} />
+          <div className="p-2 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-200">
+            <Bed size={18} />
           </div>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Rooms</h2>
+          <h2 className="text-sm font-semibold text-white">Rooms</h2>
           {rooms.length > 0 && (
-            <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-[#1E3A8A]/30 dark:text-[#60A5FA]">
-              {rooms.length}
+            <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-mono px-2.5 py-0.5 rounded-full">
+              {rooms.length} Listed
             </span>
           )}
         </div>
-        <div className="text-slate-500 dark:text-gray-400">{isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</div>
+        <div className="text-zinc-400">{isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</div>
       </div>
 
       <AnimatePresence>
@@ -52,7 +52,7 @@ export const RoomsSection = ({ rooms, onAddRoom, onRemoveRoom }: RoomsSectionPro
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <div className="p-4 border-t border-slate-200 bg-white dark:border-[#1E2A45] dark:bg-[#0B1120]/60">
+            <div className="p-5 border-t border-zinc-800/80 bg-zinc-950/50">
               <div className="space-y-6">
                 {/* Show room form if adding a new room */}
                 {showForm && (
@@ -69,13 +69,13 @@ export const RoomsSection = ({ rooms, onAddRoom, onRemoveRoom }: RoomsSectionPro
                   <Button
                     onClick={(e) => {
                       e.preventDefault()
-                      e.stopPropagation()
                       setShowForm(true)
                     }}
-                    className="bg-slate-900 hover:bg-slate-800 text-white dark:bg-[#1E2A45] dark:hover:bg-[#2A3A55]"
+                    type="button"
+                    className="bg-white hover:bg-zinc-200 text-black font-semibold text-xs rounded-xl px-4 py-2 flex items-center gap-1.5 transition-all active:scale-95 shadow-md"
                   >
-                    <Plus className="mr-2 h-4 w-4" />
-                    {rooms.length === 0 ? "Add First Room" : "Add Another Room"}
+                    <Plus size={15} />
+                    Add Room
                   </Button>
                 </div>
               </div>

@@ -96,16 +96,16 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
   }
 
   // Style for form field labels
-  const labelStyle = "text-sm font-medium text-slate-700 dark:text-gray-200"
+  const labelStyle = "text-xs font-medium text-zinc-300"
 
   // Style for form field inputs
-  const inputStyle = "bg-white text-slate-900 border-slate-300 focus:border-blue-500 focus:ring-blue-500 rounded-md dark:bg-[#0B1120] dark:text-white dark:border-[#1E2A45] dark:focus:border-[#4F9CF9] dark:focus:ring-[#4F9CF9]"
+  const inputStyle = "bg-zinc-900/80 text-zinc-100 placeholder:text-zinc-500 border border-zinc-800 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 rounded-xl text-xs sm:text-sm"
 
   return (
-    <Card className="bg-white border border-slate-200 shadow-sm dark:bg-[#0B1120]/90 dark:border-[#1E2A45] dark:shadow-lg">
+    <Card className="bg-zinc-950/80 border border-zinc-800/80 rounded-2xl shadow-xl backdrop-blur-xl">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xl text-slate-900 dark:text-white flex items-center gap-2">
-          <Bed className="h-5 w-5 text-[#4F9CF9]" />
+        <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
+          <Bed className="h-4 w-4 text-zinc-300" />
           Add New Room
         </CardTitle>
       </CardHeader>
@@ -156,83 +156,82 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                     inputClassName={`${inputStyle} pl-7`}
                     min={0}
                   />
-                  <span className="absolute top-9 left-3 text-slate-500 dark:text-gray-400">R</span>
+                  <span className="absolute top-8.5 left-3 text-zinc-500 text-xs">R</span>
                 </div>
-              </div>
-            </div>
 
-            {/* Room Details */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                <CreateFormField
+                  name="squareFeet"
+                  label="Square Feet (Optional)"
+                  type="number"
+                  labelClassName={labelStyle}
+                  inputClassName={inputStyle}
+                  min={0}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <CreateFormField
                   name="roomType"
                   label="Room Type"
                   type="select"
                   options={[
-                    { value: "PRIVATE", label: "Private" },
-                    { value: "SHARED", label: "Shared" },
+                    { value: "PRIVATE", label: "Private Room" },
+                    { value: "SHARED", label: "Shared Room" },
                   ]}
                   labelClassName={labelStyle}
                   inputClassName={inputStyle}
                 />
+
+                <CreateFormField
+                  name="capacity"
+                  label="Capacity"
+                  type="number"
+                  labelClassName={labelStyle}
+                  inputClassName={inputStyle}
+                  min={1}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <CreateFormField
                   name="bathroomPrivacy"
                   label="Bathroom"
                   type="select"
                   options={[
-                    { value: "PRIVATE", label: "Private" },
-                    { value: "SHARED", label: "Shared" },
+                    { value: "PRIVATE", label: "Private Bathroom" },
+                    { value: "SHARED", label: "Shared Bathroom" },
                   ]}
                   labelClassName={labelStyle}
                   inputClassName={inputStyle}
                 />
+
                 <CreateFormField
                   name="kitchenPrivacy"
                   label="Kitchen"
                   type="select"
                   options={[
-                    { value: "PRIVATE", label: "Private" },
-                    { value: "SHARED", label: "Shared" },
+                    { value: "PRIVATE", label: "Private Kitchen" },
+                    { value: "SHARED", label: "Shared Kitchen" },
                   ]}
                   labelClassName={labelStyle}
                   inputClassName={inputStyle}
                 />
-                <CreateFormField
-                  name="isAvailable"
-                  label="Available"
-                  type="switch"
-                  labelClassName={labelStyle}
-                />
               </div>
-
-              <CreateFormField
-                name="availableFrom"
-                label="Available From"
-                type="date"
-                labelClassName={labelStyle}
-                inputClassName={inputStyle}
-              />
             </div>
 
-            {/* Amenities and Features removed for simplified room form */}
-
             {/* Room Photos */}
-            <div>
+            <div className="space-y-2">
               <label className={labelStyle}>Room Photos</label>
-              <div className="mt-2">
-                <label
-                  htmlFor="roomPhotos"
-                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 border-slate-300 transition-colors dark:border-[#1E2A45] dark:bg-[#0B1120]/50 dark:hover:bg-[#0B1120]"
-                >
+              <div className="flex items-center justify-center w-full">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-zinc-800 hover:border-zinc-700 rounded-xl cursor-pointer bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload className="w-8 h-8 mb-3 text-blue-600 dark:text-[#4F9CF9]" />
-                    <p className="mb-2 text-sm text-slate-600 dark:text-gray-400">
-                      <span className="font-semibold">Click to upload</span> or drag and drop
+                    <Upload className="w-6 h-6 mb-2 text-zinc-400" />
+                    <p className="mb-1 text-xs text-zinc-300">
+                      <span className="font-semibold text-white">Click to upload photos</span>
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    <p className="text-[10px] text-zinc-500">PNG, JPG, WEBP up to 10MB</p>
                   </div>
                   <input
-                    id="roomPhotos"
                     type="file"
                     className="hidden"
                     multiple
@@ -242,22 +241,22 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                 </label>
               </div>
 
-              {/* File preview */}
+              {/* Photo Previews */}
               {uploadedFiles.length > 0 && (
-                <div className="mt-4">
-                  <p className="text-sm text-slate-600 dark:text-gray-400 mb-2">Selected files ({uploadedFiles.length}):</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                <div className="mt-3">
+                  <p className="text-xs text-zinc-400 mb-2">Selected room photos ({uploadedFiles.length}):</p>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                     {uploadedFiles.map((file, index) => (
                       <div
                         key={index}
-                        className="relative bg-slate-100 rounded-md p-1 h-20 flex items-center justify-center overflow-hidden dark:bg-[#0B1120]"
+                        className="relative bg-zinc-900 rounded-lg p-1 h-20 flex items-center justify-center overflow-hidden border border-zinc-800"
                       >
                         <Image
                           src={URL.createObjectURL(file) || "/placeholder.svg"}
                           alt={`Preview ${index}`}
                           width={300}
                           height={200}
-                          className="w-full h-full object-cover rounded-lg"
+                          className="w-full h-full object-cover rounded-md"
                         />
                       </div>
                     ))}
@@ -267,19 +266,19 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
             </div>
 
             {/* Form Actions */}
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-zinc-800/80">
               <Button
                 type="button"
                 variant="outline"
                 onClick={onCancel}
-                className="border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-[#1E2A45] dark:text-gray-300 dark:hover:bg-[#1E2A45]/50"
+                className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs px-3.5 py-1.5"
               >
                 Cancel
               </Button>
               <Button
                 type="button"
                 onClick={handleAddRoom}
-                className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-gradient-to-r dark:from-[#0070F3] dark:to-[#4F9CF9] dark:hover:from-[#0060D3] dark:hover:to-[#3F8CE9]"
+                className="rounded-xl bg-white text-black hover:bg-zinc-200 text-xs font-semibold px-4 py-1.5 shadow-md active:scale-95 transition-all"
               >
                 Add Room
               </Button>
@@ -301,73 +300,65 @@ export const RoomList = ({ rooms, onRemoveRoom }: RoomListProps) => {
   if (rooms.length === 0) return null
 
   return (
-    <div className="space-y-4 mt-4">
-      <h3 className="text-lg font-medium text-white">Added Rooms ({rooms.length})</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-3 mt-4">
+      <h3 className="text-xs font-semibold uppercase tracking-wider font-mono text-zinc-300">Added Rooms ({rooms.length})</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
         {rooms.map((room, index) => (
-          <Card key={index} className="bg-[#0B1120]/60 border border-[#1E2A45] hover:border-[#4F9CF9] transition-colors">
+          <Card key={index} className="bg-zinc-950/70 border border-zinc-800/80 hover:border-zinc-700 rounded-xl transition-colors shadow-sm">
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
-                  <Bed className="h-5 w-5 text-[#4F9CF9]" />
-                  <h4 className="text-lg font-medium text-white">{room.name}</h4>
+                  <Bed className="h-4 w-4 text-zinc-300" />
+                  <h4 className="text-sm font-semibold text-white">{room.name}</h4>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => onRemoveRoom(index)}
-                  className="text-gray-400 hover:text-red-500 hover:bg-red-500/10"
+                  className="text-zinc-500 hover:text-rose-400 hover:bg-rose-950/20 h-7 w-7 rounded-lg"
                 >
-                  <Trash2 className="h-5 w-5" />
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
 
-              {/* Description removed in simplified view */}
-
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-3">
-                <div className="flex items-center gap-2">
-                  <CircleDollarSign className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-300">R{room.pricePerMonth}/month</span>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-3 text-xs">
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <CircleDollarSign className="h-3.5 w-3.5 text-zinc-500" />
+                  <span>R{room.pricePerMonth}/mo</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CircleDollarSign className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-300">Top-up: R{(room as any).topUp ?? 0}</span>
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <CircleDollarSign className="h-3.5 w-3.5 text-zinc-500" />
+                  <span>Top-up: R{(room as any).topUp ?? 0}</span>
                 </div>
                 {room.squareFeet && (
-                  <div className="flex items-center gap-2">
-                    <Home className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-300">{room.squareFeet} sq ft</span>
+                  <div className="flex items-center gap-1.5 text-zinc-300">
+                    <Home className="h-3.5 w-3.5 text-zinc-500" />
+                    <span>{room.squareFeet} m²</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2">
-                  <SquareUser className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-300">Capacity: {room.capacity}</span>
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <SquareUser className="h-3.5 w-3.5 text-zinc-500" />
+                  <span>Cap: {room.capacity}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Bed className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-300">{room.roomType}</span>
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <Bed className="h-3.5 w-3.5 text-zinc-500" />
+                  <span>{room.roomType}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">Bathroom:</span>
-                  <span className="text-sm text-gray-300">{room.bathroomPrivacy}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">Kitchen:</span>
-                  <span className="text-sm text-gray-300">{room.kitchenPrivacy}</span>
-                </div>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2 text-[11px] border-t border-zinc-800/60 pt-2 text-zinc-400">
+                <div>Bath: <span className="text-zinc-200">{room.bathroomPrivacy}</span></div>
+                <div>Kitchen: <span className="text-zinc-200">{room.kitchenPrivacy}</span></div>
               </div>
 
               {/* Room Photos Preview */}
               {room.photoUrls && room.photoUrls.length > 0 && (
                 <div className="mt-3">
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     {(room.photoUrls as (File | string)[]).map((photo, photoIndex) => (
                       <div
                         key={photoIndex}
-                        className="relative aspect-square bg-[#0B1120] rounded-md overflow-hidden border border-[#1E2A45]"
+                        className="relative aspect-square bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800"
                       >
                         <Image
                           src={typeof photo === 'string' ? photo : URL.createObjectURL(photo)}
@@ -376,9 +367,8 @@ export const RoomList = ({ rooms, onRemoveRoom }: RoomListProps) => {
                           className="object-cover"
                           unoptimized={typeof photo === 'string'}
                           onError={(e) => {
-                            console.error('Error loading image:', e);
                             const target = e.target as HTMLImageElement;
-                            target.src = '/placeholder-image.png'; // Fallback image
+                            target.src = '/placeholder-image.png';
                           }}
                         />
                       </div>
@@ -386,8 +376,6 @@ export const RoomList = ({ rooms, onRemoveRoom }: RoomListProps) => {
                   </div>
                 </div>
               )}
-
-              {/* Amenities and Features removed in simplified view */}
             </CardContent>
           </Card>
         ))}
