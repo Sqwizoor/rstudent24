@@ -98,14 +98,14 @@ export async function GET(request: NextRequest) {
     }
 
     let queryPath = 'properties:getProperties';
-    let queryArgs: any = { limit };
+    let queryArgs: any = { limit: 500 };
 
-    if (latNum !== null && lngNum !== null) {
+    if (latNum !== null && lngNum !== null && (!propertyName || propertyName === 'any')) {
       queryPath = 'properties:getNearbyProperties';
       queryArgs = {
         searchLat: latNum,
         searchLng: lngNum,
-        radiusKm: 30,
+        radiusKm: 50,
         limit,
       };
       if (propertyType && propertyType !== 'any') queryArgs.propertyType = propertyType;

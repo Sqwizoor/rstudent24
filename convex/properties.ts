@@ -33,11 +33,11 @@ export const getNearbyProperties = query({
     const radius = args.radiusKm ?? 20;
     const maxLimit = args.limit ?? 50;
 
-    // Fetch approved properties
-    const properties = await ctx.db
-      .query("properties")
-      .withIndex("by_status", (q) => q.eq("status", "Approved"))
-      .collect();
+    // Fetch approved/active properties
+    const allProps = await ctx.db.query("properties").order("desc").collect();
+    const properties = allProps.filter(
+      (p) => !p.status || p.status.toLowerCase() === "approved" || p.status.toLowerCase() === "active"
+    );
 
     const matched = [];
 
@@ -87,28 +87,22 @@ export const getProperties = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const limit = args.limit ?? 100;
+    let properties = await ctx.db.query("properties").order("desc").collect();
 
-    let properties;
-    if (args.status && args.city) {
-      properties = await ctx.db
-        .query("properties")
-        .withIndex("by_status_city", (q) =>
-          q.eq("status", args.status!).eq("city", args.city!)
-        )
-        .take(limit);
-    } else if (args.status) {
-      properties = await ctx.db
-        .query("properties")
-        .withIndex("by_status", (q) => q.eq("status", args.status!))
-        .take(limit);
-    } else if (args.city) {
-      properties = await ctx.db
-        .query("properties")
-        .withIndex("by_city", (q) => q.eq("city", args.city!))
-        .take(limit);
-    } else {
-      properties = await ctx.db.query("properties").take(limit);
+    if (args.status && args.status !== "all") {
+      properties = properties.filter(
+        (p) => (p.status || "Approved").toLowerCase() === args.status?.toLowerCase()
+      );
+    }
+    if (args.city && args.city !== "all") {
+      const cityQuery = args.city.toLowerCase();
+      properties = properties.filter(
+        (p) => (p.city || "").toLowerCase().includes(cityQuery)
+      );
+    }
+
+    if (args.limit) {
+      properties = properties.slice(0, args.limit);
     }
 
     // Resolve images
