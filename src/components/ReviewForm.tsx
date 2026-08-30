@@ -8,7 +8,7 @@ import { useCreateReviewMutation } from "@/state/api";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 
 interface ReviewFormProps {
-  propertyId: number;
+  propertyId: number | string;
   onReviewSubmitted: () => void;
 }
 

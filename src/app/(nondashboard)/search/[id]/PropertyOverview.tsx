@@ -10,17 +10,14 @@ interface PropertyOverviewProps {
 }
 
 const PropertyOverview = ({ propertyId }: PropertyOverviewProps) => {
-  // Convert string propertyId to number if it's a string
-  const numericPropertyId = typeof propertyId === 'string' ? parseInt(propertyId, 10) : propertyId;
-  
   const {
     data: property,
     isError,
     isLoading,
-  } = useGetPropertyQuery(numericPropertyId);
+  } = useGetPropertyQuery(propertyId);
 
   // Fetch rooms data for calculating stats
-  const { data: rooms } = useGetRoomsQuery(numericPropertyId, { 
+  const { data: rooms } = useGetRoomsQuery(propertyId, { 
     skip: !property 
   });
 

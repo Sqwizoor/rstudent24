@@ -20,6 +20,8 @@ function mapSingleConvexProperty(p: any): any {
     ? p.photoUrls 
     : (Array.isArray(p.imageUrls) && p.imageUrls.length > 0 ? p.imageUrls : []);
 
+  const resolvedPrice = Number(p.pricePerMonth) || Number(p.price) || 0;
+
   return {
     id: p._id || p.legacyId || 1,
     name: p.name || 'Student Residence',
@@ -31,8 +33,8 @@ function mapSingleConvexProperty(p: any): any {
     baths: p.baths ?? 1,
     kitchens: p.kitchens ?? 1,
     squareFeet: p.squareFeet ?? 45,
-    pricePerMonth: p.pricePerMonth ?? p.price ?? 3500,
-    price: p.pricePerMonth ?? p.price ?? 3500,
+    pricePerMonth: resolvedPrice,
+    price: resolvedPrice,
     isPetsAllowed: p.isPetsAllowed ?? false,
     isParkingIncluded: p.isParkingIncluded ?? false,
     isNsfassAccredited: p.isNsfassAccredited ?? true,

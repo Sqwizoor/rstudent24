@@ -101,17 +101,17 @@ declare global {
   }
 
   interface PropertyDetailsProps {
-    propertyId: number;
+    propertyId: number | string;
     deposit?: number;
     topUp?: number;
   }
 
   interface PropertyOverviewProps {
-    propertyId: number;
+    propertyId: number | string;
   }
 
   interface PropertyLocationProps {
-    propertyId: number;
+    propertyId: number | string;
   }
 
   interface ApplicationCardProps {

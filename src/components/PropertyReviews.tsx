@@ -9,7 +9,7 @@ import { useGetReviewsQuery, useDeleteReviewMutation } from "@/state/api";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 
 interface PropertyReviewsProps {
-  propertyId: number;
+  propertyId: number | string;
 }
 
 const PropertyReviews = ({ propertyId }: PropertyReviewsProps) => {

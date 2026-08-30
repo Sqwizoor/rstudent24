@@ -799,7 +799,7 @@ export const api = createApi({
       },
     }),
 
-    addFavoriteProperty: build.mutation<Tenant, { cognitoId: string; propertyId: number }>({
+    addFavoriteProperty: build.mutation<Tenant, { cognitoId: string; propertyId: number | string }>({
       query: ({ cognitoId, propertyId }) => ({
         url: `tenants/${cognitoId}/favorites/${propertyId}`,
         method: "POST",
@@ -842,7 +842,7 @@ export const api = createApi({
       },
     }),
 
-    removeFavoriteProperty: build.mutation<Tenant, { cognitoId: string; propertyId: number }>({
+    removeFavoriteProperty: build.mutation<Tenant, { cognitoId: string; propertyId: number | string }>({
       query: ({ cognitoId, propertyId }) => ({
         url: `tenants/${cognitoId}/favorites/${propertyId}`,
         method: "DELETE",
@@ -962,7 +962,7 @@ export const api = createApi({
       },
     }),
 
-    getRoom: build.query<Room, { propertyId: number, roomId: number }>({
+    getRoom: build.query<Room, { propertyId: number | string, roomId: number | string }>({
       query: ({ roomId }) => `rooms/${roomId}`,
       
       providesTags: (result, error, { roomId }) => [{ type: "Rooms", id: roomId }],
@@ -1615,7 +1615,7 @@ export const api = createApi({
       }>;
       averageRating: number;
       totalReviews: number;
-    }, number>({
+    }, number | string>({
       query: (propertyId) => ({
         url: `reviews?propertyId=${propertyId}`,
         method: 'GET',
@@ -1631,7 +1631,7 @@ export const api = createApi({
     }),
 
     createReview: build.mutation<any, {
-      propertyId: number;
+      propertyId: number | string;
       rating: number;
       comment?: string;
     }>({
@@ -1676,7 +1676,7 @@ export const api = createApi({
 
     deleteReview: build.mutation<void, {
       id: number;
-      propertyId: number;
+      propertyId: number | string;
     }>({
       query: ({ id }) => ({
         url: `reviews/${id}`,

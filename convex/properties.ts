@@ -160,33 +160,66 @@ export const getProperties = query({
 
 // 3. Get single property by ID
 export const getPropertyById = query({
-  args: { id: v.id("properties") },
+  args: { id: v.string() },
   handler: async (ctx, args) => {
-    const property = await ctx.db.get(args.id);
+    let property: any = null;
+    try {
+      property = await ctx.db.get(args.id as any);
+    } catch {
+      // In case string is not a direct Convex ID
+    }
+
+    if (!property) {
+      const all: any[] = await ctx.db.query("properties").collect();
+      property = all.find(
+        (p: any) => p._id === args.id || p.legacyId?.toString() === args.id
+      ) || null;
+    }
+
     if (!property) return null;
 
+    const prop: any = property;
     const imageUrls = await Promise.all(
-      property.images.map((id) => ctx.storage.getUrl(id))
+      (prop.images || []).map((id: any) => ctx.storage.getUrl(id))
     );
+    const validImages = imageUrls.filter(Boolean);
+    const finalImages = validImages.length > 0 ? validImages : (prop.photoUrls || []);
 
     // Fetch rooms for this property
-    const rooms = await ctx.db
+    const rooms: any[] = await ctx.db
       .query("rooms")
-      .withIndex("by_property", (q) => q.eq("propertyId", args.id))
+      .withIndex("by_property", (q) => q.eq("propertyId", prop._id as any))
       .collect();
 
     const roomsWithImages = await Promise.all(
-      rooms.map(async (room) => {
+      rooms.map(async (room: any) => {
         const roomImages = await Promise.all(
-          room.images.map((id) => ctx.storage.getUrl(id))
+          (room.images || []).map((id: any) => ctx.storage.getUrl(id))
         );
-        return { ...room, imageUrls: roomImages.filter(Boolean) };
+        const validRoomImgs = roomImages.filter(Boolean);
+        const finalRoomImgs = validRoomImgs.length > 0 ? validRoomImgs : (room.photoUrls || []);
+        return { 
+          ...room, 
+          imageUrls: finalRoomImgs,
+          photoUrls: finalRoomImgs,
+        };
       })
     );
 
+    const roomPrices = roomsWithImages
+      .map((r: any) => Number(r.pricePerMonth) || 0)
+      .filter((price) => price > 0);
+    const minRoomPrice = roomPrices.length > 0 ? Math.min(...roomPrices) : 0;
+    const resolvedPrice = (prop.pricePerMonth && prop.pricePerMonth > 0)
+      ? prop.pricePerMonth
+      : minRoomPrice;
+
     return {
-      ...property,
-      imageUrls: imageUrls.filter(Boolean),
+      ...prop,
+      pricePerMonth: resolvedPrice,
+      price: resolvedPrice,
+      imageUrls: finalImages,
+      photoUrls: finalImages,
       rooms: roomsWithImages,
     };
   },

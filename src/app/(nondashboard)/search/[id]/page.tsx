@@ -39,7 +39,7 @@ interface Room {
 
 const SingleListing = () => {
   const { id } = useParams();
-  const propertyId = Number(id);
+  const propertyId = id ? (Array.isArray(id) ? id[0] : id) : "";
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
@@ -237,13 +237,13 @@ const SingleListing = () => {
   }, [nearbyRaw, propertyId]);
 
   // Favorite helpers (match home featured behavior)
-  const isPropertyFavorite = (propId: number) => {
+  const isPropertyFavorite = (propId: number | string) => {
     if (authUser?.role !== 'tenant' && authUser?.role !== 'student') return false;
     const tenantInfo = (authUser as any).userInfo as any;
     return tenantInfo?.favorites?.some((fav: any) => fav.id === propId) || false;
   };
 
-  const handleFavoriteToggle = async (propId: number) => {
+  const handleFavoriteToggle = async (propId: number | string) => {
     if (!authUser?.id) {
       // Redirect handled elsewhere; here we simply no-op to keep UI consistent
       return;

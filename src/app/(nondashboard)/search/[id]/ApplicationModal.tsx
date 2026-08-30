@@ -29,8 +29,8 @@ declare global {
 interface ApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  propertyId: number;
-  roomId?: number;
+  propertyId: number | string;
+  roomId?: number | string;
   roomName?: string;
 }
 
@@ -206,8 +206,8 @@ const ApplicationModal = ({
         ...data,
         applicationDate: new Date().toISOString(),
         status: ApplicationStatus.Pending,
-        propertyId: Number(propertyId),
-        roomId: roomId ? Number(roomId) : undefined,
+        propertyId: propertyId as any,
+        roomId: roomId ? (roomId as any) : undefined,
         tenantCognitoId: authUser.cognitoInfo?.userId || authUser.id || authUser.email || "",
       };
       
@@ -236,8 +236,8 @@ const ApplicationModal = ({
         applicationDate: currentDate,
         createdAt: currentDate,
         status: ApplicationStatus.Pending,
-        propertyId: Number(propertyId),
-        roomId: roomId ? Number(roomId) : undefined,
+        propertyId: propertyId as any,
+        roomId: roomId ? (roomId as any) : undefined,
         tenantCognitoId: applicationData.tenantCognitoId,
       };
       
