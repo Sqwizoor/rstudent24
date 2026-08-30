@@ -22,11 +22,12 @@ import {
   CreditCard,
   LogOut,
   ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import { NAVBAR_HEIGHT } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { useTheme } from "next-themes";
+import { signOut as nextAuthSignOut } from "next-auth/react";
 
 type AppSidebarProps = {
   userType: "manager" | "tenant";
@@ -35,8 +36,6 @@ type AppSidebarProps = {
 const AppSidebar = ({ userType }: AppSidebarProps) => {
   const pathname = usePathname();
   const { toggleSidebar, open, setOpen } = useSidebar();
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
 
   // Close sidebar on mobile when clicking outside
   useEffect(() => {
@@ -52,7 +51,7 @@ const AppSidebar = ({ userType }: AppSidebarProps) => {
 
   // Define navigation links based on user type
   const managerLinks = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/managers/dashboard" },
+    { icon: LayoutDashboard, label: "Overview", href: "/managers/dashboard" },
     { icon: Building2, label: "Properties", href: "/managers/properties" },
     { icon: FileText, label: "Applications", href: "/managers/applications" },
     { icon: Users, label: "Tenants", href: "/managers/tenants" },
@@ -70,202 +69,115 @@ const AppSidebar = ({ userType }: AppSidebarProps) => {
   ];
 
   const navLinks = userType === "manager" ? managerLinks : tenantLinks;
-
-  // Check if we're on mobile
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   
   return (
     <Sidebar
       collapsible="icon"
-      className={cn(
-        "fixed left-0 backdrop-blur-sm z-50 border-r transition-all duration-300 ease-in-out transform-gpu",
-        isDark ? 
-          "bg-slate-900/95 border-slate-800/40 shadow-xl" : 
-          "bg-white/95 border-slate-200 shadow-md"
-      )}
+      className="fixed left-0 z-50 border-r border-zinc-800/80 bg-[#09090b]/95 backdrop-blur-xl transition-all duration-300 ease-in-out transform-gpu text-zinc-300"
       style={{
         top: `${NAVBAR_HEIGHT}px`,
         height: `calc(100vh - ${NAVBAR_HEIGHT}px)`,
         width: open ? 'var(--sidebar-width)' : 'var(--sidebar-width-icon)',
-        // On mobile, slide in from the left when open, otherwise hide off-screen
         transform: isMobile ? (open ? 'translateX(0)' : 'translateX(-100%)') : 'none',
       }}
     >
-      <SidebarHeader className="relative z-10 pt-3 pb-1">
+      <SidebarHeader className="relative z-10 pt-4 pb-2 px-3">
         <SidebarMenu>
           <SidebarMenuItem>
             <div
               className={cn(
                 "flex w-full items-center",
-                open ? "justify-between px-4" : "justify-center"
+                open ? "justify-between px-2" : "justify-center"
               )}
             >
               {open && (
-                <span className={cn(
-                  "font-medium text-base capitalize",
-                  isDark ? "text-white/90" : "text-slate-800"
-                )}>
-                  {userType} Portal
-                </span>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                  <span className="font-semibold text-xs tracking-wider uppercase text-zinc-400 font-mono">
+                    {userType} Workspace
+                  </span>
+                </div>
               )}
               <button
-                className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
-                  isDark ? 
-                    "hover:bg-slate-800 text-slate-400 hover:text-white" : 
-                    "hover:bg-slate-100 text-slate-600 hover:text-slate-900"
-                )}
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
                 onClick={toggleSidebar}
                 aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
               >
-                <ChevronRight size={18} className={open ? "rotate-180" : "rotate-0"} />
+                <ChevronRight size={14} className={cn("transition-transform duration-200", open ? "rotate-180" : "rotate-0")} />
               </button>
             </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className="relative z-10 px-3 pt-2 pb-4">
+      <SidebarContent className="relative z-10 px-3 pt-2 pb-4 flex flex-col justify-between h-full">
         <SidebarMenu>
           {/* Main navigation links */}
-          <div className="mb-1 pb-1">
+          <div className="space-y-1">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href;
+              const isActive = pathname === link.href || (link.href !== "/managers/dashboard" && link.href !== "/tenants/dashboard" && pathname.startsWith(link.href));
               const IconComponent = link.icon;
               return (
                 <SidebarMenuItem key={link.href}>
                   <Link href={link.href} passHref scroll={false}>
                     <SidebarMenuButton
                       isActive={isActive}
-                      variant={isActive ? "default" : "ghost"}
                       size="default"
                       className={cn(
-                        "mb-1 transition-colors group relative",
-                        isDark ? 
-                          "text-slate-400 hover:text-white" : 
-                          "text-slate-600 hover:text-slate-900",
-                        isActive && isDark && "bg-gradient-to-r from-blue-600/20 to-indigo-600/20 text-white hover:text-white",
-                        isActive && !isDark && "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 hover:text-blue-800"
+                        "rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150 group relative flex items-center gap-3",
+                        isActive
+                          ? "bg-zinc-800 text-white border border-zinc-700/60 shadow-sm shadow-black/40"
+                          : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/80 border border-transparent"
                       )}
                     >
-                      <IconComponent size={18} />
-                      <span className="text-[14px] font-medium">{link.label}</span>
-                      {isActive && (
-                        <span className={cn(
-                          "absolute inset-y-0 left-0 w-[3px] rounded-r-full",
-                          isDark ? "bg-blue-500" : "bg-blue-600"
-                        )}></span>
-                      )}
+                      <IconComponent size={16} className={cn("shrink-0 transition-colors", isActive ? "text-white" : "text-zinc-400 group-hover:text-zinc-200")} />
+                      <span className="text-[13px] tracking-wide">{link.label}</span>
                     </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
               );
             })}
-          </div>
-          
-          {/* Divider */}
-          <div className={cn(
-            "w-full h-px my-3", 
-            isDark ? "bg-slate-800" : "bg-slate-200"
-          )} />
-          
-          {/* Bottom links */}
-          <div>
-            {bottomLinks.map((link) => {
-              const isActive = pathname === link.href;
-              const IconComponent = link.icon;
-              return (
-                <SidebarMenuItem key={link.href}>
-                  <Link href={link.href} passHref scroll={false}>
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      variant="ghost"
-                      size="default"
-                      className={cn(
-                        "transition-colors",
-                        isDark ? 
-                          "text-slate-400 hover:text-white hover:bg-slate-800/50" : 
-                          "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                      )}
-                    >
-                      <IconComponent size={18} />
-                      <span className="text-[14px] font-medium">{link.label}</span>
-                    </SidebarMenuButton>
-                  </Link>
-                </SidebarMenuItem>
-              );
-            })}
-            
-            {/* Logout button at the bottom */}
-            <SidebarMenuItem className="mt-4">
-              <SidebarMenuButton
-                variant="ghost"
-                size="default"
-                className={cn(
-                  "transition-colors",
-                  isDark ? 
-                    "text-rose-400 hover:text-rose-300 hover:bg-rose-900/20" : 
-                    "text-rose-600 hover:text-rose-700 hover:bg-rose-50"
-                )}
-                onClick={() => {
-                  // You can implement logout functionality here if needed
-                  console.log('Logout clicked');
-                }}
-              >
-                <LogOut size={18} />
-                <span className="text-[14px] font-medium">Sign Out</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
           </div>
         </SidebarMenu>
+
+        <SidebarMenu className="pt-4 border-t border-zinc-800/80 space-y-1">
+          {bottomLinks.map((link) => {
+            const isActive = pathname === link.href;
+            const IconComponent = link.icon;
+            return (
+              <SidebarMenuItem key={link.href}>
+                <Link href={link.href} passHref scroll={false}>
+                  <SidebarMenuButton
+                    isActive={isActive}
+                    size="default"
+                    className={cn(
+                      "rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150 group flex items-center gap-3",
+                      isActive
+                        ? "bg-zinc-800 text-white border border-zinc-700/60"
+                        : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/80 border border-transparent"
+                    )}
+                  >
+                    <IconComponent size={16} className={cn("shrink-0", isActive ? "text-white" : "text-zinc-400 group-hover:text-zinc-200")} />
+                    <span className="text-[13px] tracking-wide">{link.label}</span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            );
+          })}
+          
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="default"
+              className="rounded-lg px-3 py-2 text-xs font-medium text-rose-400/90 hover:text-rose-300 hover:bg-rose-950/20 border border-transparent transition-all flex items-center gap-3 cursor-pointer"
+              onClick={() => nextAuthSignOut({ callbackUrl: "/" })}
+            >
+              <LogOut size={16} className="shrink-0 text-rose-400" />
+              <span className="text-[13px] tracking-wide">Sign Out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarContent>
-      
-      {/* User section at bottom - properly positioned */}
-      {open && (
-        <div className="absolute bottom-0 left-0 w-full px-4 pb-4">
-          <div className={cn(
-            "border-t pt-4 relative",
-            isDark ? "border-slate-800" : "border-slate-200"
-          )}>
-            <div className={cn(
-              "flex items-center gap-3 p-2 rounded-lg", 
-              isDark ? "bg-slate-800/50" : "bg-slate-100"
-            )}>
-              <div className="relative flex-shrink-0">
-                <div className={cn(
-                  "h-9 w-9 rounded-full flex items-center justify-center",
-                  isDark ? 
-                    "bg-gradient-to-tr from-blue-600 to-indigo-600 text-white" : 
-                    "bg-gradient-to-tr from-blue-500 to-indigo-500 text-white"
-                )}>
-                  <span className="font-medium text-sm">
-                    {userType === "manager" ? "M" : "T"}
-                  </span>
-                </div>
-                <span className={cn(
-                  "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border",
-                  isDark ? "bg-green-500 border-slate-900" : "bg-green-500 border-white"
-                )}></span>
-              </div>
-              
-              <div className="flex flex-col">
-                <span className={cn(
-                  "text-sm font-medium",
-                  isDark ? "text-white" : "text-slate-900"
-                )}>
-                  {userType === "manager" ? "Property Manager" : "Tenant"}
-                </span>
-                <span className={cn(
-                  "text-xs",
-                  isDark ? "text-slate-400" : "text-slate-600"
-                )}>
-                  Active Now
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </Sidebar>
   );
 };

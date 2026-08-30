@@ -21,7 +21,9 @@ import {
   ArrowUpDown,
   Home,
   Filter,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Sparkles,
+  ExternalLink
 } from 'lucide-react';
 import {
   Dialog,
@@ -42,10 +44,14 @@ const Properties = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const managerId = (session?.user as any)?.id || (session?.user as any)?.sub || "";
+  const managerEmail = session?.user?.email || "";
 
-  // ── Convex queries ──────────────────────────────────────────────────────
+  // ── Convex queries (Multi-identifier: managerId & managerEmail) ────────────
   // @ts-ignore
-  const managerProperties = useQuery(anyApi.properties.getManagerProperties, managerId ? { managerId } : "skip");
+  const managerProperties = useQuery(
+    anyApi.properties.getManagerProperties,
+    managerId ? { managerId, managerEmail } : "skip"
+  );
   // @ts-ignore
   const deletePropertyMutation = useMutation(anyApi.properties.deleteProperty);
 
@@ -106,75 +112,78 @@ const Properties = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <PageHeaderSkeleton />
-          <GridSkeleton items={6} Component={PropertyCardSkeleton} />
+      <div className="min-h-screen bg-[#000000] text-zinc-100 p-6 space-y-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="h-20 w-full rounded-2xl bg-zinc-900/60 animate-pulse border border-zinc-800/80" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="h-64 rounded-2xl bg-zinc-900/40 animate-pulse border border-zinc-800/50" />
+            <div className="h-64 rounded-2xl bg-zinc-900/40 animate-pulse border border-zinc-800/50" />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 p-6 rounded-xl shadow-sm">
-        <div>
-          <h1 className="text-2xl font-heading font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-            My Properties
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
-            View and manage your property listings
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+    <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
+      {/* Header Banner - Vercel Dark */}
+      <div className="relative overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60 p-6 sm:p-8 backdrop-blur-xl">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
+        <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                Property Portfolio
+              </h1>
+              <span className="rounded-full bg-zinc-800/80 border border-zinc-700/60 px-2.5 py-0.5 text-xs font-mono text-zinc-300">
+                {managerProperties?.length || 0} Listed
+              </span>
+            </div>
+            <p className="text-sm text-zinc-400 mt-1">
+              Manage your student accommodation listings, room availability, and photos.
+            </p>
+          </div>
           <Button
             onClick={() => router.push("/managers/newproperty")}
-            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white transition-all duration-300 shadow-sm dark:shadow-blue-900/20"
+            className="rounded-xl bg-white px-5 py-2.5 text-xs font-semibold text-black hover:bg-zinc-200 transition-all shadow-md active:scale-95"
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Property
+            <Plus className="h-4 w-4 mr-1.5" />
+            New Property
           </Button>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+      {/* Search & Sort Controls */}
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
           <Input
-            placeholder="Search properties..."
+            placeholder="Search properties by name, city, address..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="h-10 rounded-xl border-zinc-800 bg-zinc-950/80 pl-10 text-xs text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
-            <SelectTrigger className="w-[180px]">
-              <div className="flex items-center">
-                <ArrowUpDown className="mr-2 h-4 w-4" />
-                <span>Sort by</span>
+            <SelectTrigger className="h-10 w-[160px] rounded-xl border-zinc-800 bg-zinc-950/80 text-xs text-zinc-200 focus:border-zinc-600 focus:ring-0">
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="h-3.5 w-3.5 text-zinc-400" />
+                <SelectValue placeholder="Sort By" />
               </div>
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="price">Price</SelectItem>
-              <SelectItem value="date">Date Added</SelectItem>
+            <SelectContent className="border-zinc-800 bg-zinc-950 text-zinc-200 rounded-xl">
+              <SelectItem value="name" className="text-xs focus:bg-zinc-800 focus:text-white">Name</SelectItem>
+              <SelectItem value="price" className="text-xs focus:bg-zinc-800 focus:text-white">Monthly Rent</SelectItem>
+              <SelectItem value="date" className="text-xs focus:bg-zinc-800 focus:text-white">Date Added</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      {/* Count */}
-      <div className="text-sm text-slate-500 dark:text-slate-400 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 flex items-center">
-        <Filter className="h-4 w-4 mr-2 text-blue-500" />
-        Showing <span className="font-semibold mx-1 text-blue-600 dark:text-blue-400">{sortedProperties.length}</span> of <span className="font-semibold mx-1 text-blue-600 dark:text-blue-400">{managerProperties?.length || 0}</span> properties
-      </div>
-
-      {/* Properties grid */}
+      {/* Properties Grid */}
       {sortedProperties && sortedProperties.length > 0 ? (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 max-w-[1700px] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {sortedProperties.map((property: any) => (
             <PropertyCard
               key={property._id}
@@ -186,36 +195,48 @@ const Properties = () => {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-12 px-4 bg-white dark:bg-gray-800 rounded-xl border border-slate-200 dark:border-slate-700 text-center">
-          <div className="bg-slate-100 dark:bg-slate-700 p-4 rounded-full mb-4">
-            <Home className="h-8 w-8 text-slate-400" />
+        <div className="flex flex-col items-center justify-center py-16 px-4 rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-400 mb-4">
+            <Home className="h-7 w-7 text-zinc-400" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">No Properties Found</h3>
-          <p className="text-slate-500 dark:text-slate-400 mb-6">You don&apos;t manage any properties yet. Add your first property to get started.</p>
+          <h3 className="text-base font-semibold text-white mb-1">No Properties Found</h3>
+          <p className="text-xs text-zinc-400 max-w-sm mb-6">
+            {searchTerm ? "No properties match your search term. Try adjusting your filters." : "You have not listed any properties yet. Add your first accommodation listing to get started."}
+          </p>
           <Button
             onClick={() => router.push("/managers/newproperty")}
-            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+            className="rounded-xl bg-white text-black font-semibold hover:bg-zinc-200 text-xs px-4 py-2"
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Property
+            <Plus className="h-4 w-4 mr-1.5" />
+            Add First Property
           </Button>
         </div>
       )}
 
-      {/* Delete confirmation dialog */}
+      {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="border-zinc-800 bg-zinc-950 text-zinc-100 rounded-2xl sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this property? This action cannot be undone. All images and rooms will also be deleted.
+            <DialogTitle className="text-white text-lg">Confirm Property Deletion</DialogTitle>
+            <DialogDescription className="text-xs text-zinc-400 mt-1.5">
+              Are you sure you want to delete this property? This action is irreversible and will remove all associated rooms and photos.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeleting}>
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isDeleting}
+              className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs"
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold"
+            >
               {isDeleting ? "Deleting..." : "Delete Property"}
             </Button>
           </DialogFooter>
@@ -225,7 +246,7 @@ const Properties = () => {
   );
 };
 
-// Property Card component
+// Vercel Dark Property Card Component
 const PropertyCard = ({ property, onEdit, onManagePhotos, onDelete }: {
   property: any;
   onEdit: (id: string) => void;
@@ -237,98 +258,96 @@ const PropertyCard = ({ property, onEdit, onManagePhotos, onDelete }: {
   const displayBaths = roomStats.totalBaths || property.baths || 0;
   const displaySquareFeet = roomStats.totalSquareFeet || property.squareFeet || 0;
   const displayPrice = roomStats.minPrice ?? property.pricePerMonth ?? 0;
-  // imageUrls come directly from Convex (resolved CDN URLs)
   const firstImage = property.imageUrls?.[0] || "/placeholder.jpg";
 
   return (
-    <Card className="overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-800 hover:shadow-md transition-all duration-200 w-full min-w-[400px] max-w-[800px] mx-auto">
-      <div className="flex flex-col lg:flex-row">
-        {/* Image */}
-        <div className="relative w-full lg:w-2/5 h-56 lg:h-64 overflow-hidden">
+    <Card className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all duration-200 group flex flex-col justify-between">
+      <div>
+        <div className="relative w-full h-52 overflow-hidden bg-zinc-900">
           <Image
             src={firstImage}
             alt={property.name}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 40vw, 35vw"
-            className="object-cover ml-3 rounded-md"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100"
           />
-          <div className="absolute top-3 left-3 z-10">
-            <Badge className="bg-blue-500/90 backdrop-blur-sm text-white hover:bg-blue-600 text-sm px-3 py-1.5 shadow-lg">
-              R{displayPrice.toLocaleString()}/mo
-            </Badge>
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent" />
+          
+          <div className="absolute top-3 left-3 flex items-center gap-2">
+            <span className="rounded-lg bg-black/80 backdrop-blur-md border border-white/10 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
+              R{displayPrice.toLocaleString()}<span className="text-[10px] font-normal text-zinc-400">/mo</span>
+            </span>
+          </div>
+
+          <div className="absolute top-3 right-3">
+            <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 backdrop-blur-md">
+              {property.status || "Active"}
+            </span>
           </div>
         </div>
 
-        {/* Content */}
-        <CardContent className="flex-1 p-5 flex flex-col justify-between">
+        <CardContent className="p-5 space-y-4">
           <div>
-            <div className="flex justify-between items-start mb-2">
-              <Link href={`/managers/properties/${property._id}`} className="hover:text-blue-600 transition-colors">
-                <h3 className="font-heading font-semibold text-lg line-clamp-1">{property.name}</h3>
-              </Link>
-            </div>
-
-            <div className="space-y-2 text-slate-500 dark:text-slate-400 text-sm mb-3">
-              <div className="flex items-center">
-                <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span className="line-clamp-1">{property.address || 'No address'}</span>
-              </div>
-              <div className="flex items-center pl-6">
-                <span className="line-clamp-1">
-                  {property.city ? `${property.city}, ${property.state || ''}` : 'No city'}
-                </span>
-              </div>
-              <div className="flex items-center pl-6">
-                <span>{property.postalCode ? `${property.postalCode}, ${property.country || 'South Africa'}` : 'South Africa'}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex items-center text-slate-500 dark:text-slate-400">
-                <BedDouble className="h-4 w-4 mr-1" />
-                <span className="text-sm">{displayBeds}</span>
-              </div>
-              <div className="flex items-center text-slate-500 dark:text-slate-400">
-                <Bath className="h-4 w-4 mr-1" />
-                <span className="text-sm">{displayBaths}</span>
-              </div>
-              <div className="flex items-center text-slate-500 dark:text-slate-400">
-                <Ruler className="h-4 w-4 mr-1" />
-                <span className="text-sm">{displaySquareFeet} sq ft</span>
-              </div>
+            <Link href={`/managers/properties/${property._id}`} className="group-hover:text-blue-400 transition-colors">
+              <h3 className="font-semibold text-base text-zinc-100 line-clamp-1 flex items-center gap-1.5">
+                {property.name}
+                <ExternalLink className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400" />
+              </h3>
+            </Link>
+            <div className="flex items-center text-zinc-400 text-xs mt-1">
+              <MapPin className="h-3.5 w-3.5 mr-1 text-zinc-500 shrink-0" />
+              <span className="line-clamp-1">{property.address ? `${property.address}, ${property.city || ''}` : property.city || 'South Africa'}</span>
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onManagePhotos(property._id)}
-              className="text-purple-600 border-purple-200 hover:bg-purple-50 dark:text-purple-400 dark:border-purple-800 dark:hover:bg-purple-900/20"
-            >
-              <ImageIcon className="h-4 w-4 mr-1" />
-              Photos
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEdit(property._id)}
-              className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900/20"
-            >
-              <Edit3 className="h-4 w-4 mr-1" />
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onDelete(property._id)}
-              className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
-            >
-              <Trash2 className="h-4 w-4 mr-1" />
-              Delete
-            </Button>
+          <div className="flex items-center gap-4 text-zinc-400 text-xs border-y border-zinc-800/80 py-2.5">
+            <div className="flex items-center gap-1.5">
+              <BedDouble className="h-3.5 w-3.5 text-zinc-500" />
+              <span>{displayBeds} Beds</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Bath className="h-3.5 w-3.5 text-zinc-500" />
+              <span>{displayBaths} Baths</span>
+            </div>
+            {displaySquareFeet > 0 && (
+              <div className="flex items-center gap-1.5">
+                <Ruler className="h-3.5 w-3.5 text-zinc-500" />
+                <span>{displaySquareFeet} m²</span>
+              </div>
+            )}
           </div>
         </CardContent>
+      </div>
+
+      <div className="p-5 pt-0 flex items-center justify-between gap-2 border-t border-zinc-800/60">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onManagePhotos(property._id)}
+          className="rounded-lg border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-8 px-3"
+        >
+          <ImageIcon className="h-3.5 w-3.5 mr-1.5 text-zinc-400" />
+          Photos
+        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(property._id)}
+            className="rounded-lg border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-8 px-3"
+          >
+            <Edit3 className="h-3.5 w-3.5 mr-1.5 text-zinc-400" />
+            Edit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onDelete(property._id)}
+            className="rounded-lg border-rose-950/50 bg-rose-950/20 text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 text-xs h-8 px-3"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
     </Card>
   );

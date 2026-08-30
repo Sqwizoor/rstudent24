@@ -23,7 +23,7 @@ export const getManagerByEmail = query({
   },
 });
 
-// Upsert manager — called by NextAuth after Google sign-in with role=manager
+// Upsert manager — called after Google or email sign-in with role=manager
 export const upsertManager = mutation({
   args: {
     userId: v.string(),
@@ -32,17 +32,38 @@ export const upsertManager = mutation({
     phoneNumber: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const existing = await ctx.db
+    // 1. Check if manager exists by userId
+    let existing = await ctx.db
       .query("managers")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
       .unique();
 
+    // 2. If not found by userId, check by email (to link previous accounts/properties)
+    if (!existing) {
+      existing = await ctx.db
+        .query("managers")
+        .withIndex("by_email", (q) => q.eq("email", args.email))
+        .unique();
+    }
+
     if (existing) {
-      // Update name/email in case they changed on Google
+      // Update name/email/userId in case they changed
       await ctx.db.patch(existing._id, {
+        userId: args.userId,
         name: args.name,
         email: args.email,
       });
+
+      // Link any existing properties that had the manager's email or old ID as managerId
+      const unlinkedProperties = await ctx.db
+        .query("properties")
+        .withIndex("by_manager", (q) => q.eq("managerId", args.email))
+        .collect();
+
+      for (const p of unlinkedProperties) {
+        await ctx.db.patch(p._id, { managerId: args.userId });
+      }
+
       return existing._id;
     }
 
