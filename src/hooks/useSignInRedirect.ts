@@ -1,29 +1,17 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const AUTH_ROUTE_REGEX = /^\/(signin|signup|cognito-signin|cognito-signup)$/i;
 
-function decodeCallbackParam(raw: string | null): string | null {
-  if (!raw) return null;
+function getClientSearchParams(): URLSearchParams | null {
+  if (typeof window === "undefined") return null;
   try {
-    return decodeURIComponent(raw);
+    return new URLSearchParams(window.location.search);
   } catch {
-    return raw;
+    return null;
   }
-}
-
-function normaliseRelativePath(pathname: string, searchParams: URLSearchParams | null) {
-  const query = searchParams ? new URLSearchParams(searchParams.toString()) : null;
-  if (query) {
-    query.delete("callbackUrl");
-    const qs = query.toString();
-    if (qs) {
-      return `${pathname}?${qs}`;
-    }
-  }
-  return pathname || "/";
 }
 
 function preferSameOriginPath(target: string | null) {
@@ -50,55 +38,54 @@ function preferSameOriginPath(target: string | null) {
 
 export function useSignInRedirect() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const paramsInstance = useMemo(() => {
-    if (!searchParams) return null;
-    try {
-      return new URLSearchParams(searchParams.toString());
-    } catch {
-      return null;
-    }
-  }, [searchParams]);
 
-  const decodedQueryCallback = useMemo(
-    () => preferSameOriginPath(decodeCallbackParam(searchParams?.get("callbackUrl") ?? null)),
-    [searchParams]
+  const getCallbackTarget = useCallback(
+    (target?: string) => {
+      if (target) return preferSameOriginPath(target) || "/";
+
+      // Try reading callbackUrl from query params if in browser
+      const params = getClientSearchParams();
+      const raw = params?.get("callbackUrl");
+      if (raw) {
+        try {
+          const decoded = decodeURIComponent(raw);
+          const preferred = preferSameOriginPath(decoded);
+          if (preferred) return preferred;
+        } catch {
+          // ignore
+        }
+      }
+
+      if (pathname && !AUTH_ROUTE_REGEX.test(pathname)) {
+        return pathname;
+      }
+      return "/";
+    },
+    [pathname]
   );
-
-  const currentRelativePath = useMemo(
-    () => normaliseRelativePath(pathname, paramsInstance),
-    [pathname, paramsInstance]
-  );
-
-  const preferredTarget = useMemo(() => {
-    if (AUTH_ROUTE_REGEX.test(pathname)) {
-      return decodedQueryCallback || "/";
-    }
-    return decodedQueryCallback || currentRelativePath || "/";
-  }, [pathname, decodedQueryCallback, currentRelativePath]);
 
   const buildSigninUrl = useCallback(
     (target?: string) => {
-      const destination = preferSameOriginPath(target || preferredTarget) || "/";
+      const destination = getCallbackTarget(target);
       return `/signin?callbackUrl=${encodeURIComponent(destination)}`;
     },
-    [preferredTarget]
+    [getCallbackTarget]
   );
 
   const buildSignupUrl = useCallback(
     (target?: string) => {
-      const destination = preferSameOriginPath(target || preferredTarget) || "/";
+      const destination = getCallbackTarget(target);
       return `/signup?callbackUrl=${encodeURIComponent(destination)}`;
     },
-    [preferredTarget]
+    [getCallbackTarget]
   );
 
   const buildCognitoSigninUrl = useCallback(
     (target?: string) => {
-      const destination = preferSameOriginPath(target || preferredTarget) || "/";
+      const destination = getCallbackTarget(target);
       return `/cognito-signin?callbackUrl=${encodeURIComponent(destination)}`;
     },
-    [preferredTarget]
+    [getCallbackTarget]
   );
 
   const redirectToSignin = useCallback(() => {
@@ -108,6 +95,7 @@ export function useSignInRedirect() {
     }
   }, [buildSigninUrl]);
 
+  const preferredTarget = pathname && !AUTH_ROUTE_REGEX.test(pathname) ? pathname : "/";
   const homeSigninUrl = useMemo(() => buildSigninUrl("/"), [buildSigninUrl]);
   const homeSignupUrl = useMemo(() => buildSignupUrl("/"), [buildSignupUrl]);
 

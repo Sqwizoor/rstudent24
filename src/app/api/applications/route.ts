@@ -4,8 +4,7 @@ import { verifyAuth } from '@/lib/auth';
 import { queryCache } from '@/lib/queryCache';
 import { getPostHogClient } from '@/lib/posthog-server';
 
-// ✅ ISR: Cache application data for 30 minutes (more volatile than properties)
-export const revalidate = 1800;
+export const dynamic = 'force-dynamic';
 
 // GET handler for applications with filtering
 export async function GET(request: NextRequest) {

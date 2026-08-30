@@ -6,8 +6,7 @@ import { verifyAuth } from '@/lib/auth';
 import { queryCache } from '@/lib/queryCache';
 import { uploadFileToS3, deleteFileFromS3 } from '@/lib/s3';
 
-// ✅ ISR: Cache responses for 1 hour
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 // Using the shared Prisma client instance from @/lib/prisma
 

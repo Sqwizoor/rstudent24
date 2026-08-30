@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/sonner"
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { PreloadScripts } from "@/components/PreloadScripts";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
@@ -7,12 +7,16 @@ import Providers from "./providers";
 
 const barlow = { variable: "font-sans" };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "Student24 - Your Best Student Housing Platform",
   description: "Find perfect student accommodation close to your campus. Connect students with landlords. Search, apply, and book your ideal room today.",
   keywords: ["student housing", "accommodation", "rental", "student homes", "South Africa"],
   authors: [{ name: "Student24" }],
-  viewport: "width=device-width, initial-scale=1",
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-icon.png',

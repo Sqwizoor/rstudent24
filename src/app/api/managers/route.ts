@@ -5,8 +5,7 @@ import { queryCache } from '@/lib/queryCache';
 
 // Using the shared Prisma client instance from @/lib/prisma
 
-// ✅ ISR: Cache responses for 1 hour
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 // GET handler for all managers (admin only)
 export async function GET(request: NextRequest) {

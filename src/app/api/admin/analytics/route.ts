@@ -3,8 +3,7 @@ import { verifyAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { queryCache } from "@/lib/queryCache";
 
-// ✅ ISR: Cache analytics for 6 hours (less volatile)
-export const revalidate = 21600;
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
