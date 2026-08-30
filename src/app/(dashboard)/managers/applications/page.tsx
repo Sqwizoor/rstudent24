@@ -5,10 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import {
   useGetApplicationsQuery,
-  useGetAuthUserQuery,
   useUpdateApplicationStatusMutation,
   useGetPropertiesQuery
 } from "@/state/api";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { 
   CircleCheckBig, 
   Download, 
@@ -304,7 +304,8 @@ const ApplicationItem = ({ application, handleStatusChange }: ApplicationItemPro
 
 // Applications Page Component
 const Applications = () => {
-  const { data: authUser } = useGetAuthUserQuery();
+  const { user, isAuthenticated, isLoading: authLoading } = useUnifiedAuth();
+  const managerId = (user as any)?.id || (user as any)?.sub || "";
   const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -316,11 +317,11 @@ const Applications = () => {
     error: applicationsError,
   } = useGetApplicationsQuery(
     {
-      userId: authUser?.cognitoInfo?.userId,
+      userId: managerId,
       userType: "manager",
     },
     {
-      skip: !authUser?.cognitoInfo?.userId || authUser?.userRole !== "manager",
+      skip: !managerId,
     }
   );
   
@@ -329,7 +330,7 @@ const Applications = () => {
   // Fetch property details for applications
   const { data: properties, error: propertiesError } = useGetPropertiesQuery(
     {}, // Use empty filter object since we want all properties for this manager
-    { skip: !authUser?.cognitoInfo?.userId || authUser?.userRole !== "manager" }
+    { skip: !managerId }
   );
 
   const handleStatusChange = async (id: number, status: 'Approved' | 'Denied' | 'Pending') => {
@@ -354,32 +355,18 @@ const Applications = () => {
   };
 
   // Check for authentication and authorization errors
-  if (!authUser) {
+  if (!authLoading && !isAuthenticated && !user) {
     return (
-      <div className="min-h-screen dark:bg-slate-950 bg-white flex items-center justify-center p-4">
-        <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2 dark:text-white text-gray-900">Authentication Required</h2>
-          <p className="dark:text-gray-400 text-gray-600 mb-4">Please sign in to view applications.</p>
-          <Link
-            href="/signin"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Go to Sign In
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (authUser?.userRole !== "manager") {
-    return (
-      <div className="min-h-screen dark:bg-slate-950 bg-white flex items-center justify-center p-4">
-        <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2 dark:text-white text-gray-900">Access Denied</h2>
-          <p className="dark:text-gray-400 text-gray-600">You don&apos;t have permission to view this page.</p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
+        <AlertCircle className="w-14 h-14 text-zinc-500 mb-4" />
+        <h2 className="text-xl font-bold text-white mb-2">Authentication Required</h2>
+        <p className="text-xs text-zinc-400 mb-4 max-w-sm">Please sign in as a landlord or manager to view student applications.</p>
+        <Link
+          href="/signin"
+          className="inline-flex items-center px-4 py-2 bg-white text-black text-xs font-semibold rounded-xl hover:bg-zinc-200 transition-colors"
+        >
+          Go to Sign In
+        </Link>
       </div>
     );
   }

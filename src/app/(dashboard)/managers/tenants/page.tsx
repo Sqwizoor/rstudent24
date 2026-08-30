@@ -46,6 +46,8 @@ import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+
 // Define interfaces for type safety
 interface Location {
   id: number;
@@ -94,7 +96,6 @@ const useGetManagerTenants = (managerId: string, skip: boolean) => {
       setError(null);
       
       try {
-        // Get the authentication token from Amplify
         let authHeaders = {};
         try {
           const { fetchAuthSession } = await import('aws-amplify/auth');
@@ -106,28 +107,22 @@ const useGetManagerTenants = (managerId: string, skip: boolean) => {
               Authorization: `Bearer ${idToken}`
             };
           }
-        } catch (authError) {
-          console.warn("Auth session fetch failed:", authError);
-          // Continue without auth headers
+        } catch {
+          // Continue with standard headers
         }
         
-        // Make the API request with auth headers
         const response = await fetch(`/api/managers/${managerId}/tenants`, {
           headers: {
             ...authHeaders
           }
         });
         
-        if (!response.ok) {
-          throw new Error(`Error fetching tenants: ${response.statusText}`);
+        if (response.ok) {
+          const data = await response.json();
+          setTenants(Array.isArray(data) ? data : []);
         }
-        
-        const data = await response.json();
-        setTenants(data);
       } catch (err: any) {
-        console.error("Failed to fetch tenants:", err);
-        setError(err.message || "Failed to fetch tenants");
-        toast.error("Failed to fetch tenants");
+        console.warn("Tenants fetch:", err);
       } finally {
         setIsLoading(false);
       }
@@ -144,8 +139,10 @@ function ManagerTenantsPage() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   
-  // Get authenticated user
-  const { data: authUser, isLoading: authLoading } = useGetAuthUserQuery();
+  // Get authenticated unified user (Google, NextAuth, or Cognito)
+  const { user, isAuthenticated, isLoading: authLoading } = useUnifiedAuth();
+  const managerId = (user as any)?.id || (user as any)?.sub || "";
+  const userRole = user?.role?.toLowerCase() || (user as any)?.userRole?.toLowerCase() || "manager";
   
   // Get tenants for this manager
   const { 
@@ -153,8 +150,8 @@ function ManagerTenantsPage() {
     isLoading: tenantsLoading, 
     error: tenantsError 
   } = useGetManagerTenants(
-    authUser?.cognitoInfo?.userId || "", 
-    !authUser?.cognitoInfo?.userId || authUser?.userRole !== "manager"
+    managerId, 
+    !managerId
   );
   
   // Filter states
@@ -210,20 +207,22 @@ function ManagerTenantsPage() {
   
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="h-12 w-12 bg-blue-200 dark:bg-blue-800 rounded-full animate-pulse"></div>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="h-10 w-10 border-2 border-zinc-800 border-t-white rounded-full animate-spin"></div>
       </div>
     );
   }
   
-  // Check if user is a manager
-  if (authUser?.userRole !== "manager") {
+  // Check if authenticated
+  if (!authLoading && !isAuthenticated && !user) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen">
-        <XCircle className="h-16 w-16 text-red-500 mb-4" />
-        <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-        <p className="text-gray-500 mb-4">You don&apos;t have permission to view this page.</p>
-        <Button onClick={() => router.push("/")}>Go to Home</Button>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
+        <XCircle className="h-14 w-14 text-zinc-500 mb-4" />
+        <h1 className="text-xl font-bold text-white mb-2">Authentication Required</h1>
+        <p className="text-xs text-zinc-400 mb-4 max-w-sm">Please sign in to view and manage your tenants.</p>
+        <Button onClick={() => router.push("/signin")} className="rounded-xl bg-white text-black hover:bg-zinc-200 text-xs font-semibold px-4 py-2">
+          Go to Sign In
+        </Button>
       </div>
     );
   }
