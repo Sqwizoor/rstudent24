@@ -226,8 +226,18 @@ export const getManagerProperties = query({
           .query("rooms")
           .withIndex("by_property", (q) => q.eq("propertyId", p._id))
           .collect();
+
+        // Dynamically compute min price from rooms if property price is not set
+        const roomPrices = rooms
+          .map((r) => Number(r.pricePerMonth) || 0)
+          .filter((price) => price > 0);
+        const minRoomPrice = roomPrices.length > 0 ? Math.min(...roomPrices) : 0;
+        const finalPrice = p.pricePerMonth && p.pricePerMonth > 0 ? p.pricePerMonth : (minRoomPrice || 3500);
+
         return {
           ...p,
+          pricePerMonth: finalPrice,
+          price: finalPrice,
           imageUrls: imageUrls.filter(Boolean),
           rooms,
         };

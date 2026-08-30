@@ -301,7 +301,10 @@ const PropertyCard = ({ property, onEdit, onManagePhotos, onDelete }: {
   const displayBeds = roomStats.totalBeds || property.beds || 0;
   const displayBaths = roomStats.totalBaths || property.baths || 0;
   const displaySquareFeet = roomStats.totalSquareFeet || property.squareFeet || 0;
-  const displayPrice = roomStats.minPrice ?? property.pricePerMonth ?? 0;
+  const rawPrice = Number(property.pricePerMonth) || Number(property.price) || 0;
+  const displayPrice = (roomStats.minPrice && roomStats.minPrice > 0)
+    ? roomStats.minPrice
+    : rawPrice;
   const firstImage = property.imageUrls?.[0] || "/placeholder.jpg";
 
   return (

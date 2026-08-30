@@ -48,10 +48,15 @@ export function calculateTotalSquareFeet(rooms: Room[] | undefined): number {
 export function getMinRoomPrice(rooms: Room[] | undefined): number {
   if (!rooms || rooms.length === 0) return 0;
   
-  const availableRooms = rooms.filter(room => room.isAvailable);
-  if (availableRooms.length === 0) return 0;
+  const allPrices = rooms
+    .map(room => Number(room.pricePerMonth) || Number((room as any).price) || 0)
+    .filter(p => p > 0);
   
-  return Math.min(...availableRooms.map(room => room.pricePerMonth));
+  if (allPrices.length > 0) {
+    return Math.min(...allPrices);
+  }
+  
+  return 0;
 }
 
 /**
