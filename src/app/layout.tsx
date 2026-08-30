@@ -1,21 +1,11 @@
 import { Toaster } from "@/components/ui/sonner"
 import type { Metadata } from "next";
-import { Barlow } from 'next/font/google';
 import "./globals.css";
 import { PreloadScripts } from "@/components/PreloadScripts";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
-
-// Load Barlow font with essential weights only (400 and 700)
-const barlow = Barlow({
-  subsets: ['latin'],
-  weight: ['400', '600', '700'], // ✨ NEW: Optimized to just 3 weights (was 6)
-  style: ['normal'], // ✨ NEW: Removed italic (not used widely)
-  variable: '--font-barlow',
-  display: 'swap', // ✨ Shows system font while loading
-  preload: true, // ✨ NEW: Preload critical font
-});
-import "@aws-amplify/ui-react/styles.css";
 import Providers from "./providers";
+
+const barlow = { variable: "font-sans" };
 
 export const metadata: Metadata = {
   title: "Student24 - Your Best Student Housing Platform",
@@ -61,8 +51,16 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <PreloadScripts />
-        {/* Google Analytics */}
+      </head>
+      <body className={`${barlow.variable} font-sans antialiased`} suppressHydrationWarning>
+        <Providers>{children}</Providers>
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS || 'G-3W05VRQPJF'} />
+        <Toaster 
+          position="bottom-right"
+          closeButton
+          richColors
+          duration={4000}
+        />
         {/* Meta Pixel Code */}
         <script
           dangerouslySetInnerHTML={{
@@ -89,37 +87,6 @@ export default function RootLayout({
             alt=""
           />
         </noscript>
-        {/* End Meta Pixel Code */}
-      </head>
-      <body className={`${barlow.variable} font-sans antialiased`} suppressHydrationWarning>
-        <Providers>{children}</Providers>
-        <Toaster 
-          position="bottom-right"
-          closeButton
-          richColors
-          duration={4000}
-        />
-        {/* Add a script to prevent flash of wrong theme */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  const storedTheme = localStorage.getItem('theme');
-                  if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.style.colorScheme = 'dark';
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                    document.documentElement.style.colorScheme = 'light';
-                  }
-                } catch (e) {
-                  console.error('Failed to set initial theme:', e);
-                }
-              })();
-            `
-          }}
-        />
       </body>
     </html>
   );

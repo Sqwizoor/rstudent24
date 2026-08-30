@@ -1,10 +1,23 @@
 import { NextRequest } from 'next/server';
-import jwt, { JwtPayload } from 'jsonwebtoken';
 import { getToken } from 'next-auth/jwt';
 
-interface DecodedToken extends JwtPayload {
+interface DecodedToken {
   sub: string;
+  exp?: number;
   "custom:role"?: string;
+  [key: string]: any;
+}
+
+function decodeJwtPayload(token: string): DecodedToken | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = Buffer.from(base64, 'base64').toString('utf8');
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
 }
 
 interface AuthResult {
@@ -83,7 +96,7 @@ export async function verifyAuth(
   try {
     // For Cognito tokens, we don't need to verify with a secret,
     // we just need to decode and extract the needed claims
-    const decoded = jwt.decode(token) as DecodedToken;
+    const decoded = decodeJwtPayload(token);
     
     // Log token info for debugging (safely)
     console.log("Received Cognito token info:", {

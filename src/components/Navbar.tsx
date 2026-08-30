@@ -8,7 +8,6 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth"
 import { usePathname, useRouter } from "next/navigation"
-import { signOut as cognitoSignOut } from "aws-amplify/auth"
 import { signOut as nextAuthSignOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { Search, LogOut, ChevronDown, Home, Building2, Menu, X } from "lucide-react"
@@ -44,12 +43,7 @@ const Navbar = () => {
 
   const handleSignOut = async () => {
     try {
-      if (provider === "google") {
-        await nextAuthSignOut({ callbackUrl: "/" })
-      } else if (provider === "cognito") {
-        await cognitoSignOut()
-        window.location.href = "/"
-      }
+      await nextAuthSignOut({ callbackUrl: "/" })
     } catch (error) {
       console.error("Sign out error:", error)
       window.location.href = "/"

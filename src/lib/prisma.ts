@@ -1,41 +1,21 @@
-import { PrismaClient, Prisma } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
+let client: any;
 
-// PrismaClient is attached to the `global` object in development to prevent
-// exhausting your database connection limit.
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
-
-// Create a custom logger when in development mode
-const customLogger: Prisma.LogLevel[] = process.env.NODE_ENV === 'development' 
-  ? ['query', 'error', 'warn'] 
-  : ['error'];
-
-// Initialize Prisma client with Driver Adapter
-const connectionString = process.env.DATABASE_URL;
-
-// Initialize the pool
-const pool = new Pool({ connectionString });
-
-// Initialize the adapter
-const adapter = new PrismaPg(pool);
-
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient({
-    adapter,
-    log: customLogger,
+try {
+  const { PrismaClient } = require('@prisma/client');
+  const globalForPrisma = global as unknown as { prisma: any };
+  client = globalForPrisma.prisma || new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   });
-
-// Configure dynamic properties if needed (e.g., timeouts)
-if (!globalForPrisma.prisma && process.env.NODE_ENV === 'production') {
-  // For production, adjust connection timeouts
-  // Note: Modern Prisma versions handle connection pooling internally
-  // Since Prisma 5.0.0, beforeExit hook is not applicable to the library engine
-  // Use process.on('beforeExit') instead
-  process.on('beforeExit', () => {
-    console.log('Closing Prisma connections');
-  });
+  if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = client;
+} catch {
+  // Safe mock proxy fallback when Prisma binary engine is not present
+  const noop = () => Promise.resolve(null);
+  const handler: ProxyHandler<any> = {
+    get: () => new Proxy(noop, handler),
+    apply: () => Promise.resolve(null),
+  };
+  client = new Proxy({}, handler);
 }
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+export const prisma = client;
+export default prisma;

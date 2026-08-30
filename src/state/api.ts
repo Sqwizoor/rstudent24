@@ -9,7 +9,6 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import type { TagDescription } from '@reduxjs/toolkit/query';
 import { toast } from 'sonner';
-import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 
 import { FiltersState } from "./index";  // FiltersState is defined in index.ts, not in slices folder
 
@@ -45,6 +44,7 @@ export const api = createApi({
     timeout: 60000, // Increase timeout to 60 seconds
     prepareHeaders: async (headers, { getState, endpoint }) => {
       try {
+        const { fetchAuthSession } = await import("aws-amplify/auth");
         const session = await fetchAuthSession();
         const idToken = session.tokens?.idToken?.toString();
         if (idToken) {
@@ -206,6 +206,7 @@ export const api = createApi({
         let userDetailsResponse: any = { error: { status: 500, error: "Initialization error" } };
         
         try {
+          const { fetchAuthSession, getCurrentUser } = await import("aws-amplify/auth");
           let cognitoUser: CognitoAuthUser | undefined;
           let userEmail = "";
           

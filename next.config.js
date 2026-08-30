@@ -26,6 +26,18 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "*.convex.cloud",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.convex.site",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "images.unsplash.com",
         port: "",
         pathname: "/**",

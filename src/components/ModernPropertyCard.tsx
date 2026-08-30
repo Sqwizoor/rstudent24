@@ -119,7 +119,7 @@ function ModernPropertyCard({
                 quality={65}
                 className={`object-cover transition-transform duration-500 ${isHovered ? "scale-105" : "scale-100"}`}
                 onError={handleImageError}
-                onLoadingComplete={() => setIsImageLoaded(true)}
+                onLoad={() => setIsImageLoaded(true)}
                 sizes="(max-width: 320px) 128px, (max-width: 640px) 160px, (max-width: 1024px) 200px, 220px"
               />
             ) : (

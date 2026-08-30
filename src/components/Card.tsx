@@ -5,7 +5,7 @@ import type { ImageLoaderProps } from "next/image"
 import { Heart, Home, MapPin, Star } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -75,18 +75,23 @@ function PropertyCard({
   widthClass,
   imageAspect = '4/3',
 }: PropertyCardProps) {
+  const currentPhoto = 
+    (property.photoUrls && property.photoUrls.length > 0 && property.photoUrls[0]) ||
+    (property.images && property.images.length > 0 && property.images[0]) ||
+    "/placeholder.jpg";
+
   // Access images directly from the property object as it comes from the API
-  const [imgSrc, setImgSrc] = useState<string>(
-    // First try images array
-    property.images && property.images.length > 0 ? property.images[0] :
-    // Then try photoUrls array
-    property.photoUrls && property.photoUrls.length > 0 ? property.photoUrls[0] :
-    // Default placeholder
-    "/placeholder.jpg"
-  )
-  const [isHovered, setIsHovered] = useState(false)
-  const [imgError, setImgError] = useState(false)
-  const [isImageLoaded, setIsImageLoaded] = useState(false)
+  const [imgSrc, setImgSrc] = useState<string>(currentPhoto);
+  const [isHovered, setIsHovered] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  useEffect(() => {
+    if (currentPhoto && currentPhoto !== "/placeholder.jpg") {
+      setImgSrc(currentPhoto);
+      setImgError(false);
+    }
+  }, [currentPhoto]);
 
   // Calculate room-based statistics for price fallback
   const roomStats = getRoomStats(property.rooms);
@@ -176,7 +181,7 @@ function PropertyCard({
               quality={IMAGE_QUALITY.card}
               className={`object-cover transition-transform ${edgeToEdgeImage ? roundedImageClass : 'rounded-xl'} duration-500 ease-out ${disableImageHoverZoom ? 'scale-100' : isHovered ? (simpleShadow ? 'scale-[1.02]' : 'scale-110') : 'scale-100'}`}
               onError={handleImageError}
-              onLoadingComplete={() => setIsImageLoaded(true)}
+              onLoad={() => setIsImageLoaded(true)}
             />
           ) : (
             <div className={`w-full h-full flex items-center justify-center bg-gray-100 ${edgeToEdgeImage ? roundedImageClass : 'rounded-xl'}`}>

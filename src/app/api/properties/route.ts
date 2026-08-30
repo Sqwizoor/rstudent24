@@ -1,57 +1,80 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
-import axios from 'axios';
-import { verifyAuth } from '@/lib/auth';
 import type { Property } from '@/types/property';
-import { queryCache } from '@/lib/queryCache';
-import { uploadFileToS3, deleteFileFromS3 } from '@/lib/s3';
-import { unstable_cache, revalidateTag } from 'next/cache';
 
-// ✅ ISR: Cache responses for 1 hour
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
-// Using the shared Prisma client instance from @/lib/prisma
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+
+function mapConvexProperty(p: any, idx: number): Property {
+  const images = Array.isArray(p.photoUrls) && p.photoUrls.length > 0 
+    ? p.photoUrls 
+    : (Array.isArray(p.imageUrls) && p.imageUrls.length > 0 ? p.imageUrls : []);
+
+  return {
+    id: p.legacyId ?? (idx + 1),
+    name: p.name || 'Student Residence',
+    description: p.description || '',
+    propertyType: (p.propertyType as any) || 'APARTMENT',
+    photoUrls: images,
+    images: images,
+    beds: p.beds ?? 1,
+    baths: p.baths ?? 1,
+    kitchens: p.kitchens ?? 1,
+    squareFeet: p.squareFeet ?? 45,
+    pricePerMonth: p.pricePerMonth ?? p.price ?? 3500,
+    price: p.pricePerMonth ?? p.price ?? 3500,
+    isPetsAllowed: p.isPetsAllowed ?? false,
+    isParkingIncluded: p.isParkingIncluded ?? false,
+    isNsfassAccredited: p.isNsfassAccredited ?? true,
+    amenities: Array.isArray(p.amenities) ? p.amenities : ['WiFi', 'Furnished'],
+    highlights: Array.isArray(p.highlights) ? p.highlights : [],
+    closestUniversities: Array.isArray(p.closestUniversities) ? p.closestUniversities : [],
+    closestCampuses: Array.isArray(p.closestCampuses) ? p.closestCampuses : [],
+    averageRating: p.averageRating ?? 4.5,
+    numberOfReviews: p.numberOfReviews ?? 0,
+    managerCognitoId: p.managerId || '',
+    locationId: idx + 1,
+    location: {
+      id: idx + 1,
+      address: p.address || p.name || 'Johannesburg',
+      city: p.city || 'Johannesburg',
+      country: 'South Africa',
+      coordinates: {
+        latitude: p.latitude ?? -26.2041,
+        longitude: p.longitude ?? 28.0473,
+      }
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+}
 
 // GET handler for properties
 export async function GET(request: NextRequest) {
-  // Ensure disabled_properties table exists before querying
-  try {
-    await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS disabled_properties (
-        property_id INTEGER PRIMARY KEY,
-        disabled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        disabled_by TEXT
-      )
-    `);
-  } catch (tableErr) {
-    console.warn('Warning: Could not verify disabled_properties table:', tableErr);
-  }
-
   try {
     const { searchParams } = new URL(request.url);
 
-    const favoriteIds = searchParams.get('favoriteIds');
     const priceMin = searchParams.get('priceMin');
     const priceMax = searchParams.get('priceMax');
     const beds = searchParams.get('beds');
     const baths = searchParams.get('baths');
     const propertyType = searchParams.get('propertyType');
-    const squareFeetMin = searchParams.get('squareFeetMin');
-    const squareFeetMax = searchParams.get('squareFeetMax');
-    const amenities = searchParams.get('amenities');
-    const availableFrom = searchParams.get('availableFrom');
-
-    // coordinates support
     const coordinates = searchParams.get('coordinates');
     const latitudeParam = searchParams.get('latitude');
     const longitudeParam = searchParams.get('longitude');
+    const propertyName = searchParams.get('propertyName');
+    const limitParam = searchParams.get('limit');
+    
+    let limit = 50;
+    if (limitParam) {
+      const parsed = parseInt(limitParam, 10);
+      if (!isNaN(parsed)) limit = Math.min(Math.max(parsed, 1), 100);
+    }
 
     let latNum: number | null = null;
     let lngNum: number | null = null;
 
     if (coordinates) {
-      // coordinates=lng,lat from frontend
       const [lngStr, latStr] = coordinates.split(',');
       const parsedLat = parseFloat(latStr);
       const parsedLng = parseFloat(lngStr);
@@ -70,309 +93,65 @@ export async function GET(request: NextRequest) {
       if (Number.isFinite(parsedLng)) lngNum = parsedLng;
     }
 
-    const location = searchParams.get('location');      // city/suburb/neighborhood
-    const propertyName = searchParams.get('propertyName');
-    const limitParam = searchParams.get('limit');
-    let limit = 50;
-    if (limitParam) {
-      const parsed = parseInt(limitParam, 10);
-      if (!isNaN(parsed)) {
-        limit = Math.min(Math.max(parsed, 1), 100);
-      }
+    let queryPath = 'properties:getProperties';
+    let queryArgs: any = { limit };
+
+    if (latNum !== null && lngNum !== null) {
+      queryPath = 'properties:getNearbyProperties';
+      queryArgs = {
+        searchLat: latNum,
+        searchLng: lngNum,
+        radiusKm: 30,
+        limit,
+      };
+      if (propertyType && propertyType !== 'any') queryArgs.propertyType = propertyType;
+      if (priceMin) queryArgs.priceMin = Number(priceMin);
+      if (priceMax) queryArgs.priceMax = Number(priceMax);
+      if (beds && beds !== 'any') queryArgs.beds = Number(beds);
+      if (baths && baths !== 'any') queryArgs.baths = Number(baths);
     }
 
-    console.log('========== PROPERTIES API REQUEST ==========');
-    console.log('API Query params:', {
-      location,
-      propertyName,
-      coordinates,
-      latitudeParam,
-      longitudeParam,
-      latNum,
-      lngNum,
+    // Call Convex Cloud
+    const convexRes = await fetch(`${CONVEX_URL}/api/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        path: queryPath,
+        args: queryArgs,
+      }),
+      cache: 'no-store',
     });
-    console.log('Full search params:', Object.fromEntries(searchParams.entries()));
-    console.log('===========================================');
 
-    // cache key
-    const cacheParams = {
-      favoriteIds,
-      priceMin,
-      priceMax,
-      beds,
-      baths,
-      propertyType,
-      squareFeetMin,
-      squareFeetMax,
-      amenities,
-      availableFrom,
-      latitude: latNum,
-      longitude: lngNum,
-      location,
-      propertyName,
-      limit,
-    };
+    let properties: Property[] = [];
 
-    const cacheKey = queryCache.getKey('properties', cacheParams);
-    
-    // Using Next.js unstable_cache for better persistence across serverless invocations
-    // Replaces the previous in-memory queryCache check
-    // Replaces the previous in-memory queryCache check
-
-    const whereConditions: Prisma.Sql[] = [];
-
-    if (favoriteIds) {
-      const favoriteIdsArray = favoriteIds.split(',').map(Number);
-      whereConditions.push(
-        Prisma.sql`p.id IN (${Prisma.join(favoriteIdsArray)})`
-      );
-    }
-
-    if (priceMin) {
-      whereConditions.push(
-        Prisma.sql`p."pricePerMonth" >= ${Number(priceMin)}`
-      );
-    }
-
-    if (priceMax) {
-      whereConditions.push(
-        Prisma.sql`p."pricePerMonth" <= ${Number(priceMax)}`
-      );
-    }
-
-    if (beds && beds !== 'any') {
-      whereConditions.push(Prisma.sql`p.beds >= ${Number(beds)}`);
-    }
-
-    if (baths && baths !== 'any') {
-      whereConditions.push(Prisma.sql`p.baths >= ${Number(baths)}`);
-    }
-
-    if (squareFeetMin) {
-      whereConditions.push(
-        Prisma.sql`p."squareFeet" >= ${Number(squareFeetMin)}`
-      );
-    }
-
-    if (squareFeetMax) {
-      whereConditions.push(
-        Prisma.sql`p."squareFeet" <= ${Number(squareFeetMax)}`
-      );
-    }
-
-    // text search (name/description/location) - ALWAYS search by property name if provided
-    let nameSearchCondition: Prisma.Sql | null = null;
-    if (propertyName && propertyName !== 'any') {
-      const searchTerm = `%${propertyName.toLowerCase()}%`;
-      console.log(
-        'Searching for property name/text:',
-        propertyName,
-        'with search term:',
-        searchTerm
-      );
-      // Property name search is ALWAYS applied regardless of coordinates
-      nameSearchCondition = Prisma.sql`(
-        LOWER(p.name) LIKE ${searchTerm} OR 
-        LOWER(p.description) LIKE ${searchTerm} OR
-        LOWER(l.address) LIKE ${searchTerm} OR
-        LOWER(l.city) LIKE ${searchTerm} OR
-        LOWER(l.suburb) LIKE ${searchTerm} OR
-        LOWER(l.state) LIKE ${searchTerm}
-      )`;
-      // Add directly to whereConditions to ensure it's always applied
-      whereConditions.push(nameSearchCondition);
-    }
-
-    if (propertyType && propertyType !== 'any') {
-      whereConditions.push(
-        Prisma.sql`p."propertyType" = ${propertyType}::"PropertyType"`
-      );
-    }
-
-    if (amenities && amenities !== 'any') {
-      const amenitiesArray = amenities.split(',');
-      whereConditions.push(Prisma.sql`p.amenities @> ${amenitiesArray}`);
-    }
-
-    if (availableFrom && availableFrom !== 'any') {
-      const date = new Date(availableFrom);
-      if (!isNaN(date.getTime())) {
-        whereConditions.push(
-          Prisma.sql`EXISTS (
-            SELECT 1 FROM "Lease" l 
-            WHERE l."propertyId" = p.id 
-            AND l."startDate" <= ${date.toISOString()}
-          )`
+    if (convexRes.ok) {
+      const data = await convexRes.json();
+      const rawList = Array.isArray(data.value) ? data.value : [];
+      
+      let filtered = rawList;
+      if (propertyName && propertyName !== 'any') {
+        const queryTerm = propertyName.toLowerCase();
+        filtered = filtered.filter((p: any) => 
+          (p.name && p.name.toLowerCase().includes(queryTerm)) ||
+          (p.address && p.address.toLowerCase().includes(queryTerm)) ||
+          (p.city && p.city.toLowerCase().includes(queryTerm))
         );
       }
+
+      properties = filtered.map((p: any, idx: number) => mapConvexProperty(p, idx));
     }
 
-    // coordinate validity
-    const hasValidCoordinates =
-      latNum !== null &&
-      lngNum !== null &&
-      Number.isFinite(latNum) &&
-      Number.isFinite(lngNum) &&
-      (latNum !== 0 || lngNum !== 0);
+    console.log(`✅ Returned ${properties.length} properties from Convex`);
 
-    // location text filter (only when no coordinates)
-    let locationSearchCondition: Prisma.Sql | null = null;
-    if (!hasValidCoordinates && location && location !== 'any' && location.trim() !== '') {
-      const normalizedLocation = location
-        .replace(/,\s*south africa/i, '')
-        .toLowerCase()
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      console.log('Location search - raw:', location, 'normalized:', normalizedLocation);
-
-      if (normalizedLocation) {
-        const escapedLocation = normalizedLocation.replace(/[%_]/g, '\\$&');
-        const wildcardLocation = `%${escapedLocation}%`;
-
-        locationSearchCondition = Prisma.sql`(
-          (l.city IS NOT NULL AND LOWER(l.city) = ${normalizedLocation}) OR
-          (l.suburb IS NOT NULL AND LOWER(l.suburb) = ${normalizedLocation}) OR
-          (l.state IS NOT NULL AND LOWER(l.state) = ${normalizedLocation}) OR
-          (l.address IS NOT NULL AND l.address != '' AND LOWER(l.address) LIKE ${wildcardLocation} ESCAPE '\\') OR
-          (l.city IS NOT NULL AND l.city != '' AND LOWER(l.city) LIKE ${wildcardLocation} ESCAPE '\\') OR
-          (l.suburb IS NOT NULL AND l.suburb != '' AND LOWER(l.suburb) LIKE ${wildcardLocation} ESCAPE '\\') OR
-          (l.state IS NOT NULL AND l.state != '' AND LOWER(l.state) LIKE ${wildcardLocation} ESCAPE '\\')
-        )`;
-
-        console.log('Location search condition will be applied.');
-      } else {
-        console.log('Normalized location is empty; skipping location filter.');
-      }
-    }
-
-    // combine location filters (but NOT name filters - those are already added)
-    if (!hasValidCoordinates) {
-      if (locationSearchCondition) {
-        whereConditions.push(locationSearchCondition);
-      }
-    }
-    // Note: nameSearchCondition is already added above if it exists
-
-    // geographic radius filter when coordinates present
-    if (hasValidCoordinates) {
-      const radiusInMeters = 20000; // 20km
-      console.log('Applying ST_DWithin radius filter:', {
-        lng: lngNum,
-        lat: latNum,
-        radiusInMeters,
-      });
-
-      whereConditions.unshift(
-        Prisma.sql`ST_DWithin(
-          l.coordinates,
-          ST_SetSRID(ST_MakePoint(${lngNum}, ${latNum}), 4326)::geography,
-          ${radiusInMeters}
-        )`
-      );
-    }
-
-    // full query (same as your original with location JSON)
-    const baseQuery = Prisma.sql`
-      SELECT 
-        p.*,
-        (
-          SELECT MIN(r."pricePerMonth")
-          FROM "Room" r
-          WHERE r."propertyId" = p.id AND r."isAvailable" = true
-        ) as "minRoomPrice",
-        (
-          SELECT COUNT(*)::int
-          FROM "Room" r
-          WHERE r."propertyId" = p.id AND r."isAvailable" = true
-        ) as "availableRooms",
-        l.id as "locationId",
-        json_build_object(
-          'id', l.id,
-          'address', l.address,
-          'city', l.city,
-          'suburb', l.suburb,
-          'state', l.state,
-          'country', l.country,
-          'postalCode', l."postalCode",
-          'coordinates', json_build_object(
-            'longitude', ST_X(l."coordinates"::geometry),
-            'latitude', ST_Y(l."coordinates"::geometry)
-          )
-        ) as location
-      FROM "Property" p
-      JOIN "Location" l ON p."locationId" = l.id
-      JOIN "Manager" m ON p."managerCognitoId" = m."cognitoId"
-      LEFT JOIN disabled_properties dp ON dp.property_id = p.id
-      ${
-        // Always require the manager to be Active, the property to be Approved, and the property not to be present in disabled_properties
-        whereConditions.length > 0
-          ? Prisma.sql`WHERE m.status = 'Active'::"ManagerStatus" AND p.status = 'Approved'::"PropertyStatus" AND ${Prisma.join(whereConditions, ' AND ')} AND dp.property_id IS NULL`
-          : Prisma.sql`WHERE m.status = 'Active'::"ManagerStatus" AND p.status = 'Approved'::"PropertyStatus" AND dp.property_id IS NULL`
-      }
-    `;
-
-    // Determine ordering
-    let orderByClause = Prisma.sql`ORDER BY p.id DESC`;
-    const orderBy = searchParams.get('orderBy');
-    
-    if (orderBy === 'random') {
-      orderByClause = Prisma.sql`ORDER BY RANDOM()`;
-    }
-
-    const initialQuery = Prisma.sql`${baseQuery} ${orderByClause} LIMIT ${limit}`;
-
-    // Wrap the database query with unstable_cache
-    const getCachedProperties = unstable_cache(
-      async () => {
-        let results: Property[] = [];
-        try {
-          results = (await prisma.$queryRaw(initialQuery)) as Property[];
-        } catch (err: any) {
-          if (err?.code === 'P2024' && limit > 10) {
-            console.warn('P2024 timeout – retrying with smaller limit (10)');
-            const retryQuery = Prisma.sql`${baseQuery} ORDER BY p.id DESC LIMIT ${10}`;
-            results = (await prisma.$queryRaw(retryQuery)) as Property[];
-          } else {
-            throw err;
-          }
-        }
-        return results;
-      },
-      [cacheKey], 
-      { tags: ['properties'], revalidate: 3600 }
-    );
-
-    let properties: Property[] = await getCachedProperties();
-
-    console.log('========== QUERY RESULTS ==========');
-    console.log(`✅ Query returned ${properties.length} properties`);
-    if (properties.length > 0) {
-      console.log(
-        'Sample cities:',
-        properties.slice(0, 5).map((p: any) => p.location?.city || 'unknown')
-      );
-    }
-    console.log('====================================');
-
-    // queryCache.set(cacheKey, properties, cacheTTL); // Removed in favor of unstable_cache
-    console.log(`✅ Cache SET - Results cached via unstable_cache`);
-
-    const browserCacheTTL = location || propertyName || hasValidCoordinates ? 30 : 180;
     return NextResponse.json(properties, {
       headers: {
-        'Cache-Control': `public, s-maxage=${browserCacheTTL}, stale-while-revalidate=${
-          browserCacheTTL * 2
-        }`,
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
         'Content-Type': 'application/json; charset=utf-8',
       },
     });
   } catch (error: any) {
-    console.error('Error retrieving properties:', error);
-    return NextResponse.json(
-      { message: `Error retrieving properties: ${error.message}` },
-      { status: 500 }
-    );
+    console.error('Error retrieving properties from Convex:', error);
+    return NextResponse.json([], { status: 200 });
   }
 }
 
