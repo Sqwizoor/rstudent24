@@ -15,13 +15,21 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env.local') });
 const { ConvexHttpClient } = require('convex/browser');
 const { api } = require('../convex/_generated/api');
 const { Pool } = require('pg');
-const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 const https = require('https');
 const http = require('http');
 const { Readable } = require('stream');
 
+let S3Client, GetObjectCommand;
+try {
+  const s3Module = require('@aws-sdk/client-s3');
+  S3Client = s3Module.S3Client;
+  GetObjectCommand = s3Module.GetObjectCommand;
+} catch (e) {
+  // @aws-sdk/client-s3 not available, will use direct HTTP downloads
+}
+
 // ── Config ─────────────────────────────────────────────────────────────────
-const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
 const DB_URL = process.env.DATABASE_URL;
 const AWS_REGION = process.env.S24_AWS_REGION || 'eu-north-1';
 const AWS_BUCKET = process.env.S24_AWS_BUCKET_NAME || 'better-students24';
@@ -31,10 +39,10 @@ const AWS_SECRET = process.env.S24_AWS_SECRET_ACCESS_KEY;
 // ── Clients ─────────────────────────────────────────────────────────────────
 const convex = new ConvexHttpClient(CONVEX_URL);
 const pg = new Pool({ connectionString: DB_URL });
-const s3 = new S3Client({
+const s3 = (S3Client && AWS_KEY) ? new S3Client({
   region: AWS_REGION,
   credentials: { accessKeyId: AWS_KEY, secretAccessKey: AWS_SECRET },
-});
+}) : null;
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 function log(msg) { console.log(`[${new Date().toISOString()}] ${msg}`); }
@@ -55,6 +63,7 @@ async function downloadUrl(url) {
 
 /** Download a file from S3 by key and return a Buffer */
 async function downloadFromS3(key) {
+  if (!s3 || !GetObjectCommand) throw new Error('S3 client not initialized');
   const cmd = new GetObjectCommand({ Bucket: AWS_BUCKET, Key: key });
   const res = await s3.send(cmd);
   const chunks = [];

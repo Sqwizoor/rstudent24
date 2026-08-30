@@ -7,7 +7,7 @@ import { revalidateTag } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
-const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
 
 function mapConvexProperty(p: any, idx: number): Property {
   const images = Array.isArray(p.photoUrls) && p.photoUrls.length > 0 
