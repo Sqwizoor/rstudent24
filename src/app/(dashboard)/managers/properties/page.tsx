@@ -227,7 +227,7 @@ const Properties = () => {
 
       {/* Properties Grid */}
       {sortedProperties && sortedProperties.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
           {sortedProperties.map((property: any) => (
             <PropertyCard
               key={property._id}
@@ -290,7 +290,7 @@ const Properties = () => {
   );
 };
 
-// Vercel Dark Property Card Component
+// Compact Vercel Dark Property Card with Padded Inset Image
 const PropertyCard = ({ property, onEdit, onManagePhotos, onDelete }: {
   property: any;
   onEdit: (id: string) => void;
@@ -305,57 +305,60 @@ const PropertyCard = ({ property, onEdit, onManagePhotos, onDelete }: {
   const firstImage = property.imageUrls?.[0] || "/placeholder.jpg";
 
   return (
-    <Card className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all duration-200 group flex flex-col justify-between">
+    <Card className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all duration-200 group flex flex-col justify-between shadow-sm hover:shadow-lg hover:shadow-black/40">
       <div>
-        <div className="relative w-full h-52 overflow-hidden bg-zinc-900">
-          <Image
-            src={firstImage}
-            alt={property.name}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent" />
-          
-          <div className="absolute top-3 left-3 flex items-center gap-2">
-            <span className="rounded-lg bg-black/80 backdrop-blur-md border border-white/10 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
-              R{displayPrice.toLocaleString()}<span className="text-[10px] font-normal text-zinc-400">/mo</span>
-            </span>
-          </div>
+        {/* Padded Inset Image Container */}
+        <div className="p-3 pb-0">
+          <div className="relative w-full h-44 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800/80">
+            <Image
+              src={firstImage}
+              alt={property.name}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+            
+            <div className="absolute top-2.5 left-2.5 flex items-center gap-2">
+              <span className="rounded-lg bg-black/85 backdrop-blur-md border border-white/10 px-2 py-0.5 text-xs font-bold text-white shadow-md">
+                R{displayPrice.toLocaleString()}<span className="text-[10px] font-normal text-zinc-400">/mo</span>
+              </span>
+            </div>
 
-          <div className="absolute top-3 right-3">
-            <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 backdrop-blur-md">
-              {property.status || "Active"}
-            </span>
+            <div className="absolute top-2.5 right-2.5">
+              <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 backdrop-blur-md">
+                {property.status || "Active"}
+              </span>
+            </div>
           </div>
         </div>
 
-        <CardContent className="p-5 space-y-4">
+        <CardContent className="p-3.5 space-y-2.5">
           <div>
             <Link href={`/managers/properties/${property._id}`} className="group-hover:text-blue-400 transition-colors">
-              <h3 className="font-semibold text-base text-zinc-100 line-clamp-1 flex items-center gap-1.5">
+              <h3 className="font-semibold text-sm text-zinc-100 line-clamp-1 flex items-center gap-1.5">
                 {property.name}
-                <ExternalLink className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400" />
+                <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400" />
               </h3>
             </Link>
-            <div className="flex items-center text-zinc-400 text-xs mt-1">
-              <MapPin className="h-3.5 w-3.5 mr-1 text-zinc-500 shrink-0" />
+            <div className="flex items-center text-zinc-400 text-[11px] mt-0.5">
+              <MapPin className="h-3 w-3 mr-1 text-zinc-500 shrink-0" />
               <span className="line-clamp-1">{property.address ? `${property.address}, ${property.city || ''}` : property.city || 'South Africa'}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-zinc-400 text-xs border-y border-zinc-800/80 py-2.5">
-            <div className="flex items-center gap-1.5">
-              <BedDouble className="h-3.5 w-3.5 text-zinc-500" />
+          <div className="flex items-center gap-3 text-zinc-400 text-[11px] border-y border-zinc-800/80 py-2">
+            <div className="flex items-center gap-1">
+              <BedDouble className="h-3 w-3 text-zinc-500" />
               <span>{displayBeds} Beds</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Bath className="h-3.5 w-3.5 text-zinc-500" />
+            <div className="flex items-center gap-1">
+              <Bath className="h-3 w-3 text-zinc-500" />
               <span>{displayBaths} Baths</span>
             </div>
             {displaySquareFeet > 0 && (
-              <div className="flex items-center gap-1.5">
-                <Ruler className="h-3.5 w-3.5 text-zinc-500" />
+              <div className="flex items-center gap-1">
+                <Ruler className="h-3 w-3 text-zinc-500" />
                 <span>{displaySquareFeet} m²</span>
               </div>
             )}
@@ -363,33 +366,33 @@ const PropertyCard = ({ property, onEdit, onManagePhotos, onDelete }: {
         </CardContent>
       </div>
 
-      <div className="p-5 pt-0 flex items-center justify-between gap-2 border-t border-zinc-800/60">
+      <div className="p-3.5 pt-0 flex items-center justify-between gap-1.5">
         <Button
           variant="outline"
           size="sm"
           onClick={() => onManagePhotos(property._id)}
-          className="rounded-lg border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-8 px-3"
+          className="rounded-lg border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-[11px] h-7.5 px-2.5"
         >
-          <ImageIcon className="h-3.5 w-3.5 mr-1.5 text-zinc-400" />
+          <ImageIcon className="h-3 w-3 mr-1 text-zinc-400" />
           Photos
         </Button>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <Button
             variant="outline"
             size="sm"
             onClick={() => onEdit(property._id)}
-            className="rounded-lg border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-8 px-3"
+            className="rounded-lg border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-[11px] h-7.5 px-2.5"
           >
-            <Edit3 className="h-3.5 w-3.5 mr-1.5 text-zinc-400" />
+            <Edit3 className="h-3 w-3 mr-1 text-zinc-400" />
             Edit
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onDelete(property._id)}
-            className="rounded-lg border-rose-950/50 bg-rose-950/20 text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 text-xs h-8 px-3"
+            className="rounded-lg border-rose-950/50 bg-rose-950/20 text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 text-[11px] h-7.5 px-2"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Trash2 className="h-3 w-3" />
           </Button>
         </div>
       </div>
