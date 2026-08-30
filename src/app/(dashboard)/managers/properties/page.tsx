@@ -41,7 +41,7 @@ import { toast } from "sonner";
 const Properties = () => {
   const router = useRouter();
   const { data: session } = useSession();
-  const managerId = session?.user?.id || (session?.user as any)?.sub || "";
+  const managerId = (session?.user as any)?.id || (session?.user as any)?.sub || "";
 
   // ── Convex queries ──────────────────────────────────────────────────────
   // @ts-ignore
