@@ -29,7 +29,7 @@ try {
 }
 
 // ── Config ─────────────────────────────────────────────────────────────────
-const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
 const DB_URL = process.env.DATABASE_URL;
 const AWS_REGION = process.env.S24_AWS_REGION || 'eu-north-1';
 const AWS_BUCKET = process.env.S24_AWS_BUCKET_NAME || 'better-students24';
