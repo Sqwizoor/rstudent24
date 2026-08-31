@@ -96,29 +96,23 @@ export default function TrafficAnalyticsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 p-6 rounded-xl shadow-sm">
+    <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl">
         <div>
-          <h1 className="text-2xl font-heading font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
-            Traffic Analytics
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
-            Monitor your website visitors, referral sources, and engagement
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Traffic & Page Analytics</h1>
+          <p className="text-xs text-zinc-400 mt-1">Real-time web traffic, unique visitor trends, and device analytics.</p>
         </div>
         
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Time Range Selector */}
-          <div className="flex bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm border border-slate-200 dark:border-slate-700">
+          <div className="flex bg-zinc-900 rounded-xl p-1 border border-zinc-800">
             {(['7d', '30d', '90d'] as const).map((range) => (
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   timeRange === range
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    ? 'bg-zinc-800 text-white shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 {range === '7d' ? '7 Days' : range === '30d' ? '30 Days' : '90 Days'}
@@ -126,15 +120,22 @@ export default function TrafficAnalyticsPage() {
             ))}
           </div>
           
-          <Button variant="outline" size="icon" onClick={fetchAnalytics} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={fetchAnalytics} 
+            disabled={isLoading}
+            className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white h-9 w-9"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
           
           <Button 
             variant="outline" 
             onClick={() => router.push('/admin')}
+            className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-9"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="mr-2 h-3.5 w-3.5" />
             Back to Dashboard
           </Button>
         </div>

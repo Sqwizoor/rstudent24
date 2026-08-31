@@ -186,44 +186,49 @@ export default function AdminReferralsPage() {
   }, [referrals, searchTerm]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Referral System Tracking</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Monitor and manage all student referrals and vouchers.
+          <h1 className="text-2xl font-bold tracking-tight text-white">Referral System & Vouchers</h1>
+          <p className="text-xs text-zinc-400 mt-1">
+            Monitor and manage student referral rewards, active vouchers, and user invites.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <Button 
-            variant="default" 
             onClick={handleExportCSV}
             disabled={isExporting || isLoading || referrals.length === 0}
+            className="rounded-xl bg-white text-black font-semibold hover:bg-zinc-200 text-xs h-9"
           >
-            <Download className="mr-2 h-4 w-4" />
+            <Download className="mr-2 h-3.5 w-3.5" />
             {isExporting ? "Exporting..." : "Export to CSV"}
           </Button>
-          <Button variant="outline" onClick={() => router.push("/admin")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
+          <Button 
+            variant="outline" 
+            onClick={() => router.push("/admin")}
+            className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-9"
+          >
+            <ArrowLeft className="mr-2 h-3.5 w-3.5" />
             Back to Dashboard
           </Button>
         </div>
       </div>
 
-      <Card className="p-4">
+      <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
         <div className="grid gap-4 md:grid-cols-2">
           <Input
-            placeholder="Search by name, email, or referral code"
+            placeholder="Search by name, email, or referral code..."
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
+            className="h-10 rounded-xl border-zinc-800 bg-zinc-900/80 text-xs text-zinc-100 placeholder:text-zinc-500"
           />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="h-10 rounded-xl border-zinc-800 bg-zinc-900 text-xs text-zinc-200">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="border-zinc-800 bg-zinc-950 text-zinc-200 rounded-xl">
               {statusOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
+                <SelectItem key={option.value} value={option.value} className="text-xs">
                   {option.label}
                 </SelectItem>
               ))}

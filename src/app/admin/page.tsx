@@ -77,17 +77,13 @@ export default function AdminDashboard() {
     }
   };
   
-  // Fetch managers data once we have admin user details - exclude demo data
+  // Fetch managers and applications data for the admin overview
   const { data: managers } = useGetAllManagersQuery({
     status: undefined,
     includeDemo: false
-  }, {
-    skip: !adminUser?.cognitoId
   });
 
-  const { data: applications, isLoading: isLoadingApplications } = useGetApplicationsQuery({}, {
-    skip: !adminUser?.cognitoId
-  });
+  const { data: applications, isLoading: isLoadingApplications } = useGetApplicationsQuery({});
 
   const totalApplications = applications?.length ?? 0;
   const pendingApplications = applications

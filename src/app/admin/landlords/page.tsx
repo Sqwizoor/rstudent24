@@ -131,75 +131,77 @@ export default function LandlordsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight">Landlord Management - Managers/Landlords Only</h1>
+    <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Landlord & Manager Directory</h1>
+          <p className="text-xs text-zinc-400 mt-1">Manage verified property owners, account statuses, and system permissions.</p>
+        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+        <div className="relative w-full sm:w-80">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 h-4 w-4" />
           <Input
-            placeholder="Search landlords..."
+            placeholder="Search landlords by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 h-10 rounded-xl border-zinc-800 bg-zinc-900/80 text-xs text-zinc-100 placeholder:text-zinc-500"
           />
         </div>
         <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-          <SelectTrigger className="w-full sm:w-40">
+          <SelectTrigger className="w-full sm:w-48 h-10 rounded-xl border-zinc-800 bg-zinc-900 text-xs text-zinc-200">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="Active">Active</SelectItem>
-            <SelectItem value="Disabled">Disabled</SelectItem>
-            <SelectItem value="Banned">Banned</SelectItem>
+          <SelectContent className="border-zinc-800 bg-zinc-950 text-zinc-200 rounded-xl">
+            <SelectItem value="all" className="text-xs">All Statuses</SelectItem>
+            <SelectItem value="Pending" className="text-xs">Pending</SelectItem>
+            <SelectItem value="Active" className="text-xs">Active</SelectItem>
+            <SelectItem value="Disabled" className="text-xs">Disabled</SelectItem>
+            <SelectItem value="Banned" className="text-xs">Banned</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-8">
-          <div className="h-12 w-12 bg-blue-200 dark:bg-blue-800 rounded-full animate-pulse"></div>
-          <p className="ml-4 text-sm text-gray-500">Loading landlords from Cognito...</p>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="h-10 w-10 border-2 border-zinc-800 border-t-white rounded-full animate-spin"></div>
+          <p className="mt-3 text-xs font-mono text-zinc-500">Loading verified landlords...</p>
         </div>
       ) : error ? (
-        <Card className="p-8 text-center">
-          <p className="text-red-500">{error}</p>
+        <Card className="p-8 text-center rounded-2xl border border-zinc-800 bg-zinc-950/70">
+          <p className="text-rose-400 text-xs font-medium">{error}</p>
         </Card>
       ) : filteredManagers?.length === 0 ? (
-        <Card className="p-8 text-center">
-          <p className="text-gray-500 dark:text-gray-400">No landlords found matching your criteria.</p>
-          <p className="text-sm text-gray-400 mt-2">This page shows ONLY data from Cognito</p>
+        <Card className="p-8 text-center rounded-2xl border border-zinc-800 bg-zinc-950/70">
+          <p className="text-zinc-400 text-xs">No landlords found matching your criteria.</p>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3">
           {paginatedManagers?.map((manager) => (
             <Card
               key={manager.userId}
-              className="p-4 bg-white dark:bg-gray-800 cursor-pointer hover:shadow-md"
+              className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all cursor-pointer"
               onClick={() => openStatusDialog(manager as Manager, manager.status || 'Active')}
             >
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium">{manager.username}</h3>
-                    <Badge variant="outline" className="text-xs bg-green-50 text-green-600">LANDLORD/MANAGER</Badge>
+                    <h3 className="font-semibold text-white text-sm">{manager.username}</h3>
+                    <Badge variant="outline" className="text-[10px] border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono">LANDLORD</Badge>
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{manager.email}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{manager.phoneNumber}</p>
-                  <div className="mt-2">{getStatusBadge(manager.status || "Active")}</div>
+                  <p className="text-xs text-zinc-400 mt-1">{manager.email}</p>
+                  {manager.phoneNumber && <p className="text-xs text-zinc-500 font-mono mt-0.5">{manager.phoneNumber}</p>}
+                  <div className="mt-2.5">{getStatusBadge(manager.status || "Active")}</div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); router.push(`/admin/landlords/${manager.id}`); }}>
+                  <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); router.push(`/admin/landlords/${manager.id}`); }} className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white text-xs h-8">
                     View Profile
                   </Button>
-                  <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); openStatusDialog(manager as Manager, manager.status || 'Active'); }}>
+                  <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); openStatusDialog(manager as Manager, manager.status || 'Active'); }} className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white text-xs h-8">
                     Change Status
                   </Button>
-                  <Button size="sm" variant="destructive" onClick={(e) => { e.stopPropagation(); openDeleteDialog(manager as Manager); }}>
+                  <Button size="sm" variant="destructive" onClick={(e) => { e.stopPropagation(); openDeleteDialog(manager as Manager); }} className="rounded-xl text-xs h-8">
                     Delete
                   </Button>
                 </div>

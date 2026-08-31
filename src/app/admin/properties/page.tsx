@@ -70,9 +70,7 @@ export default function AdminPropertiesPage() {
     skip: !authInitialized
   });
   
-  const { data: rawProperties, isLoading: propertiesLoading, error, refetch } = useGetAdminPropertiesQuery(undefined, {
-    skip: !authInitialized || !authUser
-  });
+  const { data: rawProperties, isLoading: propertiesLoading, error, refetch } = useGetAdminPropertiesQuery(undefined);
   
   // Define the expected property structure for admin view
   // Import or define the Amenity and Highlight types if needed

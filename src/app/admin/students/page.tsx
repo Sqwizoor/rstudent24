@@ -109,24 +109,28 @@ export default function StudentsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight">Student Management - Students/Tenants Only</h1>
+    <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Student Directory</h1>
+          <p className="text-xs text-zinc-400 mt-1">Manage registered student tenants, application history, and favorites.</p>
+        </div>
         <Button 
           variant="outline" 
           onClick={() => router.push('/admin')}
+          className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-9"
         >
           Back to Dashboard
         </Button>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+      <div className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-500" />
           <Input
             type="search"
-            placeholder="Search students..."
-            className="w-full bg-white dark:bg-slate-950 pl-8"
+            placeholder="Search students by name or email..."
+            className="w-full h-10 rounded-xl border-zinc-800 bg-zinc-900/80 text-xs text-zinc-100 placeholder:text-zinc-500 pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -134,52 +138,46 @@ export default function StudentsPage() {
       </div>
 
       {isLoadingTenants ? (
-        <div className="flex justify-center items-center p-8">
-          <div className="flex flex-col items-center space-y-3">
-            <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900 rounded-full animate-pulse"></div>
-            <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-            <p className="text-sm text-gray-500">Loading students/tenants from tenant table...</p>
-          </div>
-        </div>
-      ) : tenants && tenants.length === 0 ? (
-        <div className="text-center p-8 text-slate-500 dark:text-slate-400">
-          <p>No students/tenants found in the tenant database table</p>
-          <p className="text-sm mt-2">This page shows ONLY data from the Tenant model</p>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="h-10 w-10 border-2 border-zinc-800 border-t-white rounded-full animate-spin"></div>
+          <p className="mt-3 text-xs font-mono text-zinc-500">Loading student directory...</p>
         </div>
       ) : filteredTenants.length === 0 ? (
-        <Card className="p-8 text-center">
-          <p className="text-slate-600 dark:text-slate-400 text-sm">No matching students found</p>
+        <Card className="p-8 text-center rounded-2xl border border-zinc-800 bg-zinc-950/70">
+          <p className="text-zinc-400 text-xs">No matching students found</p>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-3">
           {paginatedTenants.map((tenant) => (
-            <Card key={tenant.id} className="p-4">
+            <Card key={tenant.id} className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium">{tenant.firstName} {tenant.lastName}</h3>
-                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600">STUDENT/TENANT</Badge>
+                    <h3 className="font-semibold text-white text-sm">{tenant.firstName} {tenant.lastName}</h3>
+                    <Badge variant="outline" className="text-[10px] border-blue-500/30 bg-blue-500/10 text-blue-400 font-mono">STUDENT</Badge>
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-1 mt-1">
-                    <div className="flex items-center gap-1">
-                      <Mail className="h-3.5 w-3.5" />
+                  <div className="text-xs text-zinc-400 flex flex-col sm:flex-row sm:items-center gap-3 mt-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <Mail className="h-3.5 w-3.5 text-zinc-500" />
                       <span>{tenant.email}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Phone className="h-3.5 w-3.5" />
-                      <span>{tenant.phoneNumber}</span>
-                    </div>
+                    {tenant.phoneNumber && (
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="h-3.5 w-3.5 text-zinc-500" />
+                        <span className="font-mono">{tenant.phoneNumber}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
-                <div className="flex flex-wrap gap-2 md:gap-3">
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline" className="text-[11px] border-zinc-800 bg-zinc-900 text-zinc-300">
                     {tenant.favoriteCount ?? 0} Favorites
                   </Badge>
-                  <Badge variant="outline" className="bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300">
+                  <Badge variant="outline" className="text-[11px] border-zinc-800 bg-zinc-900 text-zinc-300">
                     {tenant.applicationCount ?? 0} Applications
                   </Badge>
-                  <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300">
+                  <Badge variant="outline" className="text-[11px] border-zinc-800 bg-zinc-900 text-zinc-300">
                     {tenant.leaseCount ?? 0} Leases
                   </Badge>
                 </div>
@@ -187,10 +185,10 @@ export default function StudentsPage() {
                 <div className="flex justify-end">
                   <Button 
                     variant="outline" 
-                    className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-100"
+                    className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-200 hover:text-white text-xs h-8"
                     onClick={() => viewTenantDetails(tenant)}
                   >
-                    <Eye className="mr-2 h-4 w-4" />
+                    <Eye className="mr-1.5 h-3.5 w-3.5" />
                     View Details
                   </Button>
                 </div>
