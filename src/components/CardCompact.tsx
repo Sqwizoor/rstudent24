@@ -89,9 +89,9 @@ export default function PropertyCardCompact({
       }
     }
     
-    // If all images fail, use placeholder
+    // If all images fail, use high-quality student accommodation fallback image
     setImgError(true)
-    setImgSrc("/placeholder.svg?height=300&width=300")
+    setImgSrc("https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80")
   }
 
   // Calculate room-based statistics

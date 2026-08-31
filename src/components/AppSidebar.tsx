@@ -23,6 +23,7 @@ import {
   LogOut,
   ChevronRight,
   Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 import { NAVBAR_HEIGHT } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -53,6 +54,7 @@ const AppSidebar = ({ userType }: AppSidebarProps) => {
   const managerLinks = [
     { icon: LayoutDashboard, label: "Overview", href: "/managers/dashboard" },
     { icon: Building2, label: "Properties", href: "/managers/properties" },
+    { icon: Sparkles, label: "Add Property", href: "/managers/newproperty" },
     { icon: FileText, label: "Applications", href: "/managers/applications" },
     { icon: Users, label: "Tenants", href: "/managers/tenants" },
   ];
@@ -62,9 +64,11 @@ const AppSidebar = ({ userType }: AppSidebarProps) => {
     { icon: Heart, label: "Favorites", href: "/tenants/favorites" },
     { icon: Home, label: "Residences", href: "/tenants/residences" },
     { icon: FileText, label: "Applications", href: "/tenants/applications" },
+    { icon: Sparkles, label: "Referrals", href: "/tenants/referrals" },
   ];
   
   const bottomLinks = [
+    { icon: ShieldCheck, label: "Admin Console", href: "/admin" },
     { icon: Settings, label: "Settings", href: `/${userType}s/settings` },
   ];
 

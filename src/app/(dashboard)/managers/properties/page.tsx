@@ -8,7 +8,6 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GridSkeleton, PropertyCardSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import {
   Plus,
   Search,
@@ -20,10 +19,13 @@ import {
   Trash2,
   ArrowUpDown,
   Home,
-  Filter,
   Image as ImageIcon,
-  Sparkles,
-  ExternalLink
+  ExternalLink,
+  LayoutList,
+  LayoutGrid,
+  ChevronLeft,
+  ChevronRight,
+  Eye
 } from 'lucide-react';
 import {
   Dialog,
@@ -33,12 +35,42 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import Image from "next/image";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getRoomStats } from "@/lib/roomUtils";
 import { toast } from "sonner";
+
+const DEFAULT_FALLBACK_IMAGE = "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80";
+
+// Robust image component with auto fallback on loading error
+const SafePropertyImage = ({
+  src,
+  alt,
+  className = "w-full h-full object-cover"
+}: {
+  src?: string;
+  alt: string;
+  className?: string;
+}) => {
+  const [imgSrc, setImgSrc] = useState<string>(() => {
+    if (!src || src.includes("undefined") || src.includes("null")) return DEFAULT_FALLBACK_IMAGE;
+    return src;
+  });
+
+  return (
+    <img
+      src={imgSrc}
+      alt={alt}
+      className={className}
+      onError={() => {
+        if (imgSrc !== DEFAULT_FALLBACK_IMAGE) {
+          setImgSrc(DEFAULT_FALLBACK_IMAGE);
+        }
+      }}
+    />
+  );
+};
 
 const MIGRATED_LANDLORD_IDS: Record<string, string> = {
   "clip-plod-lesser@duck.com": "a0dc393c-a001-7078-2d0f-c1281d72a110",
@@ -61,7 +93,7 @@ const Properties = () => {
   const managerEmail = session?.user?.email || "";
   const migratedId = managerEmail ? MIGRATED_LANDLORD_IDS[managerEmail.toLowerCase()] : undefined;
 
-  // ── Convex queries (Strictly compatible with deployed Convex validator) ──
+  // ── Convex queries ──
   // @ts-ignore
   const propertiesById = useQuery(
     anyApi.properties.getManagerProperties,
@@ -106,23 +138,39 @@ const Properties = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "price" | "date">("name");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Filter properties based on search term
-  const filteredProperties = (managerProperties ?? []).filter((property: any) =>
-    property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (property.address && property.address.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (property.city && property.city.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredProperties = useMemo(() => {
+    return (managerProperties ?? []).filter((property: any) =>
+      property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (property.address && property.address.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (property.city && property.city.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [managerProperties, searchTerm]);
 
   // Sort properties
-  const sortedProperties = [...filteredProperties].sort((a: any, b: any) => {
-    if (sortBy === "price") {
-      const aPrice = a.pricePerMonth ?? 0;
-      const bPrice = b.pricePerMonth ?? 0;
-      return aPrice - bPrice;
-    }
-    return a.name.localeCompare(b.name);
-  });
+  const sortedProperties = useMemo(() => {
+    return [...filteredProperties].sort((a: any, b: any) => {
+      if (sortBy === "price") {
+        const aPrice = a.pricePerMonth ?? 0;
+        const bPrice = b.pricePerMonth ?? 0;
+        return aPrice - bPrice;
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, [filteredProperties, sortBy]);
+
+  // Paginated properties
+  const totalPages = Math.max(1, Math.ceil(sortedProperties.length / itemsPerPage));
+  const paginatedProperties = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return sortedProperties.slice(start, start + itemsPerPage);
+  }, [sortedProperties, currentPage, itemsPerPage]);
 
   const handleEditProperty = (id: string) => {
     router.push(`/managers/properties/${id}/edit`);
@@ -159,9 +207,10 @@ const Properties = () => {
       <div className="min-h-screen bg-[#000000] text-zinc-100 p-6 space-y-6">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="h-20 w-full rounded-2xl bg-zinc-900/60 animate-pulse border border-zinc-800/80" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="h-64 rounded-2xl bg-zinc-900/40 animate-pulse border border-zinc-800/50" />
-            <div className="h-64 rounded-2xl bg-zinc-900/40 animate-pulse border border-zinc-800/50" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="h-24 rounded-2xl bg-zinc-900/40 animate-pulse border border-zinc-800/50" />
+            ))}
           </div>
         </div>
       </div>
@@ -170,7 +219,7 @@ const Properties = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
-      {/* Header Banner - Vercel Dark */}
+      {/* Header Banner */}
       <div className="relative overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60 p-6 sm:p-8 backdrop-blur-xl">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
         <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -184,7 +233,7 @@ const Properties = () => {
               </span>
             </div>
             <p className="text-sm text-zinc-400 mt-1">
-              Manage your student accommodation listings, room availability, and photos.
+              Manage student accommodation listings, room availability, and photos.
             </p>
           </div>
           <Button
@@ -192,52 +241,89 @@ const Properties = () => {
             className="rounded-xl bg-white px-5 py-2.5 text-xs font-semibold text-black hover:bg-zinc-200 transition-all shadow-md active:scale-95"
           >
             <Plus className="h-4 w-4 mr-1.5" />
-            New Property
+            Add New Property
           </Button>
         </div>
       </div>
 
-      {/* Search & Sort Controls */}
-      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+      {/* Search, Sort & View Mode Controls */}
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
           <Input
             placeholder="Search properties by name, city, address..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
             className="h-10 rounded-xl border-zinc-800 bg-zinc-950/80 pl-10 text-xs text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
-            <SelectTrigger className="h-10 w-[160px] rounded-xl border-zinc-800 bg-zinc-950/80 text-xs text-zinc-200 focus:border-zinc-600 focus:ring-0">
+            <SelectTrigger className="h-10 w-[150px] rounded-xl border-zinc-800 bg-zinc-950/80 text-xs text-zinc-200 focus:border-zinc-600">
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="h-3.5 w-3.5 text-zinc-400" />
                 <SelectValue placeholder="Sort By" />
               </div>
             </SelectTrigger>
             <SelectContent className="border-zinc-800 bg-zinc-950 text-zinc-200 rounded-xl">
-              <SelectItem value="name" className="text-xs focus:bg-zinc-800 focus:text-white">Name</SelectItem>
-              <SelectItem value="price" className="text-xs focus:bg-zinc-800 focus:text-white">Monthly Rent</SelectItem>
-              <SelectItem value="date" className="text-xs focus:bg-zinc-800 focus:text-white">Date Added</SelectItem>
+              <SelectItem value="name" className="text-xs">Name</SelectItem>
+              <SelectItem value="price" className="text-xs">Monthly Rent</SelectItem>
+              <SelectItem value="date" className="text-xs">Date Added</SelectItem>
             </SelectContent>
           </Select>
+
+          {/* View Mode Toggle Buttons */}
+          <div className="flex items-center rounded-xl border border-zinc-800 bg-zinc-950/80 p-1 gap-1">
+            <button
+              onClick={() => setViewMode("list")}
+              className={`p-1.5 rounded-lg transition-colors ${viewMode === "list" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
+              title="List View"
+            >
+              <LayoutList className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`p-1.5 rounded-lg transition-colors ${viewMode === "grid" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
+              title="Grid View"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Properties Grid */}
-      {sortedProperties && sortedProperties.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
-          {sortedProperties.map((property: any) => (
-            <PropertyCard
-              key={property._id}
-              property={property}
-              onEdit={handleEditProperty}
-              onManagePhotos={handleManagePhotos}
-              onDelete={handleDeleteProperty}
-            />
-          ))}
-        </div>
+      {/* Properties Content */}
+      {paginatedProperties && paginatedProperties.length > 0 ? (
+        viewMode === "list" ? (
+          /* List View Rows */
+          <div className="space-y-3">
+            {paginatedProperties.map((property: any) => (
+              <PropertyRowItem
+                key={property._id}
+                property={property}
+                onEdit={handleEditProperty}
+                onManagePhotos={handleManagePhotos}
+                onDelete={handleDeleteProperty}
+              />
+            ))}
+          </div>
+        ) : (
+          /* Grid View Cards */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {paginatedProperties.map((property: any) => (
+              <PropertyCardItem
+                key={property._id}
+                property={property}
+                onEdit={handleEditProperty}
+                onManagePhotos={handleManagePhotos}
+                onDelete={handleDeleteProperty}
+              />
+            ))}
+          </div>
+        )
       ) : (
         <div className="flex flex-col items-center justify-center py-16 px-4 rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-400 mb-4">
@@ -254,6 +340,45 @@ const Properties = () => {
             <Plus className="h-4 w-4 mr-1.5" />
             Add First Property
           </Button>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {sortedProperties.length > itemsPerPage && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-zinc-800/80">
+          <p className="text-xs text-zinc-400">
+            Showing <span className="font-semibold text-zinc-200">{((currentPage - 1) * itemsPerPage) + 1}</span> to{" "}
+            <span className="font-semibold text-zinc-200">{Math.min(currentPage * itemsPerPage, sortedProperties.length)}</span> of{" "}
+            <span className="font-semibold text-zinc-200">{sortedProperties.length}</span> properties
+          </p>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs disabled:opacity-40"
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Previous
+            </Button>
+            
+            <div className="flex items-center gap-1 px-2 text-xs font-mono text-zinc-400">
+              Page <span className="text-white font-bold">{currentPage}</span> of {totalPages}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs disabled:opacity-40"
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
         </div>
       )}
 
@@ -290,8 +415,13 @@ const Properties = () => {
   );
 };
 
-// Compact Vercel Dark Property Card with Padded Inset Image
-const PropertyCard = ({ property, onEdit, onManagePhotos, onDelete }: {
+// ── Property List Row Item (Compact List View) ──
+const PropertyRowItem = ({
+  property,
+  onEdit,
+  onManagePhotos,
+  onDelete,
+}: {
   property: any;
   onEdit: (id: string) => void;
   onManagePhotos: (id: string) => void;
@@ -300,37 +430,151 @@ const PropertyCard = ({ property, onEdit, onManagePhotos, onDelete }: {
   const roomStats = getRoomStats(property.rooms);
   const displayBeds = roomStats.totalBeds || property.beds || 0;
   const displayBaths = roomStats.totalBaths || property.baths || 0;
-  const displaySquareFeet = roomStats.totalSquareFeet || property.squareFeet || 0;
   const rawPrice = Number(property.pricePerMonth) || Number(property.price) || 0;
   const displayPrice = (roomStats.minPrice && roomStats.minPrice > 0)
     ? roomStats.minPrice
     : rawPrice;
-  const firstImage = property.imageUrls?.[0] || "/placeholder.jpg";
+  const firstImage = property.imageUrls?.[0] || property.photoUrls?.[0];
 
   return (
-    <Card className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all duration-200 group flex flex-col justify-between shadow-sm hover:shadow-lg hover:shadow-black/40">
+    <div className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-3.5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700 transition-all duration-200 hover:shadow-lg hover:shadow-black/40">
+      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+        {/* Compact Thumbnail with Image Fallback */}
+        <div className="relative h-20 w-28 sm:h-22 sm:w-32 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 shrink-0">
+          <SafePropertyImage
+            src={firstImage}
+            alt={property.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        </div>
+
+        {/* Info */}
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex items-center gap-2">
+            <Link href={`/managers/properties/${property._id}`} className="hover:text-blue-400 transition-colors font-semibold text-sm sm:text-base text-zinc-100 truncate">
+              {property.name}
+            </Link>
+            <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 shrink-0">
+              {property.status || "Approved"}
+            </span>
+          </div>
+
+          <div className="flex items-center text-zinc-400 text-xs truncate">
+            <MapPin className="h-3 w-3 mr-1 text-zinc-500 shrink-0" />
+            <span className="truncate">{property.address ? `${property.address}, ${property.city || ''}` : property.city || 'South Africa'}</span>
+          </div>
+
+          <div className="flex items-center gap-3 text-zinc-400 text-xs pt-0.5">
+            <span className="flex items-center gap-1">
+              <BedDouble className="h-3.5 w-3.5 text-zinc-500" />
+              {displayBeds} Beds
+            </span>
+            <span className="flex items-center gap-1">
+              <Bath className="h-3.5 w-3.5 text-zinc-500" />
+              {displayBaths} Baths
+            </span>
+            {property.rooms?.length > 0 && (
+              <span className="text-zinc-500 text-[11px]">
+                ({property.rooms.length} Room Types)
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Price & Actions */}
+      <div className="flex sm:flex-col items-end justify-between sm:justify-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-800/60 gap-3 shrink-0">
+        <div className="text-left sm:text-right">
+          <span className="text-base font-bold text-white tracking-tight">
+            R{displayPrice.toLocaleString()}
+          </span>
+          <span className="text-xs text-zinc-400 font-normal"> /mo</span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <Link href={`/managers/properties/${property._id}`}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-8 px-2.5"
+              title="View Property"
+            >
+              <Eye className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onManagePhotos(property._id)}
+            className="rounded-xl border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-8 px-2.5"
+          >
+            <ImageIcon className="h-3.5 w-3.5 mr-1 text-zinc-400" />
+            Photos
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(property._id)}
+            className="rounded-xl border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-8 px-2.5"
+          >
+            <Edit3 className="h-3.5 w-3.5 mr-1 text-zinc-400" />
+            Edit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onDelete(property._id)}
+            className="rounded-xl border-rose-950/50 bg-rose-950/20 text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 text-xs h-8 px-2"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Property Grid Card Item ──
+const PropertyCardItem = ({
+  property,
+  onEdit,
+  onManagePhotos,
+  onDelete,
+}: {
+  property: any;
+  onEdit: (id: string) => void;
+  onManagePhotos: (id: string) => void;
+  onDelete: (id: string) => void;
+}) => {
+  const roomStats = getRoomStats(property.rooms);
+  const displayBeds = roomStats.totalBeds || property.beds || 0;
+  const displayBaths = roomStats.totalBaths || property.baths || 0;
+  const rawPrice = Number(property.pricePerMonth) || Number(property.price) || 0;
+  const displayPrice = (roomStats.minPrice && roomStats.minPrice > 0)
+    ? roomStats.minPrice
+    : rawPrice;
+  const firstImage = property.imageUrls?.[0] || property.photoUrls?.[0];
+
+  return (
+    <Card className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700 transition-all duration-200 group flex flex-col justify-between shadow-sm hover:shadow-lg hover:shadow-black/40">
       <div>
-        {/* Padded Inset Image Container */}
         <div className="p-3 pb-0">
           <div className="relative w-full h-44 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800/80">
-            <Image
+            <SafePropertyImage
               src={firstImage}
               alt={property.name}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-            
-            <div className="absolute top-2.5 left-2.5 flex items-center gap-2">
+            <div className="absolute top-2.5 left-2.5">
               <span className="rounded-lg bg-black/85 backdrop-blur-md border border-white/10 px-2 py-0.5 text-xs font-bold text-white shadow-md">
                 R{displayPrice.toLocaleString()}<span className="text-[10px] font-normal text-zinc-400">/mo</span>
               </span>
             </div>
-
             <div className="absolute top-2.5 right-2.5">
               <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 backdrop-blur-md">
-                {property.status || "Active"}
+                {property.status || "Approved"}
               </span>
             </div>
           </div>
@@ -359,12 +603,6 @@ const PropertyCard = ({ property, onEdit, onManagePhotos, onDelete }: {
               <Bath className="h-3 w-3 text-zinc-500" />
               <span>{displayBaths} Baths</span>
             </div>
-            {displaySquareFeet > 0 && (
-              <div className="flex items-center gap-1">
-                <Ruler className="h-3 w-3 text-zinc-500" />
-                <span>{displaySquareFeet} m²</span>
-              </div>
-            )}
           </div>
         </CardContent>
       </div>
