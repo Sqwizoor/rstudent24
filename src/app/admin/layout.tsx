@@ -21,20 +21,26 @@ import {
   ShieldCheck
 } from "lucide-react";
 
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data: authUser, isLoading } = useGetAuthUserQuery();
+  const { data: authUser, isLoading: rtkLoading } = useGetAuthUserQuery();
+  const { user: unifiedUser, isLoading: unifiedLoading } = useUnifiedAuth();
   const router = useRouter();
   const pathname = usePathname();
 
+  const isLoading = rtkLoading && unifiedLoading;
+  const activeUser = authUser || unifiedUser;
+
   useEffect(() => {
     localStorage.setItem('isAdminAuthenticated', 'true');
-    if (!isLoading && authUser) {
-      const userRole = authUser.userRole?.toLowerCase();
-      const email = ((authUser as any)?.email || (authUser as any)?.userInfo?.email || "").toLowerCase();
+    if (!isLoading && activeUser) {
+      const userRole = ((activeUser as any)?.role || (activeUser as any)?.userRole || "").toLowerCase();
+      const email = ((activeUser as any)?.email || (activeUser as any)?.userInfo?.email || "").toLowerCase();
       const isAdmin = userRole === "admin" || 
                       email.includes("admin") || 
                       email.includes("sqwizoor") || 
@@ -43,10 +49,10 @@ export default function AdminLayout({
       if (!isAdmin) {
         router.replace("/");
       }
-    } else if (!isLoading && !authUser) {
+    } else if (!isLoading && !activeUser) {
       router.replace("/signin?callbackUrl=/admin");
     }
-  }, [authUser, isLoading, router]);
+  }, [activeUser, isLoading, router]);
 
   if (isLoading) {
     return (

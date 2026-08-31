@@ -214,8 +214,57 @@ export const api = createApi({
           const session = await fetchAuthSession();
           // Auth session fetched
           
-          // Check if we have a valid session with tokens before attempting to get current user
           if (!session?.tokens?.idToken) {
+            try {
+              const res = await fetch('/api/auth/session');
+              if (res.ok) {
+                const nextAuthSession = await res.json();
+                if (nextAuthSession?.user?.email) {
+                  const email = nextAuthSession.user.email.toLowerCase();
+                  const name = nextAuthSession.user.name || email.split('@')[0];
+                  const rawRole = (nextAuthSession.user.role || 'tenant').toLowerCase();
+
+                  const ADMIN_EMAILS = [
+                    'banelesqwizooor@gmail.com',
+                    'sqwizoor@gmail.com',
+                    'admin@student24.co.za',
+                    'info@student24.co.za',
+                    'superadmin@student24.co.za'
+                  ];
+
+                  const isExplicitAdmin = ADMIN_EMAILS.includes(email) || 
+                                          email.includes("sqwizoor") || 
+                                          email.includes("banele") || 
+                                          email.endsWith("@student24.co.za");
+
+                  const userRole = (isExplicitAdmin || rawRole === "admin") ? "admin" : 
+                                   (rawRole === "manager" ? "manager" : "tenant");
+
+                  const mockUser = {
+                    userId: nextAuthSession.user.id || email,
+                    email: email,
+                    name: name
+                  };
+
+                  return {
+                    data: {
+                      cognitoInfo: mockUser as any,
+                      userInfo: {
+                        id: 1,
+                        cognitoId: email,
+                        name: name,
+                        email: email,
+                        phoneNumber: ""
+                      } as any,
+                      userRole: userRole as "tenant" | "manager" | "admin"
+                    }
+                  } as const;
+                }
+              }
+            } catch (naErr) {
+              console.warn("NextAuth session check warning in getAuthUser:", naErr);
+            }
+
             return { 
               error: { 
                 status: 401, 
