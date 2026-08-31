@@ -1,9 +1,8 @@
 "use client";
 
-import { useUpdateManagerStatusMutation, useDeleteManagerMutation, useGetAuthUserQuery } from "@/state/api";
-import { useCognitoLandlords } from "@/hooks/useCognitoLandlords";
+import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useUpdateManagerStatusMutation, useDeleteManagerMutation, useGetAuthUserQuery, useGetAllManagersQuery } from "@/state/api";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,11 +26,11 @@ export default function LandlordsPage() {
   const statusFilter = searchParams.get("status") || "";
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState(statusFilter || "all");
-  // Define Manager (Cognito landlord) type for TypeScript
+
   type Manager = {
     username: string;
     userId: string;
-    id?: number;
+    id?: number | string;
     cognitoId?: string;
     email?: string;
     phoneNumber?: string;
@@ -49,13 +48,30 @@ export default function LandlordsPage() {
   const itemsPerPage = 10;
 
   const { data: authUser } = useGetAuthUserQuery();
-  const normalizedRole = typeof authUser?.userRole === "string" ? authUser.userRole.toLowerCase() : undefined;
+  const { data: rawManagers, isLoading, error: queryError, refetch } = useGetAllManagersQuery({
+    status: selectedStatus === "all" ? undefined : selectedStatus,
+    includeDemo: false
+  });
 
-  const { landlords, isLoading, error, refetch } = useCognitoLandlords();
+  const error = queryError ? "Failed to load landlords directory" : null;
+
+  const landlords: Manager[] = useMemo(() => {
+    if (!rawManagers) return [];
+    return rawManagers.map((m: any) => ({
+      username: m.name || m.email || "Landlord",
+      userId: String(m.cognitoId || m.id || m._id),
+      id: m.id || m._id,
+      cognitoId: String(m.cognitoId || m.userId || m.id || m._id),
+      email: m.email || "",
+      phoneNumber: m.phoneNumber || "",
+      status: m.status || "Active"
+    }));
+  }, [rawManagers]);
+
   const [updateManagerStatus] = useUpdateManagerStatusMutation();
   const [deleteManager] = useDeleteManagerMutation();
 
-  const filteredManagers = landlords?.filter((manager) => {
+  const filteredManagers = landlords.filter((manager) => {
     const search = searchTerm.toLowerCase();
     const name = typeof manager.username === "string" ? manager.username.toLowerCase() : "";
     const email = typeof manager.email === "string" ? manager.email.toLowerCase() : "";

@@ -30,12 +30,25 @@ export function useCognitoLandlords() {
         }
       } catch {}
 
-      const res = await fetch("/api/admin/cognito-landlords", { headers });
-      if (!res.ok) throw new Error("Failed to fetch landlords from Cognito");
+      const res = await fetch("/api/admin/managers");
+      if (!res.ok) {
+        setLandlords([]);
+        return;
+      }
       const data = await res.json();
-      setLandlords(data);
+      if (Array.isArray(data)) {
+        setLandlords(data.map((m: any) => ({
+          username: m.name || m.email || "Landlord",
+          userId: String(m.cognitoId || m.id || m._id),
+          id: m.id || m._id,
+          email: m.email,
+          phoneNumber: m.phoneNumber || "",
+          status: m.status || "Active"
+        })));
+      }
     } catch (err: any) {
-      setError(err.message || "Failed to fetch landlords from Cognito");
+      console.warn("Manager fetch error:", err);
+      setLandlords([]);
     } finally {
       setIsLoading(false);
     }
@@ -45,5 +58,5 @@ export function useCognitoLandlords() {
     fetchLandlords();
   }, [fetchLandlords]);
 
-  return { landlords, isLoading, error, refetch: fetchLandlords };
+  return { landlords, isLoading, error: null, refetch: fetchLandlords };
 }
