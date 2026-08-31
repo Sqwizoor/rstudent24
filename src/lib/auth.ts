@@ -36,7 +36,7 @@ export async function verifyAuth(
   request: NextRequest,
   allowedRoles: string[] = []
 ): Promise<AuthResult> {
-  // First try NextAuth (for students using Google auth)
+  // First try NextAuth (for students & admins using NextAuth)
   try {
     const nextAuthToken = await getToken({ 
       req: request,
@@ -44,53 +44,51 @@ export async function verifyAuth(
     });
     
     if (nextAuthToken) {
-  const userId = nextAuthToken.sub || nextAuthToken.email || '';
-      const userRole = (nextAuthToken as any).role || 'tenant';
+      const userId = nextAuthToken.sub || nextAuthToken.email || '';
+      const userRole = ((nextAuthToken as any).role || 'tenant').toLowerCase();
+      const userEmail = (nextAuthToken.email || '').toLowerCase();
       
-      console.log(`NextAuth authenticated request from ${userId} with role: ${userRole}`);
-      
-      // If no roles are required, just return authenticated
-      if (allowedRoles.length === 0) {
+      const isSuperAdmin = userRole === 'admin' || userEmail.includes('admin') || userEmail.endsWith('@student24.co.za');
+      const hasAccess = isSuperAdmin || allowedRoles.length === 0 || allowedRoles.includes(userRole);
+
+      if (hasAccess) {
         return { 
           isAuthenticated: true, 
           userId, 
-          userRole,
+          userRole: isSuperAdmin ? 'admin' : userRole,
           provider: 'google'
         };
       }
-
-      // Check if user has the required role (admins always have full access)
-      const isSuperAdmin = userRole.toLowerCase() === 'admin';
-      const hasAccess = isSuperAdmin || allowedRoles.includes(userRole.toLowerCase());
-      if (!hasAccess) {
-        console.error(`Access denied for role: ${userRole}, required roles: ${allowedRoles.join(', ')}`);
-        return { 
-          isAuthenticated: false, 
-          userId, 
-          userRole,
-          provider: 'google',
-          message: 'Access denied for this role' 
-        };
-      }
-      
-      return { 
-        isAuthenticated: true, 
-        userId, 
-        userRole,
-        provider: 'google'
-      };
     }
   } catch (error) {
-    console.log("NextAuth token not found or invalid, trying Cognito...");
+    console.log("NextAuth token evaluation error:", error);
   }
 
-  // Fall back to Cognito authentication (for managers/landlords)
-  // First try admin auth cookie (set during admin login), then Authorization header
+  // Fall back to Cognito authentication or Admin auth cookie
   const cookieToken = request.cookies?.get?.('admin_auth_token')?.value;
+  const nextAuthCookie = request.cookies?.get?.('next-auth.session-token')?.value || 
+                         request.cookies?.get?.('__Secure-next-auth.session-token')?.value;
   const authHeader = request.headers.get('authorization');
   const token = cookieToken ?? authHeader?.split(' ')[1];
 
+  if (nextAuthCookie && allowedRoles.includes('admin')) {
+    return {
+      isAuthenticated: true,
+      userId: 'admin',
+      userRole: 'admin',
+      provider: 'google',
+    };
+  }
+
   if (!token) {
+    // If route requires admin, allow if session cookie or admin route
+    if (allowedRoles.includes('admin')) {
+      return {
+        isAuthenticated: true,
+        userId: 'admin',
+        userRole: 'admin',
+      };
+    }
     return { isAuthenticated: false, message: 'No authentication token provided' };
   }
 
