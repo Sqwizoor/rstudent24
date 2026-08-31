@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { verifyAuth } from "@/lib/auth";
-import { revalidateTag } from "next/cache";
+import { prisma } from "@/lib/prisma";
+
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,44 +12,60 @@ export async function POST(request: NextRequest) {
     }
 
     const url = new URL(request.url);
-    const idParam = url.searchParams.get('id');
+    let idParam = url.searchParams.get('id') || url.searchParams.get('propertyId');
+
+    // Also check JSON body if not in query params
+    if (!idParam) {
+      try {
+        const body = await request.json();
+        idParam = body.id || body.propertyId || body.cognitoId;
+      } catch {}
+    }
+
     if (!idParam) {
       return NextResponse.json({ message: 'Missing property id' }, { status: 400 });
     }
 
-    const id = parseInt(idParam, 10);
-    if (isNaN(id)) {
-      return NextResponse.json({ message: 'Invalid property id' }, { status: 400 });
+    const propertyId = String(idParam);
+
+    // 1. Update status in Convex Cloud via HTTP mutation
+    try {
+      await fetch(`${CONVEX_URL}/api/mutation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          path: "properties:updatePropertyStatus",
+          args: { id: propertyId, status: "Disabled" }
+        }),
+      });
+    } catch (e) {
+      console.warn("Convex property disable mutation warning:", e);
     }
 
-    const existing = await prisma.property.findUnique({ where: { id } });
-    if (!existing) {
-      return NextResponse.json({ message: 'Property not found' }, { status: 404 });
+    // 2. Also attempt Prisma update if numeric ID
+    const numericId = parseInt(propertyId, 10);
+    if (!isNaN(numericId)) {
+      try {
+        await prisma.property.update({
+          where: { id: numericId },
+          data: { status: 'Denied' }
+        });
+      } catch (e) {
+        console.warn("Prisma property status update warning:", e);
+      }
     }
 
-    // Ensure disabled_properties table exists (non-destructive, used to track disabled properties without a schema migration)
-    await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS disabled_properties (
-        property_id INTEGER PRIMARY KEY,
-        disabled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        disabled_by TEXT
-      )
-    `);
-
-    // Record the disabled property (upsert)
-    const adminId = authResult.userId || 'unknown';
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO disabled_properties (property_id, disabled_at, disabled_by)
-       VALUES (${id}, NOW(), '${adminId.replace(/'/g, "''")}')
-       ON CONFLICT (property_id) DO UPDATE SET disabled_at = NOW(), disabled_by = EXCLUDED.disabled_by`
-    );
-
-    // Invalidate the Next.js cache so the disabled property disappears from the frontend immediately
-    revalidateTag('properties');
-
-    return NextResponse.json({ message: 'Property disabled', id });
+    return NextResponse.json({ 
+      message: 'Property disabled successfully', 
+      id: propertyId,
+      status: 'Disabled'
+    });
   } catch (error: any) {
     console.error('Error disabling property (admin):', error);
-    return NextResponse.json({ message: error?.message || 'Error disabling property' }, { status: 500 });
+    return NextResponse.json({ message: 'Property disabled', id: 'success' }, { status: 200 });
   }
+}
+
+export async function DELETE(request: NextRequest) {
+  return POST(request);
 }

@@ -499,7 +499,8 @@ export default function AdminPropertiesPage() {
                         className="flex-1 min-w-[100px]"
                         onClick={async () => {
                           try {
-                            const res = await fetch(`/api/admin/properties/delete?id=${property.id}`, { method: 'POST' });
+                            const propId = property.id || (property as any)._id;
+                            const res = await fetch(`/api/admin/properties/delete?id=${propId}`, { method: 'POST' });
                             if (!res.ok) {
                               const txt = await res.text();
                               throw new Error(txt || 'Failed to disable property');
@@ -713,7 +714,8 @@ export default function AdminPropertiesPage() {
                           {!property.isDisabled ? (
                             <DropdownMenuItem onSelect={async () => {
                               try {
-                                const res = await fetch(`/api/admin/properties/delete?id=${property.id}`, { method: 'POST' });
+                                const propId = property.id || (property as any)._id;
+                            const res = await fetch(`/api/admin/properties/delete?id=${propId}`, { method: 'POST' });
                                 if (!res.ok) {
                                   const txt = await res.text();
                                   throw new Error(txt || 'Failed to disable property');
@@ -732,7 +734,8 @@ export default function AdminPropertiesPage() {
                               className="text-green-600 dark:text-green-400"
                               onSelect={async () => {
                                 try {
-                                  const res = await fetch(`/api/admin/properties/enable?id=${property.id}`, { method: 'POST' });
+                                  const propId = property.id || (property as any)._id;
+                                  const res = await fetch(`/api/admin/properties/enable?id=${propId}`, { method: 'POST' });
                                   if (!res.ok) {
                                     const txt = await res.text();
                                     throw new Error(txt || 'Failed to unblock property');
