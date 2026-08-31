@@ -251,7 +251,18 @@ export default function LandlordDetailsClient({ id }: LandlordDetailsProps) {
                       </span>
                     </p>
                   </div>
-                  <Button size="sm" variant="outline">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => {
+                      const propId = property.id || property._id;
+                      if (propId) {
+                        router.push(`/search/${propId}`);
+                      } else {
+                        router.push(`/admin/properties`);
+                      }
+                    }}
+                  >
                     <Eye className="h-3.5 w-3.5 mr-1" />
                     View
                   </Button>
@@ -289,7 +300,17 @@ export default function LandlordDetailsClient({ id }: LandlordDetailsProps) {
                       </span>
                     </p>
                   </div>
-                  <Button size="sm" variant="outline">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => {
+                      if (tenant.id) {
+                        router.push(`/admin/students/${tenant.id}`);
+                      } else {
+                        router.push(`/admin/students`);
+                      }
+                    }}
+                  >
                     <Eye className="h-3.5 w-3.5 mr-1" />
                     View
                   </Button>
