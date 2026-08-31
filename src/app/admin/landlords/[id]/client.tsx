@@ -1,78 +1,95 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
 import { 
   User2, 
   Mail, 
   Phone, 
   ArrowLeft, 
   Home, 
-  ClipboardList, 
   Users,
   Building,
-  Eye
+  Eye,
+  Ban,
+  CheckCircle,
+  Loader2,
+  MapPin
 } from "lucide-react";
 import { useGetManagerDetailsQuery } from "@/state/api";
 
-interface LandlordDetailsProps {
-  id: string;
-}
-
-// Landlord details client component that receives the ID directly
-export default function LandlordDetailsClient({ id }: LandlordDetailsProps) {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
+export default function LandlordClientComponent() {
+  const params = useParams();
+  const id = params.id as string;
   const router = useRouter();
   
-  // Fetch landlord details using the API hook
-  const { data: landlord, isLoading, error: fetchError } = useGetManagerDetailsQuery(id);
-  
-  // Extract error message if there's an error
-  const error = fetchError ? (fetchError as any)?.data?.error || "Failed to load landlord information. Please try again." : null;
+  const { data: landlord, isLoading, error: fetchError, refetch } = useGetManagerDetailsQuery(id);
+
+  const [selectedProperty, setSelectedProperty] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [updatingPropId, setUpdatingPropId] = useState<string | null>(null);
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, string>>({});
+
+  const handleTogglePropertyStatus = async (property: any) => {
+    const propId = String(property.id || property._id);
+    const currentStatus = statusOverrides[propId] || property.status || "Approved";
+    const nextStatus = currentStatus.toLowerCase() === "disabled" || currentStatus.toLowerCase() === "denied" ? "Approved" : "Disabled";
+
+    setUpdatingPropId(propId);
+    try {
+      const res = await fetch("/api/admin/properties/update-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: propId, status: nextStatus }),
+      });
+
+      if (res.ok) {
+        setStatusOverrides(prev => ({ ...prev, [propId]: nextStatus }));
+        refetch?.();
+      }
+    } catch (e) {
+      console.error("Failed to update property status:", e);
+    } finally {
+      setUpdatingPropId(null);
+    }
+  };
+
+  const error = fetchError ? (fetchError as any)?.data?.error || "Failed to load landlord information." : null;
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="h-12 w-12 bg-blue-200 dark:bg-blue-800 rounded-full animate-pulse"></div>
+        <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="max-w-3xl mx-auto p-6">
-        <div className="flex items-center mb-6">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => router.back()}
-            className="mr-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-2xl font-bold">Error</h1>
-        </div>
         <Card className="p-6">
           <p className="text-red-500">{error}</p>
-          <Button 
-            className="mt-4" 
-            onClick={() => router.push("/admin/landlords")}
-          >
-            Go to Landlords List
+          <Button className="mt-4" onClick={() => router.push("/admin/landlords")}>
+            Go to Landlords Directory
           </Button>
         </Card>
       </div>
     );
   }
-  
-  // Extract manager info cleanly from API response
+
   const info = (landlord as any)?.managerInfo || landlord || {};
   const landlordData = {
     id: info.id || id,
@@ -85,247 +102,135 @@ export default function LandlordDetailsClient({ id }: LandlordDetailsProps) {
     stats: {
       propertyCount: (landlord as any)?.properties?.length || info.totalProperties || 0,
       tenantCount: (landlord as any)?.tenantDetails?.length || info.totalTenants || 0,
-      occupancyRate: "85%",
-      averageRent: "R4,200"
     }
   };
-  
+
   return (
-    <div className="max-w-5xl mx-auto">
-      <div className="flex items-center mb-6">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => router.back()}
-          className="mr-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+    <div className="max-w-6xl mx-auto p-4 space-y-6">
+      <div className="flex items-center justify-between">
+        <Button variant="outline" size="sm" onClick={() => router.push("/admin/landlords")} className="bg-zinc-900 border-zinc-800 text-zinc-100 hover:bg-zinc-800">
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Landlords
         </Button>
-        <h1 className="text-2xl font-bold">Landlord Details</h1>
+        <Badge variant={landlordData.status === "Active" ? "default" : "secondary"}>
+          {landlordData.status}
+        </Badge>
       </div>
-      
-      {/* Landlord Profile Card */}
-      <Card className={cn(
-        "p-6 mb-6",
-        isDark ? "bg-slate-800" : "bg-white"
-      )}>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center mb-4 md:mb-0">
-            <div className={cn(
-              "h-16 w-16 rounded-full flex items-center justify-center text-2xl font-bold mr-4",
-              isDark ? "bg-blue-800 text-white" : "bg-blue-100 text-blue-800"
-            )}>
+
+      <Card className="p-6 bg-zinc-950/70 border border-zinc-800/80 text-zinc-100">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center space-x-4">
+            <div className="h-16 w-16 rounded-full bg-blue-600/20 border border-blue-500/40 text-blue-400 flex items-center justify-center text-2xl font-bold">
               {(landlordData.name || "L").charAt(0).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-xl font-bold">{landlordData.name}</h2>
-              <div className="flex items-center text-sm mt-1">
-                <Mail className="h-4 w-4 mr-1 text-blue-500" />
-                <span>{landlordData.email}</span>
+              <h1 className="text-2xl font-bold">{landlordData.name}</h1>
+              <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-400 mt-1">
+                <span className="flex items-center"><Mail className="h-4 w-4 mr-1 text-blue-400" /> {landlordData.email}</span>
+                {landlordData.phoneNumber && (
+                  <span className="flex items-center"><Phone className="h-4 w-4 mr-1 text-green-400" /> {landlordData.phoneNumber}</span>
+                )}
               </div>
-              {landlordData.phoneNumber && (
-                <div className="flex items-center text-sm mt-1">
-                  <Phone className="h-4 w-4 mr-1 text-blue-500" />
-                  <span>{landlordData.phoneNumber}</span>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <div>
-            <div className={cn(
-              "px-3 py-1 rounded-full inline-block",
-              landlordData.status === "Active" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
-              landlordData.status === "Pending" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" :
-              landlordData.status === "Disabled" ? "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300" :
-              "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-            )}>
-              {landlordData.status}
             </div>
           </div>
         </div>
       </Card>
-      
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className={cn(
-          "p-4",
-          isDark ? "bg-slate-800" : "bg-white"
-        )}>
-          <div className="flex items-center">
-            <div className={cn(
-              "h-10 w-10 rounded-full flex items-center justify-center mr-3",
-              isDark ? "bg-blue-900/30 text-blue-400" : "bg-blue-100 text-blue-600"
-            )}>
-              <Building className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Properties</p>
-              <p className="text-xl font-bold">{landlordData.stats.propertyCount}</p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className={cn(
-          "p-4",
-          isDark ? "bg-slate-800" : "bg-white"
-        )}>
-          <div className="flex items-center">
-            <div className={cn(
-              "h-10 w-10 rounded-full flex items-center justify-center mr-3",
-              isDark ? "bg-green-900/30 text-green-400" : "bg-green-100 text-green-600"
-            )}>
-              <Users className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Tenants</p>
-              <p className="text-xl font-bold">{landlordData.stats.tenantCount}</p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className={cn(
-          "p-4",
-          isDark ? "bg-slate-800" : "bg-white"
-        )}>
-          <div className="flex items-center">
-            <div className={cn(
-              "h-10 w-10 rounded-full flex items-center justify-center mr-3",
-              isDark ? "bg-blue-900/30 text-blue-400" : "bg-blue-100 text-blue-600"
-            )}>
-              <Home className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Occupancy</p>
-              <p className="text-xl font-bold">{landlordData.stats.occupancyRate}</p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className={cn(
-          "p-4",
-          isDark ? "bg-slate-800" : "bg-white"
-        )}>
-          <div className="flex items-center">
-            <div className={cn(
-              "h-10 w-10 rounded-full flex items-center justify-center mr-3",
-              isDark ? "bg-purple-900/30 text-purple-400" : "bg-purple-100 text-purple-600"
-            )}>
-              <ClipboardList className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Avg. Rent</p>
-              <p className="text-xl font-bold">{landlordData.stats.averageRent}</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-      
-      {/* Tabbed Content */}
+
       <Tabs defaultValue="properties" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="properties">Properties</TabsTrigger>
-          <TabsTrigger value="tenants">Tenants</TabsTrigger>
+        <TabsList className="bg-zinc-900 border border-zinc-800 p-1">
+          <TabsTrigger value="properties" className="data-[state=active]:bg-zinc-800 text-zinc-200">
+            Properties ({landlordData.properties.length})
+          </TabsTrigger>
+          <TabsTrigger value="tenants" className="data-[state=active]:bg-zinc-800 text-zinc-200">
+            Tenants ({landlordData.tenants.length})
+          </TabsTrigger>
         </TabsList>
-        
-        {/* Properties Tab */}
-        <TabsContent value="properties" className="mt-4">
-          <div className="space-y-4">
-            {landlordData.properties.map((property: any) => (
-              <Card key={property.id} className={cn(
-                "p-4 hover:shadow-md transition-shadow",
-                isDark ? "bg-slate-800" : "bg-white"
-              )}>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium">{property.name}</h3>
-                    <p className="text-sm text-gray-500">{property.address}</p>
-                    <p className="text-xs mt-1">
-                      <span className={cn(
-                        "inline-flex items-center",
-                        isDark ? "text-blue-400" : "text-blue-600"
-                      )}>
-                        <Users className="h-3 w-3 mr-1" />
-                        {property.tenantCount} tenants
-                      </span>
-                    </p>
+
+        <TabsContent value="properties" className="mt-4 space-y-4">
+          {landlordData.properties.map((property: any) => {
+            const propId = String(property.id || property._id);
+            const currentStatus = statusOverrides[propId] || property.status || "Approved";
+            const isDisabled = currentStatus.toLowerCase() === "disabled" || currentStatus.toLowerCase() === "denied";
+
+            return (
+              <Card key={propId} className="p-5 bg-zinc-950/70 border border-zinc-800 text-zinc-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center space-x-3">
+                    <h3 className="font-semibold text-lg">{property.name}</h3>
+                    <Badge className={isDisabled ? "bg-red-950/80 text-red-400 border border-red-800" : "bg-emerald-950/80 text-emerald-400 border border-emerald-800"}>
+                      {isDisabled ? "Disabled" : "Active"}
+                    </Badge>
                   </div>
+                  <p className="text-sm text-zinc-400 flex items-center mt-1">
+                    <MapPin className="h-3.5 w-3.5 mr-1 text-zinc-500" />
+                    {property.address || property.location?.address || "Address unavailable"}
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-2">
                   <Button 
                     size="sm" 
                     variant="outline"
+                    className="bg-zinc-900 border-zinc-800 text-zinc-200 hover:bg-zinc-800"
                     onClick={() => {
-                      const propId = property.id || property._id;
-                      if (propId) {
-                        router.push(`/search/${propId}`);
-                      } else {
-                        router.push(`/admin/properties`);
-                      }
+                      setSelectedProperty(property);
+                      setIsModalOpen(true);
                     }}
                   >
-                    <Eye className="h-3.5 w-3.5 mr-1" />
-                    View
+                    <Eye className="h-4 w-4 mr-1.5 text-blue-400" /> View Details
                   </Button>
-                </div>
-              </Card>
-            ))}
-            
-            {landlordData.properties.length === 0 && (
-              <Card className="p-4">
-                <p className="text-center text-gray-500 py-4">No properties found.</p>
-              </Card>
-            )}
-          </div>
-        </TabsContent>
-        
-        {/* Tenants Tab */}
-        <TabsContent value="tenants" className="mt-4">
-          <div className="space-y-4">
-            {landlordData.tenants.map((tenant: any) => (
-              <Card key={tenant.id} className={cn(
-                "p-4 hover:shadow-md transition-shadow",
-                isDark ? "bg-slate-800" : "bg-white"
-              )}>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium">{tenant.name}</h3>
-                    <p className="text-sm text-gray-500">{tenant.email}</p>
-                    <p className="text-xs mt-1">
-                      <span className={cn(
-                        "inline-flex items-center",
-                        isDark ? "text-blue-400" : "text-blue-600"
-                      )}>
-                        <Home className="h-3 w-3 mr-1" />
-                        {tenant.propertyName}
-                      </span>
-                    </p>
-                  </div>
+
                   <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => {
-                      if (tenant.id) {
-                        router.push(`/admin/students/${tenant.id}`);
-                      } else {
-                        router.push(`/admin/students`);
-                      }
-                    }}
+                    size="sm"
+                    variant={isDisabled ? "default" : "destructive"}
+                    disabled={updatingPropId === propId}
+                    className={isDisabled ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-red-900/80 hover:bg-red-800 text-red-200 border border-red-700"}
+                    onClick={() => handleTogglePropertyStatus(property)}
                   >
-                    <Eye className="h-3.5 w-3.5 mr-1" />
-                    View
+                    {updatingPropId === propId ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+                    ) : isDisabled ? (
+                      <CheckCircle className="h-4 w-4 mr-1.5" />
+                    ) : (
+                      <Ban className="h-4 w-4 mr-1.5" />
+                    )}
+                    {isDisabled ? "Enable Property" : "Disable Property"}
                   </Button>
                 </div>
               </Card>
-            ))}
-            
-            {landlordData.tenants.length === 0 && (
-              <Card className="p-4">
-                <p className="text-center text-gray-500 py-4">No tenants found.</p>
-              </Card>
-            )}
-          </div>
+            );
+          })}
         </TabsContent>
       </Tabs>
+
+      {selectedProperty && (
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="bg-zinc-950 border border-zinc-800 text-zinc-100 max-w-xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">{selectedProperty.name}</DialogTitle>
+              <DialogDescription className="text-zinc-400">
+                {selectedProperty.address || "Address unavailable"}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="py-4 space-y-3">
+              <div className="flex justify-between border-b border-zinc-800 pb-2">
+                <span className="text-zinc-400">Rent</span>
+                <span className="font-bold text-emerald-400">R{selectedProperty.pricePerMonth || 3500}/month</span>
+              </div>
+              <div className="flex justify-between border-b border-zinc-800 pb-2">
+                <span className="text-zinc-400">Status</span>
+                <Badge>{selectedProperty.status || "Active"}</Badge>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsModalOpen(false)} className="bg-zinc-900 border-zinc-800 text-zinc-200">
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

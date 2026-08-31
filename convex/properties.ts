@@ -524,3 +524,18 @@ export const updatePropertyPhotos = mutation({
     });
   },
 });
+
+// 12. Admin update property status (e.g. "Approved", "Disabled", "Denied")
+export const updatePropertyStatus = mutation({
+  args: {
+    id: v.id("properties"),
+    status: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, {
+      status: args.status,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
