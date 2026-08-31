@@ -45,8 +45,8 @@ const AdminNavbar = () => {
 
   const handleSignOut = async () => {
     setIsLoading(true)
-    await signOut()
-    window.location.href = "/admin-login"
+    await signOut().catch(() => {})
+    window.location.href = "/signin"
   }
 
   return (

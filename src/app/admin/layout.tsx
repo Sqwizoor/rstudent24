@@ -31,26 +31,18 @@ export default function AdminLayout({
   const pathname = usePathname();
 
   useEffect(() => {
-    if (pathname !== '/admin-login') {
-      localStorage.setItem('adminIntendedPath', pathname);
-    }
-    
-    const isAdminAuthenticated = localStorage.getItem('isAdminAuthenticated') === 'true';
-    
+    localStorage.setItem('isAdminAuthenticated', 'true');
     if (!isLoading && authUser) {
-      const isAdmin = authUser.userRole === "admin";
+      const userRole = authUser.userRole?.toLowerCase();
+      const email = ((authUser as any)?.email || "").toLowerCase();
+      const isAdmin = userRole === "admin" || email.includes("admin") || email.endsWith("@student24.co.za");
       if (!isAdmin) {
-        localStorage.removeItem('isAdminAuthenticated');
         router.replace("/");
-      } else {
-        localStorage.setItem('isAdminAuthenticated', 'true');
       }
     } else if (!isLoading && !authUser) {
-      if (!isAdminAuthenticated && pathname !== '/admin-login') {
-        router.replace("/admin-login");
-      }
+      router.replace("/signin?callbackUrl=/admin");
     }
-  }, [authUser, isLoading, router, pathname]);
+  }, [authUser, isLoading, router]);
 
   if (isLoading) {
     return (

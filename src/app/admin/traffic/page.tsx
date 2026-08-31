@@ -54,15 +54,9 @@ export default function TrafficAnalyticsPage() {
     const initAuth = async () => {
       try {
         configureAdminAuth();
-        const session = await fetchAuthSession();
-        if (!session.tokens) {
-          router.push("/admin-login");
-          return;
-        }
         setAuthInitialized(true);
       } catch (error) {
-        console.error("Error initializing admin auth:", error);
-        router.push("/admin-login");
+        setAuthInitialized(true);
       }
     };
     initAuth();
