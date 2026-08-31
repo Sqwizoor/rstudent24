@@ -173,7 +173,7 @@ function SignInContent() {
             <label className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
               Account Type
             </label>
-            <div className={`grid gap-2 ${isAdminCallback ? "grid-cols-3" : "grid-cols-2"}`}>
+            <div className="grid grid-cols-2 gap-2">
               {/* Student Role */}
               <button
                 type="button"
@@ -215,29 +215,6 @@ function SignInContent() {
                 </div>
                 <span className="font-semibold text-xs text-zinc-100">Landlord</span>
               </button>
-
-              {/* Admin Role (Shown when callback is admin) */}
-              {isAdminCallback && (
-                <button
-                  type="button"
-                  onClick={() => setRole("admin")}
-                  className={`relative flex flex-col items-center p-2.5 sm:p-3 rounded-xl border transition-all text-center min-h-[68px] justify-center ${
-                    role === "admin"
-                      ? "border-zinc-500 bg-zinc-900 text-white shadow-sm shadow-black/50"
-                      : "border-zinc-800/80 hover:border-zinc-700 bg-zinc-950/60 text-zinc-400 hover:text-zinc-200"
-                  }`}
-                >
-                  {role === "admin" && (
-                    <CheckCircle2 className="absolute top-1.5 right-1.5 h-3 w-3 text-purple-400" />
-                  )}
-                  <div className={`p-1.5 rounded-lg mb-0.5 ${
-                    role === "admin" ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "bg-zinc-900 text-zinc-500"
-                  }`}>
-                    <Shield className="h-4 w-4" />
-                  </div>
-                  <span className="font-semibold text-xs text-zinc-100">Admin</span>
-                </button>
-              )}
             </div>
           </div>
 

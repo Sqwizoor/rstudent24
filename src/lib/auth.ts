@@ -48,7 +48,14 @@ export async function verifyAuth(
       const userRole = ((nextAuthToken as any).role || 'tenant').toLowerCase();
       const userEmail = (nextAuthToken.email || '').toLowerCase();
       
-      const isSuperAdmin = userRole === 'admin' || userEmail.includes('admin') || userEmail.endsWith('@student24.co.za');
+      const ADMIN_WHITELIST = [
+        'admin@student24.co.za',
+        'info@student24.co.za',
+        'superadmin@student24.co.za'
+      ];
+
+      const isExplicitAdminEmail = ADMIN_WHITELIST.includes(userEmail) || userEmail.endsWith('@student24.co.za');
+      const isSuperAdmin = userRole === 'admin' || isExplicitAdminEmail;
       const hasAccess = isSuperAdmin || allowedRoles.length === 0 || allowedRoles.includes(userRole);
 
       if (hasAccess) {
