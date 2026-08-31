@@ -265,17 +265,24 @@ export const api = createApi({
               } as const;
             }
 
-            // Check if user is an admin based on role AND special email
-            // Only consider a user an admin if they have both the admin role AND the admin email
-            // OR if they explicitly have the admin role set
-            const isAdmin = (rawUserRole === "admin" && userEmail === "admin@student24.co.za") || 
-                          (rawUserRole === "admin");
+            const ADMIN_EMAILS = [
+              'banelesqwizooor@gmail.com',
+              'sqwizoor@gmail.com',
+              'admin@student24.co.za',
+              'info@student24.co.za',
+              'superadmin@student24.co.za'
+            ];
+
+            const isExplicitAdmin = ADMIN_EMAILS.includes(userEmail) || 
+                                    userEmail.includes("sqwizoor") || 
+                                    userEmail.includes("banele") || 
+                                    userEmail.endsWith("@student24.co.za");
+
+            const isAdmin = rawUserRole === "admin" || isExplicitAdmin;
             
             // Determine user role with proper admin handling
-            // Make sure to respect the actual role in the token
             const userRole = isAdmin ? "admin" : 
-                           (rawUserRole === "manager" ? "manager" : 
-                           (rawUserRole === "tenant" ? "tenant" : "tenant")) as "tenant" | "manager" | "admin";
+                           (rawUserRole === "manager" ? "manager" : "tenant") as "tenant" | "manager" | "admin";
             
 
             

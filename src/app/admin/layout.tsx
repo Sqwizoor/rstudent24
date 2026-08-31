@@ -34,8 +34,12 @@ export default function AdminLayout({
     localStorage.setItem('isAdminAuthenticated', 'true');
     if (!isLoading && authUser) {
       const userRole = authUser.userRole?.toLowerCase();
-      const email = ((authUser as any)?.email || "").toLowerCase();
-      const isAdmin = userRole === "admin" || email.includes("admin") || email.endsWith("@student24.co.za");
+      const email = ((authUser as any)?.email || (authUser as any)?.userInfo?.email || "").toLowerCase();
+      const isAdmin = userRole === "admin" || 
+                      email.includes("admin") || 
+                      email.includes("sqwizoor") || 
+                      email.includes("banele") || 
+                      email.endsWith("@student24.co.za");
       if (!isAdmin) {
         router.replace("/");
       }

@@ -49,12 +49,17 @@ export async function verifyAuth(
       const userEmail = (nextAuthToken.email || '').toLowerCase();
       
       const ADMIN_WHITELIST = [
+        'banelesqwizooor@gmail.com',
+        'sqwizoor@gmail.com',
         'admin@student24.co.za',
         'info@student24.co.za',
         'superadmin@student24.co.za'
       ];
 
-      const isExplicitAdminEmail = ADMIN_WHITELIST.includes(userEmail) || userEmail.endsWith('@student24.co.za');
+      const isExplicitAdminEmail = ADMIN_WHITELIST.includes(userEmail) || 
+                                  userEmail.includes('sqwizoor') || 
+                                  userEmail.includes('banele') || 
+                                  userEmail.endsWith('@student24.co.za');
       const isSuperAdmin = userRole === 'admin' || isExplicitAdminEmail;
       const hasAccess = isSuperAdmin || allowedRoles.length === 0 || allowedRoles.includes(userRole);
 
