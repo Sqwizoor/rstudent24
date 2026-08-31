@@ -95,24 +95,28 @@ export default function AnalyticsPage() {
   } = analyticsData;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
-        <div className="flex items-center gap-4">
+    <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Analytics Dashboard</h1>
+          <p className="text-xs text-zinc-400 mt-1">Real-time platform insights, landlord metrics, and student activity.</p>
+        </div>
+        <div className="flex items-center gap-3">
           <Select value={timeRange} onValueChange={handleTimeRangeChange}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[160px] h-9 rounded-xl border-zinc-800 bg-zinc-900 text-xs text-zinc-200">
               <SelectValue placeholder="Select time range" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="week">Last 7 days</SelectItem>
-              <SelectItem value="month">Last 30 days</SelectItem>
-              <SelectItem value="quarter">Last 3 months</SelectItem>
-              <SelectItem value="year">Last 12 months</SelectItem>
+            <SelectContent className="border-zinc-800 bg-zinc-950 text-zinc-200 rounded-xl">
+              <SelectItem value="week" className="text-xs">Last 7 days</SelectItem>
+              <SelectItem value="month" className="text-xs">Last 30 days</SelectItem>
+              <SelectItem value="quarter" className="text-xs">Last 3 months</SelectItem>
+              <SelectItem value="year" className="text-xs">Last 12 months</SelectItem>
             </SelectContent>
           </Select>
           <Button 
             variant="outline" 
             onClick={() => router.push('/admin')}
+            className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-9"
           >
             Back to Dashboard
           </Button>
@@ -121,50 +125,50 @@ export default function AnalyticsPage() {
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Properties</p>
-              <h3 className="text-2xl font-bold">{summary.totalProperties}</h3>
+              <p className="text-xs font-medium text-zinc-400">Total Properties</p>
+              <h3 className="text-2xl font-bold text-white mt-1">{summary.totalProperties}</h3>
             </div>
-            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
-              <Home className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+              <Home className="w-5 h-5 text-blue-400" />
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Landlords</p>
-              <h3 className="text-2xl font-bold">{summary.totalLandlords}</h3>
+              <p className="text-xs font-medium text-zinc-400">Total Landlords</p>
+              <h3 className="text-2xl font-bold text-white mt-1">{summary.totalLandlords}</h3>
             </div>
-            <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
-              <Building2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+            <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+              <Building2 className="w-5 h-5 text-emerald-400" />
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Students</p>
-              <h3 className="text-2xl font-bold">{summary.totalTenants}</h3>
+              <p className="text-xs font-medium text-zinc-400">Total Students</p>
+              <h3 className="text-2xl font-bold text-white mt-1">{summary.totalTenants}</h3>
             </div>
-            <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-full">
-              <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            <div className="p-2.5 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+              <Users className="w-5 h-5 text-purple-400" />
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Active Leases</p>
-              <h3 className="text-2xl font-bold">{summary.totalLeases}</h3>
+              <p className="text-xs font-medium text-zinc-400">Active Leases</p>
+              <h3 className="text-2xl font-bold text-white mt-1">{summary.totalLeases}</h3>
             </div>
-            <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-full">
-              <Banknote className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+            <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+              <Banknote className="w-5 h-5 text-amber-400" />
             </div>
           </div>
         </Card>

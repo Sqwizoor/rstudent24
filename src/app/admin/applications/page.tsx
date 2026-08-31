@@ -127,44 +127,49 @@ export default function AdminApplicationsPage() {
   }, [applications, searchTerm, statusFilter]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Student Applications</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Review every room application submitted by students.
+          <h1 className="text-2xl font-bold tracking-tight text-white">Student Applications</h1>
+          <p className="text-xs text-zinc-400 mt-1">
+            Review and manage all student room applications across the platform.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <Button 
-            variant="default" 
             onClick={handleExportCSV}
             disabled={isExporting || isLoading || !applications || applications.length === 0}
+            className="rounded-xl bg-white text-black font-semibold hover:bg-zinc-200 text-xs h-9"
           >
-            <Download className="mr-2 h-4 w-4" />
+            <Download className="mr-2 h-3.5 w-3.5" />
             {isExporting ? "Exporting..." : "Export to CSV"}
           </Button>
-          <Button variant="outline" onClick={() => router.push("/admin")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
+          <Button 
+            variant="outline" 
+            onClick={() => router.push("/admin")}
+            className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-9"
+          >
+            <ArrowLeft className="mr-2 h-3.5 w-3.5" />
             Back to Dashboard
           </Button>
         </div>
       </div>
 
-      <Card className="p-4">
+      <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
         <div className="grid gap-4 md:grid-cols-2">
           <Input
-            placeholder="Search by name, email, or property"
+            placeholder="Search by name, email, or property..."
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
+            className="h-10 rounded-xl border-zinc-800 bg-zinc-900/80 text-xs text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-600"
           />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="h-10 rounded-xl border-zinc-800 bg-zinc-900 text-xs text-zinc-200">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="border-zinc-800 bg-zinc-950 text-zinc-200 rounded-xl">
               {statusOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
+                <SelectItem key={option.value} value={option.value} className="text-xs">
                   {option.label}
                 </SelectItem>
               ))}
@@ -173,26 +178,24 @@ export default function AdminApplicationsPage() {
         </div>
       </Card>
 
-      <Card className="p-4">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-md bg-blue-50 p-4 dark:bg-blue-900/20">
-            <p className="text-sm text-blue-700 dark:text-blue-300">Total applications</p>
-            <p className="text-2xl font-semibold text-blue-900 dark:text-blue-100">{totalApplications}</p>
-          </div>
-          <div className="rounded-md bg-amber-50 p-4 dark:bg-amber-900/20">
-            <p className="text-sm text-amber-700 dark:text-amber-300">Pending</p>
-            <p className="text-2xl font-semibold text-amber-900 dark:text-amber-100">{pendingCount}</p>
-          </div>
-          <div className="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
-            <p className="text-sm text-green-700 dark:text-green-300">Approved</p>
-            <p className="text-2xl font-semibold text-green-900 dark:text-green-100">{approvedCount}</p>
-          </div>
-          <div className="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
-            <p className="text-sm text-red-700 dark:text-red-300">Denied</p>
-            <p className="text-2xl font-semibold text-red-900 dark:text-red-100">{deniedCount}</p>
-          </div>
-        </div>
-      </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+          <p className="text-xs text-zinc-400 font-medium">Total Applications</p>
+          <p className="text-2xl font-bold text-white mt-1">{totalApplications}</p>
+        </Card>
+        <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+          <p className="text-xs text-amber-400 font-medium">Pending</p>
+          <p className="text-2xl font-bold text-white mt-1">{pendingCount}</p>
+        </Card>
+        <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+          <p className="text-xs text-emerald-400 font-medium">Approved</p>
+          <p className="text-2xl font-bold text-white mt-1">{approvedCount}</p>
+        </Card>
+        <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+          <p className="text-xs text-rose-400 font-medium">Denied</p>
+          <p className="text-2xl font-bold text-white mt-1">{deniedCount}</p>
+        </Card>
+      </div>
 
       {error ? (
         <Card className="p-6 text-center text-sm text-red-500">
