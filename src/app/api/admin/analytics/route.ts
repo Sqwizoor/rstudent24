@@ -52,42 +52,59 @@ export async function GET(request: NextRequest) {
     // First try basic counts to see if database is accessible
     console.log("Testing database connection...");
     
-    const totalProperties = await prisma.property.count();
-    console.log("Properties count:", totalProperties);
-    
-    const totalManagers = await prisma.manager.count({
-      where: {
-        AND: [
-          {
-            email: {
-              not: {
-                contains: 'example.com'
-              }
-            }
-          },
-          {
-            email: {
-              not: {
-                contains: '@demo'
-              }
-            }
-          }
-        ]
-      }
-    });
-    console.log("Managers count:", totalManagers);
-    
-    const totalTenants = await prisma.tenant.count();
-    console.log("Tenants count:", totalTenants);
-    
+    let totalProperties = await prisma.property.count().catch(() => 0);
+    let totalManagers = await prisma.manager.count().catch(() => 0);
+    let totalTenants = await prisma.tenant.count().catch(() => 0);
     const totalLeases = await prisma.lease.count({
       where: {
         endDate: {
           gte: now
         }
       }
-    });
-    console.log("Active leases count:", totalLeases);
+    }).catch(() => 0);
+
+    // Fetch counts from Convex
+    try {
+      const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+      
+      const propsRes = await fetch(`${CONVEX_URL}/api/query`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: "properties:getProperties", args: {} }),
+      }).catch(() => null);
+      if (propsRes) {
+        const propsData = await propsRes.json();
+        if (Array.isArray(propsData?.value)) {
+          totalProperties = Math.max(totalProperties, propsData.value.length);
+        }
+      }
+
+      const mgrsRes = await fetch(`${CONVEX_URL}/api/query`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: "users:getAllManagers", args: {} }),
+      }).catch(() => null);
+      if (mgrsRes) {
+        const mgrsData = await mgrsRes.json();
+        if (Array.isArray(mgrsData?.value)) {
+          totalManagers = Math.max(totalManagers, mgrsData.value.length);
+        }
+      }
+
+      const tenantsRes = await fetch(`${CONVEX_URL}/api/query`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: "users:getAllTenants", args: {} }),
+      }).catch(() => null);
+      if (tenantsRes) {
+        const tenantsData = await tenantsRes.json();
+        if (Array.isArray(tenantsData?.value)) {
+          totalTenants = Math.max(totalTenants, tenantsData.value.length);
+        }
+      }
+    } catch (convexCountErr) {
+      console.warn("Convex analytics merge warning:", convexCountErr);
+    }
 
     // Get property types distribution
     const propertyTypes = await prisma.property.groupBy({

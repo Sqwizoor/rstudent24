@@ -109,8 +109,45 @@ export async function GET(request: NextRequest) {
         leaseCount: tenant.leases.length
       };
     });
-    
-    console.log(`Admin tenants - GET: After excluding managers, returning ${formattedTenants.length} actual students/tenants`);
+
+    // Also fetch tenants from Convex
+    try {
+      const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+      const res = await fetch(`${CONVEX_URL}/api/query`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: "users:getAllTenants", args: {} }),
+      });
+      const data = await res.json();
+      if (Array.isArray(data?.value)) {
+        const existingEmails = new Set(formattedTenants.map((t: any) => t.email?.toLowerCase()));
+        for (const ct of data.value) {
+          if (ct.email && !existingEmails.has(ct.email.toLowerCase())) {
+            existingEmails.add(ct.email.toLowerCase());
+            const nameParts = (ct.name ?? "").trim().split(/\s+/).filter(Boolean);
+            const [firstName = "", ...rest] = nameParts;
+            const lastName = rest.join(" ");
+
+            formattedTenants.push({
+              id: Number(ct._id) || Math.floor(Math.random() * 100000),
+              cognitoId: ct.userId || ct._id,
+              name: ct.name || ct.email,
+              firstName: firstName || ct.name,
+              lastName: lastName || "",
+              email: ct.email,
+              phoneNumber: ct.phoneNumber || "",
+              favoriteCount: 0,
+              applicationCount: 0,
+              leaseCount: 0,
+            } as any);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Convex tenant merge warning:", e);
+    }
+
+    console.log(`Admin tenants - GET: Returning ${formattedTenants.length} total students/tenants`);
     
     return NextResponse.json(formattedTenants);
   } catch (error) {

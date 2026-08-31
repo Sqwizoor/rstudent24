@@ -97,13 +97,61 @@ export async function GET(request: NextRequest) {
       });
     }
     
-    // Get applications
-    const applications = await prisma.application.findMany(query);
+    // Get applications from Prisma
+    let applications: any[] = [];
+    try {
+      applications = await prisma.application.findMany(query);
+    } catch (e) {
+      console.warn("Prisma application fetch warning:", e);
+    }
+
+    // Merge applications from Convex
+    try {
+      const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+      const managerIdToQuery = userId || authResult.userId || "admin";
+      const res = await fetch(`${CONVEX_URL}/api/query`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: "applications:getManagerApplications", args: { managerId: managerIdToQuery } }),
+      });
+      const data = await res.json();
+      if (Array.isArray(data?.value)) {
+        const existingIds = new Set(applications.map(a => String(a.id)));
+        for (const ca of data.value) {
+          if (!existingIds.has(String(ca._id))) {
+            existingIds.add(String(ca._id));
+            applications.push({
+              id: ca._id,
+              propertyId: ca.propertyId,
+              tenantCognitoId: ca.tenantId,
+              name: ca.name || "Student",
+              email: ca.email || "",
+              phoneNumber: ca.phoneNumber || "",
+              message: ca.message || "",
+              status: ca.status || "Pending",
+              applicationDate: ca.applicationDate || new Date(ca.createdAt || Date.now()).toISOString(),
+              createdAt: new Date(ca.createdAt || Date.now()),
+              property: ca.property ? {
+                id: ca.property._id,
+                name: ca.property.name,
+                description: ca.property.description,
+                pricePerMonth: ca.property.pricePerMonth,
+                location: {
+                  address: ca.property.address || "",
+                  city: ca.property.city || "",
+                }
+              } : null,
+            });
+          }
+        }
+      }
+    } catch (convexErr) {
+      console.warn("Convex application merge warning:", convexErr);
+    }
     
-    // ✅ Step 4: Store in cache for 30 minutes
+    // Store in cache for 30 minutes
     queryCache.set(cacheKey, applications, 1800);
     
-    // ✅ Step 5: Return with cache headers
     return NextResponse.json(applications, {
       headers: {
         'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=3600',

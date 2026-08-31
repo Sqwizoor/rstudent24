@@ -67,14 +67,72 @@ export async function GET(request: NextRequest) {
         ) as manager,
         CASE WHEN dp.property_id IS NOT NULL THEN true ELSE false END AS "isDisabled"
       FROM "Property" p
-      JOIN "Location" l ON p."locationId" = l.id
-      JOIN "Manager" m ON p."managerCognitoId" = m."cognitoId"
+      LEFT JOIN "Location" l ON p."locationId" = l.id
+      LEFT JOIN "Manager" m ON p."managerCognitoId" = m."cognitoId"
       LEFT JOIN disabled_properties dp ON dp.property_id = p.id
       ORDER BY p.id DESC
       LIMIT ${limit}
     `;
 
-    const properties = (await prisma.$queryRaw(baseQuery)) as any[];
+    let properties = [];
+    try {
+      properties = (await prisma.$queryRaw(baseQuery)) as any[];
+    } catch (dbErr) {
+      console.warn('Prisma admin properties query warning:', dbErr);
+    }
+
+    // Merge properties from Convex
+    try {
+      const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+      const res = await fetch(`${CONVEX_URL}/api/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: 'properties:getProperties', args: {} }),
+      });
+      const data = await res.json();
+
+      if (Array.isArray(data?.value)) {
+        const existingIds = new Set(properties.map((p) => String(p.id)));
+        for (const cp of data.value) {
+          if (!existingIds.has(String(cp._id))) {
+            existingIds.add(String(cp._id));
+            const photoUrls = Array.isArray(cp.photoUrls) ? cp.photoUrls : [];
+
+            properties.push({
+              id: cp._id,
+              name: cp.name || 'Untitled Property',
+              description: cp.description || '',
+              pricePerMonth: cp.pricePerMonth || 3500,
+              securityDeposit: cp.securityDeposit || 0,
+              photoUrls,
+              amenities: cp.amenities || [],
+              highlights: cp.highlights || [],
+              isPetsAllowed: cp.isPetsAllowed || false,
+              isParkingIncluded: cp.isParkingIncluded || false,
+              beds: cp.beds || 1,
+              baths: cp.baths || 1,
+              squareFeet: cp.squareFeet || 0,
+              status: cp.status || 'Approved',
+              location: {
+                address: cp.address || '',
+                city: cp.city || '',
+                state: cp.state || '',
+                country: cp.country || 'South Africa',
+              },
+              manager: {
+                id: cp.managerId,
+                name: cp.managerId,
+                email: cp.managerId,
+              },
+              isDisabled: false,
+            });
+          }
+        }
+      }
+    } catch (convexErr) {
+      console.warn('Convex admin properties merge warning:', convexErr);
+    }
+
     return NextResponse.json(properties, {
       headers: {
         'Cache-Control': 'no-store',

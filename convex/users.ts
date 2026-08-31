@@ -186,3 +186,19 @@ export const updateManager = mutation({
     await ctx.db.patch(existing._id, patch);
   },
 });
+
+// Admin: Get all managers/landlords
+export const getAllManagers = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("managers").order("desc").collect();
+  },
+});
+
+// Admin: Get all tenants/students
+export const getAllTenants = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("tenants").order("desc").collect();
+  },
+});
