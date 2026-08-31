@@ -80,21 +80,31 @@ export async function GET(request: NextRequest) {
       query.where.propertyId = parseInt(propertyId);
     }
     
-    // ✅ Step 2: Check cache first
+    const isAdmin = authResult.userRole === 'admin' || 
+                    (authResult.userEmail && (
+                      authResult.userEmail.includes("sqwizoor") || 
+                      authResult.userEmail.includes("banele") || 
+                      authResult.userEmail.endsWith("@student24.co.za")
+                    ));
+
+    // Check cache first (bypass for admins to ensure fresh live data)
     const cacheKey = queryCache.getKey('applications', {
       userId,
       userType,
       status,
       propertyId
     });
-    const cached = queryCache.get(cacheKey);
-    if (cached) {
-      return NextResponse.json(cached, {
-        headers: {
-          'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=3600',
-          'Content-Type': 'application/json',
-        },
-      });
+    
+    if (!isAdmin) {
+      const cached = queryCache.get(cacheKey);
+      if (cached && Array.isArray(cached) && cached.length > 0) {
+        return NextResponse.json(cached, {
+          headers: {
+            'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=3600',
+            'Content-Type': 'application/json',
+          },
+        });
+      }
     }
     
     // Get applications from Prisma
@@ -108,7 +118,7 @@ export async function GET(request: NextRequest) {
     // Merge applications from Convex
     try {
       const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
-      const managerIdToQuery = userId || authResult.userId || "admin";
+      const managerIdToQuery = isAdmin ? "admin" : (userId || authResult.userId || "admin");
       const res = await fetch(`${CONVEX_URL}/api/query`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -149,12 +159,13 @@ export async function GET(request: NextRequest) {
       console.warn("Convex application merge warning:", convexErr);
     }
     
-    // Store in cache for 30 minutes
-    queryCache.set(cacheKey, applications, 1800);
+    if (!isAdmin) {
+      queryCache.set(cacheKey, applications, 1800);
+    }
     
     return NextResponse.json(applications, {
       headers: {
-        'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=3600',
+        'Cache-Control': 'no-store',
         'Content-Type': 'application/json',
       },
     });

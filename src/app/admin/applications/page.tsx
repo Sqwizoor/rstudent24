@@ -215,7 +215,7 @@ export default function AdminApplicationsPage() {
           No applications match the current filters.
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-3">
           {filteredApplications.map((application) => {
             const propertyName = application.property?.name ?? `Property #${application.propertyId}`;
             const propertyLocation = application.property?.location;
@@ -223,19 +223,19 @@ export default function AdminApplicationsPage() {
             const tenantId = application.tenant?.id;
 
             return (
-              <Card key={application.id} className="p-5">
+              <Card key={application.id} className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all">
                 <div className="flex flex-col gap-4 md:flex-row md:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      <h3 className="text-sm font-semibold text-white">
                         {application.name || application.tenant?.name || "Student"}
                       </h3>
                       <Badge className={getStatusBadgeClass(application.status)}>
                         {application.status?.toString() ?? "Pending"}
                       </Badge>
                     </div>
-                    <p className="mt-1 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                      <Calendar className="h-4 w-4" />
+                    <p className="mt-1 flex items-center gap-2 text-xs text-zinc-400">
+                      <Calendar className="h-3.5 w-3.5 text-zinc-500" />
                       Applied on {appliedDate}
                     </p>
                   </div>
@@ -245,6 +245,7 @@ export default function AdminApplicationsPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => router.push(`/admin/students/${tenantId}`)}
+                        className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white text-xs h-8"
                       >
                         View student profile
                       </Button>
@@ -252,22 +253,24 @@ export default function AdminApplicationsPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <Mail className="h-4 w-4" />
+                <div className="mt-4 grid gap-2.5 md:grid-cols-2">
+                  <div className="flex items-center gap-2 text-xs text-zinc-300">
+                    <Mail className="h-3.5 w-3.5 text-zinc-500" />
                     <span>{application.email}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <Phone className="h-4 w-4" />
-                    <span>{application.phoneNumber}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <Home className="h-4 w-4" />
-                    <span>{propertyName}</span>
+                  {application.phoneNumber && (
+                    <div className="flex items-center gap-2 text-xs text-zinc-300">
+                      <Phone className="h-3.5 w-3.5 text-zinc-500" />
+                      <span className="font-mono">{application.phoneNumber}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-xs text-zinc-300">
+                    <Home className="h-3.5 w-3.5 text-zinc-500" />
+                    <span className="font-medium text-white">{propertyName}</span>
                   </div>
                   {propertyLocation ? (
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                      <span className="font-medium">Location:</span>
+                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                      <span className="text-zinc-500">Location:</span>
                       <span>
                         {[propertyLocation.suburb, propertyLocation.city]
                           .filter(Boolean)
@@ -278,9 +281,9 @@ export default function AdminApplicationsPage() {
                 </div>
 
                 {application.message ? (
-                  <div className="mt-4 rounded-md bg-gray-50 p-4 text-sm text-gray-700 dark:bg-gray-900/40 dark:text-gray-300">
-                    <p className="font-medium text-gray-900 dark:text-gray-100">Student message</p>
-                    <p className="mt-1 whitespace-pre-line">{application.message}</p>
+                  <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3.5 text-xs text-zinc-300">
+                    <p className="font-semibold text-zinc-200">Student message</p>
+                    <p className="mt-1 whitespace-pre-line text-zinc-400">{application.message}</p>
                   </div>
                 ) : null}
               </Card>

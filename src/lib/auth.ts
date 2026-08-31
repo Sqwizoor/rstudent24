@@ -20,10 +20,11 @@ function decodeJwtPayload(token: string): DecodedToken | null {
   }
 }
 
-interface AuthResult {
+export interface AuthResult {
   isAuthenticated: boolean;
   userId?: string;
   userRole?: string;
+  userEmail?: string;
   provider?: 'cognito' | 'google';
   message?: string;
 }
@@ -68,6 +69,7 @@ export async function verifyAuth(
           isAuthenticated: true, 
           userId, 
           userRole: isSuperAdmin ? 'admin' : userRole,
+          userEmail,
           provider: 'google'
         };
       }
