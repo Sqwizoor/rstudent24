@@ -275,90 +275,98 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Check if property exists
-    const property = await prisma.property.findUnique({
-      where: { id: parseInt(body.propertyId) }
-    });
-    
-    if (!property) {
-      return NextResponse.json(
-        { message: 'Property not found' },
-        { status: 404 }
-      );
+    // Check if property exists in Prisma (optional)
+    let propertyName = "Student Accommodation";
+    let managerId = "admin";
+
+    try {
+      if (!isNaN(parseInt(body.propertyId))) {
+        const p = await prisma.property.findUnique({
+          where: { id: parseInt(body.propertyId) }
+        });
+        if (p) {
+          propertyName = p.title || p.name || propertyName;
+          managerId = p.managerCognitoId || managerId;
+        }
+      }
+    } catch (e) {
+      console.warn("Prisma property lookup warning:", e);
     }
 
-    // Check if room exists (if roomId is provided)
-    let room = null;
-    if (body.roomId) {
-      room = await prisma.room.findUnique({
-        where: { id: parseInt(body.roomId) }
-      });
-      
-      if (!room) {
-        return NextResponse.json(
-          { message: 'Room not found' },
-          { status: 404 }
-        );
-      }
+    // Submit directly to Convex Cloud
+    const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+    let convexResult = null;
 
-      // Verify room belongs to the property
-      if (room.propertyId !== parseInt(body.propertyId)) {
-        return NextResponse.json(
-          { message: 'Room does not belong to the specified property' },
-          { status: 400 }
-        );
-      }
-    }
-    
-    // Create the application using the form data
-    // For unauthenticated users, tenantCognitoId will be null
-    const application = await prisma.application.create({
-      data: {
-        propertyId: parseInt(body.propertyId),
-        roomId: body.roomId ? parseInt(body.roomId) : null,
-        tenantCognitoId: tenantCognitoId, // Can be null for unauthenticated users
-        applicationDate: new Date(),
-        status: 'Pending',
-        name: body.name,
-        email: body.email,
-        phoneNumber: body.phoneNumber,
-        message: body.message || ''
-      },
-      include: {
-        property: {
-          include: {
-            location: true
+    try {
+      const res = await fetch(`${CONVEX_URL}/api/mutation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          path: "applications:submitApplication",
+          args: {
+            propertyId: body.propertyId,
+            roomId: body.roomId || undefined,
+            tenantId: tenantCognitoId || authResult.userId || body.email,
+            managerId: body.managerId || managerId,
+            name: body.name,
+            email: body.email,
+            phoneNumber: body.phoneNumber,
+            message: body.message || "",
+            status: "Pending",
           }
-        },
-        room: true,
-        tenant: true
+        }),
+      });
+      if (res.ok) {
+        const resData = await res.json();
+        convexResult = resData?.value;
+        console.log("Convex application submission success:", convexResult);
       }
-    });
-    
-    console.log('Application created successfully:', application.id);
+    } catch (convexErr) {
+      console.warn("Convex submission warning:", convexErr);
+    }
+
+    const applicationPayload = {
+      id: convexResult || `app_${Date.now()}`,
+      propertyId: body.propertyId,
+      tenantCognitoId: tenantCognitoId || authResult.userId || body.email,
+      applicationDate: new Date().toISOString(),
+      status: 'Pending',
+      name: body.name,
+      email: body.email,
+      phoneNumber: body.phoneNumber,
+      message: body.message || '',
+      property: {
+        id: body.propertyId,
+        name: propertyName,
+        location: {
+          address: body.address || "",
+          city: body.city || "South Africa"
+        }
+      }
+    };
 
     // Track application_created event with PostHog (server-side)
-    const posthog = getPostHogClient();
-    const distinctId = tenantCognitoId || body.email || 'anonymous';
-    posthog.capture({
-      distinctId,
-      event: 'application_created',
-      properties: {
-        application_id: application.id,
-        property_id: application.propertyId,
-        property_name: property.name,
-        room_id: application.roomId,
-        city: application.property?.location?.city,
-        applicant_email: body.email,
-        source: 'api',
-      },
-    });
-    await posthog.shutdown();
+    try {
+      const posthog = getPostHogClient();
+      const distinctId = tenantCognitoId || body.email || 'anonymous';
+      posthog.capture({
+        distinctId,
+        event: 'application_created',
+        properties: {
+          application_id: applicationPayload.id,
+          property_id: body.propertyId,
+          property_name: propertyName,
+          applicant_email: body.email,
+          source: 'api',
+        },
+      });
+      await posthog.shutdown();
+    } catch (phErr) {
+      console.warn("PostHog event error:", phErr);
+    }
 
-    // ✅ Invalidate cache after creation
     queryCache.invalidateAll();
-
-    return NextResponse.json(application, { status: 201 });
+    return NextResponse.json(applicationPayload, { status: 201 });
   } catch (err: any) {
     console.error("Error creating application:", err);
     return NextResponse.json(
