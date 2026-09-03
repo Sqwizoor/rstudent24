@@ -182,20 +182,20 @@ export default function PropertyCardCompact({
           
           <div className="flex items-center text-xs text-[#536167]">
             <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-            <p className="line-clamp-1">
+            <p className="line-clamp-1 font-normal">
               {property.location ? `${property.location.address}, ${property.location.city}` : 'Location not available'}
             </p>
           </div>
           
           <div className="flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-md w-fit">
             <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-            <span className="text-xs font-medium">{(property.averageRating || 0).toFixed(1)}</span>
-            <span className="text-xs text-gray-500">({property.numberOfReviews})</span>
+            <span className="text-xs font-normal text-[#536167]">{(property.averageRating || 0).toFixed(1)}</span>
+            <span className="text-xs text-[#536167] font-normal">({property.numberOfReviews})</span>
           </div>
         </div>
         
         <div className="mt-2 flex flex-wrap items-center justify-between gap-y-2">
-          <div className="flex gap-3 text-xs text-[#536167] sm:text-sm">
+          <div className="flex gap-3 text-xs text-[#536167] sm:text-sm font-normal">
             <div className="flex items-center gap-1">
               <Bed className="h-3.5 w-3.5" />
               <span>{displayBeds}</span>

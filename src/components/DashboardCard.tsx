@@ -162,7 +162,7 @@ export default function PropertyCardDashboard({
       <div className="p-5 space-y-4 bg-transparent relative z-10">
         <div>
           <div className="flex items-start justify-between mb-1">
-            <h2 className="line-clamp-1 text-lg font-bold text-white group-hover:text-blue-400 transition-colors">
+            <h2 className="line-clamp-1 text-lg font-bold text-[#043e55] group-hover:text-blue-400 transition-colors">
               {propertyLink ? (
                 <Link
                   href={propertyLink}
@@ -178,46 +178,46 @@ export default function PropertyCardDashboard({
             {property.averageRating && (
               <div className="flex items-center gap-1 bg-[#111] px-2 py-0.5 rounded-md border border-[#333]">
                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                <span className="text-xs font-medium text-white">
+                <span className="text-xs font-normal text-[#536167]">
                   {property.averageRating.toFixed(1)}
                 </span>
               </div>
             )}
           </div>
 
-          <div className="flex items-center text-sm text-gray-400 mb-3">
+          <div className="flex items-center text-sm text-[#536167] mb-3 font-normal">
             <MapPin className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
-            <p className="line-clamp-1">
+            <p className="line-clamp-1 font-normal">
               {property.location?.address || 'No address'}, {property.location?.city || 'No city'}
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 text-sm">
+        <div className="grid grid-cols-4 gap-2 text-sm font-normal">
           <div className="flex flex-col items-center justify-center p-2 rounded-md bg-[#111]/80 backdrop-blur-sm border border-[#333]">
             <Bed className="h-4 w-4 mb-1 text-blue-400" />
-            <span className="font-medium text-white">{displayBeds}</span>
-            <span className="text-xs text-gray-400">Beds</span>
+            <span className="font-normal text-[#536167]">{displayBeds}</span>
+            <span className="text-xs text-[#536167] font-normal">Beds</span>
           </div>
 
           <div className="flex flex-col items-center justify-center p-2 rounded-md bg-[#111]/80 backdrop-blur-sm border border-[#333]">
             <Bath className="h-4 w-4 mb-1 text-blue-400" />
-            <span className="font-medium text-white">{displayBaths}</span>
-            <span className="text-xs text-gray-400">Baths</span>
+            <span className="font-normal text-[#536167]">{displayBaths}</span>
+            <span className="text-xs text-[#536167] font-normal">Baths</span>
           </div>
 
           <div className="flex flex-col items-center justify-center p-2 rounded-md bg-[#111]/80 backdrop-blur-sm border border-[#333]">
             <ChefHat className="h-4 w-4 mb-1 text-blue-400" />
-            <span className="font-medium text-white">{displayKitchens}</span>
-            <span className="text-xs text-gray-400">Kitchens</span>
+            <span className="font-normal text-[#536167]">{displayKitchens}</span>
+            <span className="text-xs text-[#536167] font-normal">Kitchens</span>
           </div>
 
           <div className="flex flex-col items-center justify-center p-2 rounded-md bg-[#111]/80 backdrop-blur-sm border border-[#333]">
             <Home className="h-4 w-4 mb-1 text-blue-400" />
-            <span className="font-medium text-white">
+            <span className="font-normal text-[#536167]">
               {displaySquareFeet}
             </span>
-            <span className="text-xs text-gray-400">sq ft</span>
+            <span className="text-xs text-[#536167] font-normal">sq ft</span>
           </div>
         </div>
 

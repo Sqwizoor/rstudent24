@@ -63,8 +63,8 @@ export default function PropertyList() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {properties.map((property) => (
         <div key={property.id} className="border rounded-lg p-4">
-          <h3 className="text-lg font-semibold">{property.name}</h3>
-          <p className="text-gray-600">{property.description}</p>
+          <h3 className="text-lg font-bold text-[#043e55]">{property.name}</h3>
+          <p className="text-[#536167] font-normal">{property.description}</p>
           <p className="text-blue-600 font-bold">R{property.price}</p>
         </div>
       ))}

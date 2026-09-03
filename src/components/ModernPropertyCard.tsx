@@ -174,28 +174,28 @@ function ModernPropertyCard({
 
             <div className="flex items-center text-sm text-[#536167] dark:text-white/80 mb-1">
               <MapPin className="h-3 w-3 mr-1 flex-shrink-0 text-gray-500 dark:text-gray-400" />
-              <p className="line-clamp-1 text-[10px]">
+              <p className="line-clamp-1 text-[10px] font-normal">
                 {property.location?.address || 'No address'}, {property.location?.city || 'No city'}
               </p>
             </div>
 
-            <div className="flex gap-2">
-              <div className="flex items-center text-[10px] text-[#536167] dark:text-white/80">
+            <div className="flex gap-2 font-normal">
+              <div className="flex items-center text-[10px] text-[#536167] dark:text-white/80 font-normal">
                 <BedDouble className="h-3 w-3 mr-0.5 text-blue-500 dark:text-blue-400" />
                 <span>{displayBeds}</span>
               </div>
 
-              <div className="flex items-center text-[10px] text-[#536167] dark:text-white/80">
+              <div className="flex items-center text-[10px] text-[#536167] dark:text-white/80 font-normal">
                 <Bath className="h-3 w-3 mr-0.5 text-blue-500 dark:text-blue-400" />
                 <span>{displayBaths}</span>
               </div>
 
-              <div className="flex items-center text-[10px] text-[#536167] dark:text-white/80">
+              <div className="flex items-center text-[10px] text-[#536167] dark:text-white/80 font-normal">
                 <ChefHat className="h-3 w-3 mr-0.5 text-blue-500 dark:text-blue-400" />
                 <span>{displayKitchens}</span>
               </div>
 
-              <div className="flex items-center text-[10px] text-[#536167] dark:text-white/80">
+              <div className="flex items-center text-[10px] text-[#536167] dark:text-white/80 font-normal">
                 <Ruler className="h-3 w-3 mr-0.5 text-blue-500 dark:text-blue-400" />
                 <span>{displaySquareFeet} sq ft</span>
               </div>
@@ -203,15 +203,15 @@ function ModernPropertyCard({
           </div>
 
           {property.averageRating && (
-            <div className="flex items-center mt-1 text-[10px]">
+            <div className="flex items-center mt-1 text-[10px] text-[#536167]">
               <div className="flex items-center">
                 <Star className="h-3 w-3 mr-0.5 text-yellow-400 fill-yellow-400" />
-                <span className="text-gray-900 dark:text-white/90 font-medium">
+                <span className="text-[#536167] dark:text-white/90 font-normal">
                   {property.averageRating.toFixed(1)}
                 </span>
               </div>
               {property.numberOfReviews && (
-                <span className="text-[10px] text-gray-500 dark:text-white/60 ml-1">({property.numberOfReviews})</span>
+                <span className="text-[10px] text-[#536167] dark:text-white/60 ml-1 font-normal">({property.numberOfReviews})</span>
               )}
             </div>
           )}

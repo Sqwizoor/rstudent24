@@ -275,7 +275,7 @@ function PropertyCard({
               property.name
             )}
           </h2>
-          {property.description && <p className={`text-[13px] sm:text-sm text-[#536167] ${simpleShadow ? "font-semibold" : "font-normal"} line-clamp-4`}>{property.description}</p>}
+          {property.description && <p className="text-[13px] sm:text-sm text-[#536167] font-normal line-clamp-4">{property.description}</p>}
         </div>
 
         {/* Location and University Information */}

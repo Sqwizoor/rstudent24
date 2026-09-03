@@ -100,7 +100,7 @@ export default function DashboardCardCompact({
       <div className="relative flex w-2/3 flex-col justify-between p-3 sm:p-4 bg-black text-white">
         <div className="space-y-1.5">
           <div className="flex items-start justify-between gap-2">
-            <h2 className="line-clamp-1 text-base font-bold sm:text-lg group-hover:text-blue-400 transition-colors">
+            <h2 className="line-clamp-1 text-base font-bold sm:text-lg text-[#043e55] group-hover:text-blue-400 transition-colors">
               {propertyLink ? (
                 <Link href={propertyLink} className="hover:text-blue-400" scroll={false}>
                   {property.name}
@@ -124,22 +124,22 @@ export default function DashboardCardCompact({
             )}
           </div>
           
-          <div className="flex items-center text-xs text-gray-400">
+          <div className="flex items-center text-xs text-[#536167] font-normal">
             <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-            <p className="line-clamp-1">
+            <p className="line-clamp-1 font-normal">
               {property.location?.address || 'No address'}, {property.location?.city || 'No city'}
             </p>
           </div>
           
           <div className="flex items-center gap-1 bg-[#111] px-2 py-0.5 rounded-md border border-[#333] w-fit">
             <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-            <span className="text-xs font-medium">{property.averageRating.toFixed(1)}</span>
-            <span className="text-xs text-gray-400">({property.numberOfReviews})</span>
+            <span className="text-xs font-normal text-[#536167]">{property.averageRating.toFixed(1)}</span>
+            <span className="text-xs text-[#536167] font-normal">({property.numberOfReviews})</span>
           </div>
         </div>
         
         <div className="mt-2 flex items-center justify-between">
-          <div className="flex gap-2 text-xs text-gray-400 sm:text-sm">
+          <div className="flex gap-2 text-xs text-[#536167] sm:text-sm font-normal">
             <div className="flex items-center gap-1">
               <Bed className="h-3.5 w-3.5" />
               <span>{displayBeds}</span>

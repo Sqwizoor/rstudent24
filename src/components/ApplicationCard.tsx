@@ -53,12 +53,12 @@ const ApplicationCard = ({
           />
           <div className="flex flex-col justify-between">
             <div>
-              <h2 className="text-xl font-bold my-2">
+              <h2 className="text-xl font-bold my-2 text-[#043e55]">
                 {application.property.name}
               </h2>
-              <div className="flex items-center mb-2">
+              <div className="flex items-center mb-2 text-[#536167] font-normal">
                 <MapPin className="w-5 h-5 mr-1" />
-                <span>{`${application.property.location?.city || 'No city'}, ${application.property.location?.country || 'No country'}`}</span>
+                <span className="font-normal">{`${application.property.location?.city || 'No city'}, ${application.property.location?.country || 'No country'}`}</span>
               </div>
             </div>
             <div className="text-xl font-semibold">
