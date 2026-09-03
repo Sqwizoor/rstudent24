@@ -62,7 +62,17 @@ body,
   @apply text-sm;
   @apply bg-white;
   font-family: var(--font-sans);
-  font-weight: 300; /* Light weight by default for Barlow */
+  font-weight: 400;
+  color: #536167;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #043e55;
+}
+
+p {
+  color: #536167;
+  font-weight: 400;
 }
 
 /* Utility classes for different font weights and styles */
@@ -75,11 +85,13 @@ body,
 
 /* Specific styling for descriptions and secondary text */
 .description-text {
+  color: #536167;
   font-weight: 400;
-  font-style: italic;
+  font-style: normal;
 }
 
 .secondary-text {
+  color: #536167;
   font-weight: 400;
   font-style: normal;
 }
@@ -225,7 +237,16 @@ body,
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background;
+    color: #536167;
+    font-weight: 400;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    color: #043e55;
+  }
+  p {
+    color: #536167;
+    font-weight: 400;
   }
 }
 
