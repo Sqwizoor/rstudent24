@@ -1,11 +1,17 @@
 import { Toaster } from "@/components/ui/sonner"
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Barlow } from "next/font/google";
 import { PreloadScripts } from "@/components/PreloadScripts";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import Providers from "./providers";
 
-const barlow = { variable: "font-sans" };
+const barlow = Barlow({
+  subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-barlow",
+  display: "swap",
+});
 
 export const viewport: Viewport = {
   width: "device-width",
