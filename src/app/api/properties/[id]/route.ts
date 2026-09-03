@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 // Ensure this route uses the Node.js runtime (Edge has smaller limits)
 export const runtime = 'nodejs';
 
-const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
 
 function mapSingleConvexProperty(p: any): any {
   const images = Array.isArray(p.photoUrls) && p.photoUrls.length > 0 
