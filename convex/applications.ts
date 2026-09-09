@@ -104,6 +104,9 @@ export const getManagerApplications = query({
 
     const manager = managerByUserId || managerByEmail;
     if (manager) {
+      if (manager.status && manager.status.toLowerCase() === "disabled") {
+        return [];
+      }
       if (manager.userId) searchIds.add(manager.userId);
       if (manager.email) {
         searchIds.add(manager.email);

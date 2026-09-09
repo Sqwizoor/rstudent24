@@ -26,6 +26,21 @@ export async function GET(request: NextRequest) {
       console.warn("Prisma update status warning (handled):", e);
     }
 
+    // Also update Convex Cloud
+    try {
+      const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+      await fetch(`${CONVEX_URL}/api/mutation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          path: "users:updateManagerStatus",
+          args: { userId: cognitoId, status }
+        }),
+      });
+    } catch (convexErr) {
+      console.warn("Convex update manager status warning:", convexErr);
+    }
+
     return NextResponse.json({
       message: "Manager status updated successfully",
       manager: { cognitoId, status }

@@ -202,3 +202,39 @@ export const getAllTenants = query({
     return await ctx.db.query("tenants").order("desc").collect();
   },
 });
+
+// Admin: Update manager status (Active, Disabled, Pending, Banned)
+export const updateManagerStatus = mutation({
+  args: {
+    managerId: v.optional(v.id("managers")),
+    userId: v.optional(v.string()),
+    email: v.optional(v.string()),
+    status: v.string(),
+  },
+  handler: async (ctx, args) => {
+    let manager = null;
+    if (args.managerId) {
+      manager = await ctx.db.get(args.managerId);
+    }
+    if (!manager && args.userId) {
+      manager = await ctx.db
+        .query("managers")
+        .withIndex("by_userId", (q) => q.eq("userId", args.userId!))
+        .first();
+    }
+    if (!manager && args.email) {
+      manager = await ctx.db
+        .query("managers")
+        .withIndex("by_email", (q) => q.eq("email", args.email!.toLowerCase()))
+        .first();
+    }
+
+    if (!manager) {
+      throw new Error("Manager not found");
+    }
+
+    await ctx.db.patch(manager._id, { status: args.status });
+    return manager._id;
+  },
+});
+
