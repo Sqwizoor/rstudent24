@@ -4,32 +4,62 @@ import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
-export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+interface ThemeToggleProps {
+  className?: string;
+  showLabel?: boolean;
+}
+
+export function ThemeToggle({ className = "", showLabel = false }: ThemeToggleProps) {
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
-  // Only show the toggle after component is mounted to avoid hydration mismatch
-  React.useEffect(() => setMounted(true), []);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const currentTheme = theme === "system" ? resolvedTheme : theme;
+  const isDark = currentTheme === "dark";
+
+  const handleToggle = () => {
+    setTheme(isDark ? "light" : "dark");
+  };
+
+  if (!mounted) {
+    return (
+      <button
+        type="button"
+        className={`inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-900/60 text-slate-500 dark:text-zinc-400 transition-colors ${className}`}
+        aria-label="Toggle theme"
+        disabled
+      >
+        <span className="h-4 w-4 rounded-full bg-slate-300 dark:bg-zinc-700 animate-pulse" />
+      </button>
+    );
+  }
 
   return (
     <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="relative inline-flex items-center justify-center rounded-md p-2 transition-all duration-200 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-slate-800 dark:hover:text-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-blue-500 dark:focus:ring-offset-slate-900"
-      aria-label="Toggle theme"
+      type="button"
+      onClick={handleToggle}
+      className={`inline-flex items-center justify-center gap-2 h-9 px-2.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-900/60 text-slate-700 dark:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-sm ${className}`}
+      aria-label={isDark ? "Switch to White Mode" : "Switch to Dark Mode"}
+      title={isDark ? "Switch to White Mode" : "Switch to Dark Mode"}
     >
-      <div className="relative h-5 w-5 overflow-hidden">
-        {mounted && (
-          <>
-            <Sun 
-              className={`absolute inset-0 h-full w-full transition-transform duration-500 ${theme === 'dark' ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`} 
-            />
-            <Moon 
-              className={`absolute inset-0 h-full w-full transition-transform duration-500 ${theme === 'dark' ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`} 
-            />
-          </>
+      <div className="relative h-4 w-4 flex items-center justify-center">
+        {isDark ? (
+          <Sun className="h-4 w-4 text-amber-400 transition-transform duration-300 rotate-0 scale-100" />
+        ) : (
+          <Moon className="h-4 w-4 text-slate-700 transition-transform duration-300 rotate-0 scale-100" />
         )}
       </div>
-      <span className="sr-only">Toggle theme</span>
+      {showLabel && (
+        <span className="text-xs font-medium">
+          {isDark ? "White Mode" : "Dark Mode"}
+        </span>
+      )}
+      <span className="sr-only">
+        {isDark ? "Switch to White Mode" : "Switch to Dark Mode"}
+      </span>
     </button>
   );
 }

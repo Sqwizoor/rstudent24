@@ -224,12 +224,12 @@ const Properties = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#000000] text-zinc-100 p-6 space-y-6">
+      <div className="w-full text-slate-900 dark:text-zinc-100 p-6 space-y-6">
         <div className="max-w-7xl mx-auto space-y-6">
-          <div className="h-20 w-full rounded-2xl bg-zinc-900/60 animate-pulse border border-zinc-800/80" />
+          <div className="h-20 w-full rounded-2xl bg-slate-200/60 dark:bg-zinc-900/60 animate-pulse border border-slate-200 dark:border-zinc-800/80" />
           <div className="space-y-3">
             {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="h-24 rounded-2xl bg-zinc-900/40 animate-pulse border border-zinc-800/50" />
+              <div key={n} className="h-24 rounded-2xl bg-slate-200/40 dark:bg-zinc-900/40 animate-pulse border border-slate-200 dark:border-zinc-800/50" />
             ))}
           </div>
         </div>
@@ -240,25 +240,25 @@ const Properties = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60 p-6 sm:p-8 backdrop-blur-xl">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-950/60 p-6 sm:p-8 backdrop-blur-xl shadow-sm">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
         <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
                 Property Portfolio
               </h1>
-              <span className="rounded-full bg-zinc-800/80 border border-zinc-700/60 px-2.5 py-0.5 text-xs font-mono text-zinc-300">
+              <span className="rounded-full bg-slate-100 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700/60 px-2.5 py-0.5 text-xs font-mono text-slate-700 dark:text-zinc-300">
                 {managerProperties?.length || 0} Listed
               </span>
             </div>
-            <p className="text-sm text-zinc-400 mt-1">
+            <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1">
               Manage student accommodation listings, room availability, and photos.
             </p>
           </div>
           <Button
             onClick={() => router.push("/managers/newproperty")}
-            className="rounded-xl bg-white px-5 py-2.5 text-xs font-semibold text-black hover:bg-zinc-200 transition-all shadow-md active:scale-95"
+            className="rounded-xl bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 px-5 py-2.5 text-xs font-semibold transition-all shadow-md active:scale-95"
           >
             <Plus className="h-4 w-4 mr-1.5" />
             Add New Property
@@ -269,7 +269,7 @@ const Properties = () => {
       {/* Search, Sort & View Mode Controls */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-zinc-500" />
           <Input
             placeholder="Search properties by name, city, address..."
             value={searchTerm}
@@ -277,18 +277,18 @@ const Properties = () => {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="h-10 rounded-xl border-zinc-800 bg-zinc-950/80 pl-10 text-xs text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600"
+            className="h-10 rounded-xl border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/80 pl-10 text-xs text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:border-slate-400 dark:focus:border-zinc-600 focus:ring-1 focus:ring-slate-400 dark:focus:ring-zinc-600 shadow-sm"
           />
         </div>
         <div className="flex items-center gap-2.5">
           <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
-            <SelectTrigger className="h-10 w-[150px] rounded-xl border-zinc-800 bg-zinc-950/80 text-xs text-zinc-200 focus:border-zinc-600">
+            <SelectTrigger className="h-10 w-[150px] rounded-xl border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/80 text-xs text-slate-700 dark:text-zinc-200 focus:border-slate-400 dark:focus:border-zinc-600 shadow-sm">
               <div className="flex items-center gap-2">
-                <ArrowUpDown className="h-3.5 w-3.5 text-zinc-400" />
+                <ArrowUpDown className="h-3.5 w-3.5 text-slate-500 dark:text-zinc-400" />
                 <SelectValue placeholder="Sort By" />
               </div>
             </SelectTrigger>
-            <SelectContent className="border-zinc-800 bg-zinc-950 text-zinc-200 rounded-xl">
+            <SelectContent className="border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 rounded-xl shadow-lg">
               <SelectItem value="name" className="text-xs">Name</SelectItem>
               <SelectItem value="price" className="text-xs">Monthly Rent</SelectItem>
               <SelectItem value="date" className="text-xs">Date Added</SelectItem>
@@ -296,17 +296,17 @@ const Properties = () => {
           </Select>
 
           {/* View Mode Toggle Buttons */}
-          <div className="flex items-center rounded-xl border border-zinc-800 bg-zinc-950/80 p-1 gap-1">
+          <div className="flex items-center rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-950/80 p-1 gap-1 shadow-sm">
             <button
               onClick={() => setViewMode("list")}
-              className={`p-1.5 rounded-lg transition-colors ${viewMode === "list" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
+              className={`p-1.5 rounded-lg transition-colors ${viewMode === "list" ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"}`}
               title="List View"
             >
               <LayoutList className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode("grid")}
-              className={`p-1.5 rounded-lg transition-colors ${viewMode === "grid" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
+              className={`p-1.5 rounded-lg transition-colors ${viewMode === "grid" ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"}`}
               title="Grid View"
             >
               <LayoutGrid className="h-4 w-4" />
@@ -457,10 +457,10 @@ const PropertyRowItem = ({
   const firstImage = property.imageUrls?.[0] || property.photoUrls?.[0];
 
   return (
-    <div className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-3.5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700 transition-all duration-200 hover:shadow-lg hover:shadow-black/40">
+    <div className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-3.5 rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/70 backdrop-blur-xl hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm hover:shadow-md dark:shadow-none">
       <div className="flex items-center gap-3.5 min-w-0 flex-1">
         {/* Compact Thumbnail with Image Fallback */}
-        <div className="relative h-20 w-28 sm:h-22 sm:w-32 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 shrink-0">
+        <div className="relative h-20 w-28 sm:h-22 sm:w-32 rounded-xl overflow-hidden bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shrink-0">
           <SafePropertyImage
             src={firstImage}
             alt={property.name}
@@ -472,30 +472,30 @@ const PropertyRowItem = ({
         {/* Info */}
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-center gap-2">
-            <Link href={`/managers/properties/${property._id}`} className="hover:text-blue-400 transition-colors font-semibold text-sm sm:text-base text-zinc-100 truncate">
+            <Link href={`/managers/properties/${property._id}`} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-semibold text-sm sm:text-base text-slate-900 dark:text-zinc-100 truncate">
               {property.name}
             </Link>
-            <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 shrink-0">
+            <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
               {property.status || "Approved"}
             </span>
           </div>
 
-          <div className="flex items-center text-zinc-400 text-xs truncate">
-            <MapPin className="h-3 w-3 mr-1 text-zinc-500 shrink-0" />
+          <div className="flex items-center text-slate-500 dark:text-zinc-400 text-xs truncate">
+            <MapPin className="h-3 w-3 mr-1 text-slate-400 dark:text-zinc-500 shrink-0" />
             <span className="truncate">{property.address ? `${property.address}, ${property.city || ''}` : property.city || 'South Africa'}</span>
           </div>
 
-          <div className="flex items-center gap-3 text-zinc-400 text-xs pt-0.5">
+          <div className="flex items-center gap-3 text-slate-500 dark:text-zinc-400 text-xs pt-0.5">
             <span className="flex items-center gap-1">
-              <BedDouble className="h-3.5 w-3.5 text-zinc-500" />
+              <BedDouble className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
               {displayBeds} Beds
             </span>
             <span className="flex items-center gap-1">
-              <Bath className="h-3.5 w-3.5 text-zinc-500" />
+              <Bath className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
               {displayBaths} Baths
             </span>
             {property.rooms?.length > 0 && (
-              <span className="text-zinc-500 text-[11px]">
+              <span className="text-slate-400 dark:text-zinc-500 text-[11px]">
                 ({property.rooms.length} Room Types)
               </span>
             )}
@@ -504,12 +504,12 @@ const PropertyRowItem = ({
       </div>
 
       {/* Price & Actions */}
-      <div className="flex sm:flex-col items-end justify-between sm:justify-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-800/60 gap-3 shrink-0">
+      <div className="flex sm:flex-col items-end justify-between sm:justify-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-zinc-800/60 gap-3 shrink-0">
         <div className="text-left sm:text-right">
-          <span className="text-base font-bold text-white tracking-tight">
+          <span className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
             R{displayPrice.toLocaleString()}
           </span>
-          <span className="text-xs text-zinc-400 font-normal"> /mo</span>
+          <span className="text-xs text-slate-500 dark:text-zinc-400 font-normal"> /mo</span>
         </div>
 
         <div className="flex items-center gap-1.5">
@@ -517,7 +517,7 @@ const PropertyRowItem = ({
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-8 px-2.5"
+              className="rounded-xl border-slate-200 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-900/60 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white text-xs h-8 px-2.5"
               title="View Property"
             >
               <Eye className="h-3.5 w-3.5" />
@@ -527,25 +527,25 @@ const PropertyRowItem = ({
             variant="outline"
             size="sm"
             onClick={() => onManagePhotos(property._id)}
-            className="rounded-xl border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-8 px-2.5"
+            className="rounded-xl border-slate-200 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-900/60 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white text-xs h-8 px-2.5"
           >
-            <ImageIcon className="h-3.5 w-3.5 mr-1 text-zinc-400" />
+            <ImageIcon className="h-3.5 w-3.5 mr-1 text-slate-500 dark:text-zinc-400" />
             Photos
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onEdit(property._id)}
-            className="rounded-xl border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-8 px-2.5"
+            className="rounded-xl border-slate-200 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-900/60 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white text-xs h-8 px-2.5"
           >
-            <Edit3 className="h-3.5 w-3.5 mr-1 text-zinc-400" />
+            <Edit3 className="h-3.5 w-3.5 mr-1 text-slate-500 dark:text-zinc-400" />
             Edit
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onDelete(property._id)}
-            className="rounded-xl border-rose-950/50 bg-rose-950/20 text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 text-xs h-8 px-2"
+            className="rounded-xl border-rose-200 dark:border-rose-950/50 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300 text-xs h-8 px-2"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -577,10 +577,10 @@ const PropertyCardItem = ({
   const firstImage = property.imageUrls?.[0] || property.photoUrls?.[0];
 
   return (
-    <Card className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700 transition-all duration-200 group flex flex-col justify-between shadow-sm hover:shadow-lg hover:shadow-black/40">
+    <Card className="overflow-hidden rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/70 backdrop-blur-xl hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 group flex flex-col justify-between shadow-sm hover:shadow-md dark:shadow-none">
       <div>
         <div className="p-3 pb-0">
-          <div className="relative w-full h-44 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800/80">
+          <div className="relative w-full h-44 rounded-xl overflow-hidden bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800/80">
             <SafePropertyImage
               src={firstImage}
               alt={property.name}
@@ -602,25 +602,25 @@ const PropertyCardItem = ({
 
         <CardContent className="p-3.5 space-y-2.5">
           <div>
-            <Link href={`/managers/properties/${property._id}`} className="group-hover:text-blue-400 transition-colors">
-              <h3 className="font-semibold text-sm text-zinc-100 line-clamp-1 flex items-center gap-1.5">
+            <Link href={`/managers/properties/${property._id}`} className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <h3 className="font-semibold text-sm text-slate-900 dark:text-zinc-100 line-clamp-1 flex items-center gap-1.5">
                 {property.name}
-                <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400" />
+                <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 dark:text-zinc-400" />
               </h3>
             </Link>
-            <div className="flex items-center text-zinc-400 text-[11px] mt-0.5">
-              <MapPin className="h-3 w-3 mr-1 text-zinc-500 shrink-0" />
+            <div className="flex items-center text-slate-500 dark:text-zinc-400 text-[11px] mt-0.5">
+              <MapPin className="h-3 w-3 mr-1 text-slate-400 dark:text-zinc-500 shrink-0" />
               <span className="line-clamp-1">{property.address ? `${property.address}, ${property.city || ''}` : property.city || 'South Africa'}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-zinc-400 text-[11px] border-y border-zinc-800/80 py-2">
+          <div className="flex items-center gap-3 text-slate-500 dark:text-zinc-400 text-[11px] border-y border-slate-100 dark:border-zinc-800/80 py-2">
             <div className="flex items-center gap-1">
-              <BedDouble className="h-3 w-3 text-zinc-500" />
+              <BedDouble className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
               <span>{displayBeds} Beds</span>
             </div>
             <div className="flex items-center gap-1">
-              <Bath className="h-3 w-3 text-zinc-500" />
+              <Bath className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
               <span>{displayBaths} Baths</span>
             </div>
           </div>
@@ -632,9 +632,9 @@ const PropertyCardItem = ({
           variant="outline"
           size="sm"
           onClick={() => onManagePhotos(property._id)}
-          className="rounded-lg border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-[11px] h-7.5 px-2.5"
+          className="rounded-lg border-slate-200 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-900/60 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white text-[11px] h-7.5 px-2.5"
         >
-          <ImageIcon className="h-3 w-3 mr-1 text-zinc-400" />
+          <ImageIcon className="h-3.5 w-3.5 mr-1 text-slate-500 dark:text-zinc-400" />
           Photos
         </Button>
         <div className="flex items-center gap-1.5">
@@ -642,18 +642,18 @@ const PropertyCardItem = ({
             variant="outline"
             size="sm"
             onClick={() => onEdit(property._id)}
-            className="rounded-lg border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:bg-zinc-800 hover:text-white text-[11px] h-7.5 px-2.5"
+            className="rounded-lg border-slate-200 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-900/60 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white text-[11px] h-7.5 px-2.5"
           >
-            <Edit3 className="h-3 w-3 mr-1 text-zinc-400" />
+            <Edit3 className="h-3.5 w-3.5 mr-1 text-slate-500 dark:text-zinc-400" />
             Edit
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onDelete(property._id)}
-            className="rounded-lg border-rose-950/50 bg-rose-950/20 text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 text-[11px] h-7.5 px-2"
+            className="rounded-lg border-rose-200 dark:border-rose-950/50 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300 text-[11px] h-7.5 px-2"
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>

@@ -175,9 +175,9 @@ const ResidencesContent = () => {
       </section>
 
       {residenceCount > 0 && (
-        <section className="rounded-2xl border border-border/60 bg-[#111315] p-8">
-          <h2 className="text-lg font-semibold text-white">Helpful next steps</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
+        <section className="rounded-2xl border border-slate-200/80 dark:border-border/60 bg-white/80 dark:bg-[#111315] p-8 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Helpful next steps</h2>
+          <p className="mt-2 text-sm text-slate-500 dark:text-muted-foreground">
             Keep track of tenancy paperwork, stay in touch with property managers, and gather everything you need for move-in day.
           </p>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -219,12 +219,12 @@ const SummaryCard = ({
   linkText?: string;
   linkHref?: string;
 }) => (
-  <div className="rounded-2xl border border-border/60 bg-[#111315] p-6">
-    <p className="text-xs uppercase tracking-wider text-muted-foreground">{title}</p>
-    <p className="mt-4 text-3xl font-semibold text-white">{value}</p>
-    <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+  <div className="rounded-2xl border border-slate-200/80 dark:border-border/60 bg-white dark:bg-[#111315] p-6 shadow-sm dark:shadow-md">
+    <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-muted-foreground">{title}</p>
+    <p className="mt-4 text-3xl font-semibold text-slate-900 dark:text-white">{value}</p>
+    <p className="mt-1 text-xs text-slate-500 dark:text-muted-foreground">{description}</p>
     {linkText && linkHref && (
-      <Link href={linkHref} className="mt-4 inline-flex text-sm font-medium text-blue-500 hover:underline">
+      <Link href={linkHref} className="mt-4 inline-flex text-sm font-medium text-blue-600 dark:text-blue-500 hover:underline">
         {linkText}
       </Link>
     )}
@@ -233,16 +233,16 @@ const SummaryCard = ({
 
 const SectionHeader = ({ title, description }: { title: string; description: string }) => (
   <div className="flex flex-col gap-2">
-    <h2 className="text-xl font-semibold text-white">{title}</h2>
-    <p className="text-sm text-muted-foreground">{description}</p>
+    <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{title}</h2>
+    <p className="text-sm text-slate-500 dark:text-muted-foreground">{description}</p>
   </div>
 );
 
 const HelpCard = ({ title, description, href }: { title: string; description: string; href: string }) => (
-  <li className="rounded-2xl border border-border/50 bg-[#0f1113] p-5">
-    <h3 className="text-sm font-semibold text-white">{title}</h3>
-    <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-    <Link href={href} className="mt-4 inline-flex text-sm font-medium text-blue-500 hover:underline">
+  <li className="rounded-2xl border border-slate-200/80 dark:border-border/50 bg-white dark:bg-[#0f1113] p-5 shadow-sm">
+    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{title}</h3>
+    <p className="mt-2 text-sm text-slate-500 dark:text-muted-foreground">{description}</p>
+    <Link href={href} className="mt-4 inline-flex text-sm font-medium text-blue-600 dark:text-blue-500 hover:underline">
       View details
     </Link>
   </li>
@@ -261,11 +261,11 @@ const EmptyState = ({
   actionLabel: string;
   actionHref: string;
 }) => (
-  <div className="mt-6 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border/60 bg-[#101214] p-12 text-center">
-    <div className="rounded-full bg-black/30 p-4">{icon}</div>
+  <div className="mt-6 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-slate-200 dark:border-border/60 bg-white/60 dark:bg-[#101214] p-12 text-center shadow-sm">
+    <div className="rounded-full bg-slate-100 dark:bg-black/30 p-4">{icon}</div>
     <div>
-      <h3 className="text-lg font-medium text-white">{title}</h3>
-      <p className="mt-2 text-sm text-muted-foreground">{message}</p>
+      <h3 className="text-lg font-medium text-slate-900 dark:text-white">{title}</h3>
+      <p className="mt-2 text-sm text-slate-500 dark:text-muted-foreground">{message}</p>
     </div>
     <Link
       href={actionHref}
@@ -277,12 +277,12 @@ const EmptyState = ({
 );
 
 const AuthPrompt = ({ signinUrl }: { signinUrl: string }) => (
-  <div className="mx-auto mt-20 max-w-2xl rounded-2xl border border-border/60 bg-[#101214] p-12 text-center">
+  <div className="mx-auto mt-20 max-w-2xl rounded-2xl border border-slate-200/80 dark:border-border/60 bg-white/90 dark:bg-[#101214] p-12 text-center shadow-xl">
     <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600/10">
       <Home className="h-6 w-6 text-blue-500" />
     </div>
-    <h2 className="text-2xl font-semibold text-white">Sign in to view residences</h2>
-    <p className="mt-3 text-sm text-muted-foreground">
+    <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Sign in to view residences</h2>
+    <p className="mt-3 text-sm text-slate-500 dark:text-muted-foreground">
       Log in with your tenant account to see active stays, lease details, and quick actions.
     </p>
     <a
@@ -295,12 +295,12 @@ const AuthPrompt = ({ signinUrl }: { signinUrl: string }) => (
 );
 
 const RestrictedNotice = () => (
-  <div className="mx-auto mt-20 max-w-2xl rounded-2xl border border-border/60 bg-[#101214] p-12 text-center">
+  <div className="mx-auto mt-20 max-w-2xl rounded-2xl border border-slate-200/80 dark:border-border/60 bg-white/90 dark:bg-[#101214] p-12 text-center shadow-xl">
     <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/10">
       <Building className="h-6 w-6 text-amber-500" />
     </div>
-    <h2 className="text-2xl font-semibold text-white">Residences are tenant only</h2>
-    <p className="mt-3 text-sm text-muted-foreground">
+    <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Residences are tenant only</h2>
+    <p className="mt-3 text-sm text-slate-500 dark:text-muted-foreground">
       Manager accounts can monitor tenant stays from the manager dashboard.
     </p>
     <Link
@@ -313,12 +313,12 @@ const RestrictedNotice = () => (
 );
 
 const MissingTenantProfile = () => (
-  <div className="mx-auto mt-20 max-w-2xl rounded-2xl border border-border/60 bg-[#101214] p-12 text-center">
+  <div className="mx-auto mt-20 max-w-2xl rounded-2xl border border-slate-200/80 dark:border-border/60 bg-white/90 dark:bg-[#101214] p-12 text-center shadow-xl">
     <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-rose-500/10">
       <Building className="h-6 w-6 text-rose-500" />
     </div>
-    <h2 className="text-2xl font-semibold text-white">We couldn&apos;t find your tenant profile</h2>
-    <p className="mt-3 text-sm text-muted-foreground">
+    <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">We couldn&apos;t find your tenant profile</h2>
+    <p className="mt-3 text-sm text-slate-500 dark:text-muted-foreground">
       If you just signed up, your account may still be syncing. Refresh the page in a moment or complete your profile details.
     </p>
     <Link

@@ -254,9 +254,9 @@ const TenantDashboardContent = () => {
           actionHref="/tenants/applications"
         />
         {applicationsCount > 0 && applications ? (
-          <div className="overflow-x-auto rounded-xl border border-border/50">
+          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-border/50 bg-white dark:bg-transparent shadow-sm">
             <table className="min-w-full divide-y divide-border/60">
-              <thead className="bg-muted/30">
+              <thead className="bg-slate-50 dark:bg-muted/30">
                 <tr>
                   <TableHeading>Property</TableHeading>
                   <TableHeading>Status</TableHeading>
@@ -266,7 +266,7 @@ const TenantDashboardContent = () => {
               </thead>
               <tbody className="divide-y divide-border/40">
                 {applications.slice(0, 5).map((application) => (
-                  <tr key={application.id} className="bg-background/60">
+                  <tr key={application.id} className="bg-white dark:bg-background/60 hover:bg-slate-50/60 dark:hover:bg-muted/20 transition-colors">
                     <td className="px-4 py-4 text-sm">
                       <div className="font-medium">
                         {application.property?.name ?? `Property #${application.propertyId}`}
@@ -376,14 +376,14 @@ const SummaryCard = ({
 }) => {
   return (
     <Link href={href} className="group">
-      <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-[#111315] p-6 shadow-lg transition duration-200 group-hover:shadow-xl">
-        <div className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-20 group-hover:opacity-30 transition`} />
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-border/60 bg-white dark:bg-[#111315] p-6 shadow-sm dark:shadow-lg transition duration-200 group-hover:shadow-md dark:group-hover:shadow-xl">
+        <div className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-10 dark:opacity-20 group-hover:opacity-20 dark:group-hover:opacity-30 transition`} />
         <div className="relative flex items-start justify-between">
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">{title}</p>
-            <p className="mt-4 text-3xl font-semibold text-white">{value}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-muted-foreground">{title}</p>
+            <p className="mt-4 text-3xl font-semibold text-slate-900 dark:text-white">{value}</p>
           </div>
-          <div className="rounded-full bg-black/40 p-3 text-white">{icon}</div>
+          <div className="rounded-full bg-slate-100 dark:bg-black/40 p-3 text-slate-800 dark:text-white border border-slate-200 dark:border-transparent">{icon}</div>
         </div>
       </div>
     </Link>
@@ -403,12 +403,12 @@ const SectionHeader = ({
 }) => (
   <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
     <div>
-      <h2 className="text-xl font-semibold">{title}</h2>
-      <p className="text-sm text-muted-foreground">{description}</p>
+      <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{title}</h2>
+      <p className="text-sm text-slate-500 dark:text-muted-foreground">{description}</p>
     </div>
     <Link
       href={actionHref}
-      className="text-sm font-medium text-blue-500 hover:underline"
+      className="text-sm font-medium text-blue-600 dark:text-blue-500 hover:underline"
     >
       {actionLabel}
     </Link>
@@ -451,11 +451,11 @@ const EmptyState = ({
   actionLabel: string;
   actionHref: string;
 }) => (
-  <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border/60 bg-[#121416] p-10 text-center">
-    <div className="rounded-full bg-black/30 p-4">{icon}</div>
+  <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-slate-200 dark:border-border/60 bg-white/60 dark:bg-[#121416] p-10 text-center shadow-sm">
+    <div className="rounded-full bg-slate-100 dark:bg-black/30 p-4">{icon}</div>
     <div>
-      <h3 className="text-lg font-medium text-white">{title}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">{message}</p>
+      <h3 className="text-lg font-medium text-slate-900 dark:text-white">{title}</h3>
+      <p className="mt-1 text-sm text-slate-500 dark:text-muted-foreground">{message}</p>
     </div>
     <Link
       href={actionHref}
@@ -467,12 +467,12 @@ const EmptyState = ({
 );
 
 const AuthPrompt = ({ signinUrl }: { signinUrl: string }) => (
-  <div className="max-w-2xl mx-auto mt-20 rounded-2xl border border-border/60 bg-[#101214] p-10 text-center">
+  <div className="max-w-2xl mx-auto mt-20 rounded-2xl border border-slate-200/80 dark:border-border/60 bg-white/90 dark:bg-[#101214] p-10 text-center shadow-xl">
     <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600/10">
       <Heart className="h-6 w-6 text-blue-500" />
     </div>
-    <h2 className="text-2xl font-semibold text-white">Sign in to view your dashboard</h2>
-    <p className="mt-3 text-sm text-muted-foreground">
+    <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Sign in to view your dashboard</h2>
+    <p className="mt-3 text-sm text-slate-500 dark:text-muted-foreground">
       You need to be signed in with your tenant or student account to manage favorites, applications, and residences.
     </p>
     <a
@@ -485,12 +485,12 @@ const AuthPrompt = ({ signinUrl }: { signinUrl: string }) => (
 );
 
 const RestrictedNotice = () => (
-  <div className="max-w-3xl mx-auto mt-20 rounded-2xl border border-border/60 bg-[#101214] p-10 text-center">
+  <div className="max-w-3xl mx-auto mt-20 rounded-2xl border border-slate-200/80 dark:border-border/60 bg-white/90 dark:bg-[#101214] p-10 text-center shadow-xl">
     <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/10">
       <FileText className="h-6 w-6 text-amber-500" />
     </div>
-    <h2 className="text-2xl font-semibold text-white">Dashboard reserved for tenants</h2>
-    <p className="mt-3 text-sm text-muted-foreground">
+    <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Dashboard reserved for tenants</h2>
+    <p className="mt-3 text-sm text-slate-500 dark:text-muted-foreground">
       Manager accounts have their own dashboard experience. Switch to a tenant account to view this page.
     </p>
     <Link
@@ -503,12 +503,12 @@ const RestrictedNotice = () => (
 );
 
 const MissingTenantProfile = () => (
-  <div className="max-w-3xl mx-auto mt-20 rounded-2xl border border-border/60 bg-[#101214] p-10 text-center">
+  <div className="max-w-3xl mx-auto mt-20 rounded-2xl border border-slate-200/80 dark:border-border/60 bg-white/90 dark:bg-[#101214] p-10 text-center shadow-xl">
     <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-rose-500/10">
       <Building2 className="h-6 w-6 text-rose-500" />
     </div>
-    <h2 className="text-2xl font-semibold text-white">We couldn’t find your tenant profile</h2>
-    <p className="mt-3 text-sm text-muted-foreground">
+    <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">We couldn’t find your tenant profile</h2>
+    <p className="mt-3 text-sm text-slate-500 dark:text-muted-foreground">
       If you recently signed up, your account may still be provisioning. Try refreshing the page in a moment.
     </p>
     <Link

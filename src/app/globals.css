@@ -245,12 +245,21 @@ p {
     color: #536167;
     font-weight: 400;
   }
+  .dark body {
+    color: hsl(var(--foreground));
+  }
   h1, h2, h3, h4, h5, h6 {
     color: #043e55;
+  }
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    color: hsl(var(--foreground));
   }
   p {
     color: #536167;
     font-weight: 400;
+  }
+  .dark p {
+    color: hsl(var(--muted-foreground));
   }
 }
 

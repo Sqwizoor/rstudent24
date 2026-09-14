@@ -143,9 +143,9 @@ const ApplicationCard = ({ application }: { application: Application }) => {
   const room = application.room;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border/70 bg-[#111315] shadow-lg">
+    <div className="overflow-hidden rounded-2xl border border-slate-200/80 dark:border-border/70 bg-white dark:bg-[#111315] shadow-sm dark:shadow-lg">
       <div className="flex flex-col gap-4 p-6 md:flex-row">
-        <div className="relative h-40 w-full overflow-hidden rounded-xl bg-black/20 md:h-36 md:w-40">
+        <div className="relative h-40 w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-black/20 md:h-36 md:w-40">
           {property?.photoUrls?.[0] ? (
             <Image
               src={property.photoUrls[0]}
@@ -164,7 +164,7 @@ const ApplicationCard = ({ application }: { application: Application }) => {
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                   {property?.name ?? `Property #${application.propertyId}`}
                 </h3>
                 <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
@@ -175,7 +175,7 @@ const ApplicationCard = ({ application }: { application: Application }) => {
                 </div>
                 {room && (
                   <div className="mt-2 text-xs text-muted-foreground">
-                    Room: <span className="font-medium text-white/90">{room.name}</span> · R{room.pricePerMonth?.toLocaleString("en-ZA")}/month
+                    Room: <span className="font-medium text-slate-800 dark:text-white/90">{room.name}</span> · R{room.pricePerMonth?.toLocaleString("en-ZA")}/month
                   </div>
                 )}
               </div>
@@ -194,7 +194,7 @@ const ApplicationCard = ({ application }: { application: Application }) => {
           <div className="flex flex-wrap justify-end gap-3">
             <Link
               href={`/properties/${application.propertyId}`}
-              className="inline-flex items-center rounded-md border border-border/60 px-4 py-2 text-sm font-medium text-white hover:bg-white/5"
+              className="inline-flex items-center rounded-md border border-slate-200 dark:border-border/60 px-4 py-2 text-sm font-medium text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5"
             >
               View property
             </Link>
@@ -249,7 +249,7 @@ const ApplicationStatusNote = ({ application }: { application: Application }) =>
 };
 
 const StatusPanel = ({ icon, tone, message }: { icon: React.ReactNode; tone: string; message: string }) => (
-  <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm text-white/90 ${tone}`}>
+  <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm text-slate-800 dark:text-white/90 ${tone}`}>
     <span className="mt-0.5">{icon}</span>
     <p>{message}</p>
   </div>
@@ -266,17 +266,17 @@ const SummaryTile = ({
   description: string;
   accent?: string;
 }) => (
-  <div className={`rounded-2xl border border-border/70 bg-[#111315] p-6 shadow ${accent ?? ""}`}>
-    <p className="text-xs uppercase tracking-wider text-muted-foreground">{title}</p>
-    <p className="mt-3 text-3xl font-semibold text-white">{value}</p>
-    <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+  <div className={`rounded-2xl border border-slate-200/80 dark:border-border/70 bg-white dark:bg-[#111315] p-6 shadow-sm dark:shadow ${accent ?? ""}`}>
+    <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-muted-foreground">{title}</p>
+    <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-white">{value}</p>
+    <p className="mt-1 text-xs text-slate-500 dark:text-muted-foreground">{description}</p>
   </div>
 );
 
 const SectionHeader = ({ title, description }: { title: string; description: string }) => (
   <div className="flex flex-col gap-2">
-    <h2 className="text-xl font-semibold text-white">{title}</h2>
-    <p className="text-sm text-muted-foreground">{description}</p>
+    <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{title}</h2>
+    <p className="text-sm text-slate-500 dark:text-muted-foreground">{description}</p>
   </div>
 );
 
@@ -284,8 +284,8 @@ const DetailItem = ({ label, value, icon }: { label: string; value: string; icon
   <div className="flex items-center gap-2">
     <span className="text-muted-foreground">{icon}</span>
     <div>
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="text-sm text-white/90">{value}</div>
+      <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-muted-foreground">{label}</div>
+      <div className="text-sm text-slate-800 dark:text-white/90">{value}</div>
     </div>
   </div>
 );
@@ -318,11 +318,11 @@ const EmptyState = ({
   actionLabel: string;
   actionHref: string;
 }) => (
-  <div className="mt-10 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border/70 bg-[#101214] p-12 text-center">
-    <div className="rounded-full bg-black/30 p-4">{icon}</div>
+  <div className="mt-10 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-slate-200 dark:border-border/70 bg-white/60 dark:bg-[#101214] p-12 text-center shadow-sm">
+    <div className="rounded-full bg-slate-100 dark:bg-black/30 p-4">{icon}</div>
     <div>
-      <h3 className="text-lg font-medium text-white">{title}</h3>
-      <p className="mt-2 text-sm text-muted-foreground">{message}</p>
+      <h3 className="text-lg font-medium text-slate-900 dark:text-white">{title}</h3>
+      <p className="mt-2 text-sm text-slate-500 dark:text-muted-foreground">{message}</p>
     </div>
     <Link
       href={actionHref}
