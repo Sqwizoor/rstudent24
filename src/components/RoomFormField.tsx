@@ -96,16 +96,16 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
   }
 
   // Style for form field labels
-  const labelStyle = "text-xs font-medium text-zinc-300"
+  const labelStyle = "text-xs font-semibold text-slate-700 dark:text-zinc-300"
 
   // Style for form field inputs
-  const inputStyle = "bg-zinc-900/80 text-zinc-100 placeholder:text-zinc-500 border border-zinc-800 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 rounded-xl text-xs sm:text-sm"
+  const inputStyle = "bg-white dark:bg-zinc-900/80 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 border border-slate-300 dark:border-zinc-800 focus:border-blue-500 dark:focus:border-zinc-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-zinc-500 rounded-xl text-xs sm:text-sm shadow-sm"
 
   return (
-    <Card className="bg-zinc-950/80 border border-zinc-800/80 rounded-2xl shadow-xl backdrop-blur-xl">
+    <Card className="bg-white dark:bg-zinc-950/80 border border-slate-200 dark:border-zinc-800/80 rounded-2xl shadow-md dark:shadow-xl backdrop-blur-xl">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
-          <Bed className="h-4 w-4 text-zinc-300" />
+        <CardTitle className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+          <Bed className="h-4 w-4 text-slate-600 dark:text-zinc-300" />
           Add New Room
         </CardTitle>
       </CardHeader>
@@ -133,7 +133,7 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                     inputClassName={`${inputStyle} pl-7`}
                     min={0}
                   />
-                  <span className="absolute top-9 left-3 text-slate-500 dark:text-gray-400">R</span>
+                  <span className="absolute top-9 left-3 text-slate-500 dark:text-gray-400 font-medium text-xs">R</span>
                 </div>
 
                 <div className="relative">
@@ -145,7 +145,7 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                     inputClassName={`${inputStyle} pl-7`}
                     min={0}
                   />
-                  <span className="absolute top-9 left-3 text-slate-500 dark:text-gray-400">R</span>
+                  <span className="absolute top-9 left-3 text-slate-500 dark:text-gray-400 font-medium text-xs">R</span>
                 </div>
                 <div className="relative">
                   <CreateFormField
@@ -156,7 +156,7 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
                     inputClassName={`${inputStyle} pl-7`}
                     min={0}
                   />
-                  <span className="absolute top-8.5 left-3 text-zinc-500 text-xs">R</span>
+                  <span className="absolute top-8.5 left-3 text-slate-500 dark:text-zinc-400 font-medium text-xs">R</span>
                 </div>
 
                 <CreateFormField
@@ -223,13 +223,13 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
             <div className="space-y-2">
               <label className={labelStyle}>Room Photos</label>
               <div className="flex items-center justify-center w-full">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-zinc-800 hover:border-zinc-700 rounded-xl cursor-pointer bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-zinc-700 rounded-xl cursor-pointer bg-slate-50/60 dark:bg-zinc-900/40 hover:bg-slate-100/80 dark:hover:bg-zinc-900/70 transition-colors shadow-sm">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload className="w-6 h-6 mb-2 text-zinc-400" />
-                    <p className="mb-1 text-xs text-zinc-300">
-                      <span className="font-semibold text-white">Click to upload photos</span>
+                    <Upload className="w-6 h-6 mb-2 text-slate-400 dark:text-zinc-400" />
+                    <p className="mb-1 text-xs text-slate-700 dark:text-zinc-300">
+                      <span className="font-semibold text-slate-900 dark:text-white">Click to upload photos</span>
                     </p>
-                    <p className="text-[10px] text-zinc-500">PNG, JPG, WEBP up to 10MB</p>
+                    <p className="text-[10px] text-slate-500 dark:text-zinc-500">PNG, JPG, WEBP up to 10MB</p>
                   </div>
                   <input
                     type="file"
@@ -244,12 +244,12 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
               {/* Photo Previews */}
               {uploadedFiles.length > 0 && (
                 <div className="mt-3">
-                  <p className="text-xs text-zinc-400 mb-2">Selected room photos ({uploadedFiles.length}):</p>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 mb-2">Selected room photos ({uploadedFiles.length}):</p>
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                     {uploadedFiles.map((file, index) => (
                       <div
                         key={index}
-                        className="relative bg-zinc-900 rounded-lg p-1 h-20 flex items-center justify-center overflow-hidden border border-zinc-800"
+                        className="relative bg-slate-100 dark:bg-zinc-900 rounded-lg p-1 h-20 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-zinc-800"
                       >
                         <Image
                           src={URL.createObjectURL(file) || "/placeholder.svg"}
@@ -266,19 +266,19 @@ export const RoomForm = ({ onAddRoom, onCancel }: RoomFormProps) => {
             </div>
 
             {/* Form Actions */}
-            <div className="flex justify-end gap-2.5 pt-3 border-t border-zinc-800/80">
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-zinc-800/80">
               <Button
                 type="button"
                 variant="outline"
                 onClick={onCancel}
-                className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs px-3.5 py-1.5"
+                className="rounded-xl border-slate-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white text-xs px-3.5 py-1.5 shadow-sm"
               >
                 Cancel
               </Button>
               <Button
                 type="button"
                 onClick={handleAddRoom}
-                className="rounded-xl bg-white text-black hover:bg-zinc-200 text-xs font-semibold px-4 py-1.5 shadow-md active:scale-95 transition-all"
+                className="rounded-xl bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 text-xs font-semibold px-4 py-1.5 shadow-md active:scale-95 transition-all"
               >
                 Add Room
               </Button>
@@ -301,54 +301,54 @@ export const RoomList = ({ rooms, onRemoveRoom }: RoomListProps) => {
 
   return (
     <div className="space-y-3 mt-4">
-      <h3 className="text-xs font-semibold uppercase tracking-wider font-mono text-zinc-300">Added Rooms ({rooms.length})</h3>
+      <h3 className="text-xs font-semibold uppercase tracking-wider font-mono text-slate-700 dark:text-zinc-300">Added Rooms ({rooms.length})</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
         {rooms.map((room, index) => (
-          <Card key={index} className="bg-zinc-950/70 border border-zinc-800/80 hover:border-zinc-700 rounded-xl transition-colors shadow-sm">
+          <Card key={index} className="bg-white dark:bg-zinc-950/70 border border-slate-200/80 dark:border-zinc-800/80 hover:border-slate-300 dark:hover:border-zinc-700 rounded-xl transition-colors shadow-sm">
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
-                  <Bed className="h-4 w-4 text-zinc-300" />
-                  <h4 className="text-sm font-semibold text-white">{room.name}</h4>
+                  <Bed className="h-4 w-4 text-slate-600 dark:text-zinc-300" />
+                  <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{room.name}</h4>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => onRemoveRoom(index)}
-                  className="text-zinc-500 hover:text-rose-400 hover:bg-rose-950/20 h-7 w-7 rounded-lg"
+                  className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:text-zinc-500 dark:hover:text-rose-400 dark:hover:bg-rose-950/20 h-7 w-7 rounded-lg transition-colors"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
 
               <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-3 text-xs">
-                <div className="flex items-center gap-1.5 text-zinc-300">
-                  <CircleDollarSign className="h-3.5 w-3.5 text-zinc-500" />
+                <div className="flex items-center gap-1.5 text-slate-700 dark:text-zinc-300">
+                  <CircleDollarSign className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
                   <span>R{room.pricePerMonth}/mo</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-zinc-300">
-                  <CircleDollarSign className="h-3.5 w-3.5 text-zinc-500" />
+                <div className="flex items-center gap-1.5 text-slate-700 dark:text-zinc-300">
+                  <CircleDollarSign className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
                   <span>Top-up: R{(room as any).topUp ?? 0}</span>
                 </div>
                 {room.squareFeet && (
-                  <div className="flex items-center gap-1.5 text-zinc-300">
-                    <Home className="h-3.5 w-3.5 text-zinc-500" />
+                  <div className="flex items-center gap-1.5 text-slate-700 dark:text-zinc-300">
+                    <Home className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
                     <span>{room.squareFeet} m²</span>
                   </div>
                 )}
-                <div className="flex items-center gap-1.5 text-zinc-300">
-                  <SquareUser className="h-3.5 w-3.5 text-zinc-500" />
+                <div className="flex items-center gap-1.5 text-slate-700 dark:text-zinc-300">
+                  <SquareUser className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
                   <span>Cap: {room.capacity}</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-zinc-300">
-                  <Bed className="h-3.5 w-3.5 text-zinc-500" />
+                <div className="flex items-center gap-1.5 text-slate-700 dark:text-zinc-300">
+                  <Bed className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
                   <span>{room.roomType}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2 text-[11px] border-t border-zinc-800/60 pt-2 text-zinc-400">
-                <div>Bath: <span className="text-zinc-200">{room.bathroomPrivacy}</span></div>
-                <div>Kitchen: <span className="text-zinc-200">{room.kitchenPrivacy}</span></div>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2 text-[11px] border-t border-slate-200 dark:border-zinc-800/60 pt-2 text-slate-500 dark:text-zinc-400">
+                <div>Bath: <span className="font-medium text-slate-800 dark:text-zinc-200">{room.bathroomPrivacy}</span></div>
+                <div>Kitchen: <span className="font-medium text-slate-800 dark:text-zinc-200">{room.kitchenPrivacy}</span></div>
               </div>
 
               {/* Room Photos Preview */}
@@ -358,7 +358,7 @@ export const RoomList = ({ rooms, onRemoveRoom }: RoomListProps) => {
                     {(room.photoUrls as (File | string)[]).map((photo, photoIndex) => (
                       <div
                         key={photoIndex}
-                        className="relative aspect-square bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800"
+                        className="relative aspect-square bg-slate-100 dark:bg-zinc-900 rounded-lg overflow-hidden border border-slate-200 dark:border-zinc-800"
                       >
                         <Image
                           src={typeof photo === 'string' ? photo : URL.createObjectURL(photo)}

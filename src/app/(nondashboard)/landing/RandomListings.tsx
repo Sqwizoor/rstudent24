@@ -51,16 +51,27 @@ const RandomListings = () => {
     }));
   }, [selectedCity]);
   
-  // Fetch properties based on selected city
+  // Fetch properties based on selected city (random 20 approved properties)
   const { data: properties, isLoading } = useGetPropertiesQuery({
     location: `${selectedCity}, South Africa`,
     orderBy: 'random',
-    limit: 9
+    limit: 20
   }, {
     // Cache for 1 hour (matching server revalidate)
     pollingInterval: 0,
     refetchOnMountOrArgChange: true, // Refetch when city changes
   });
+
+  // Ensure only up to 20 approved properties are displayed on the Home page
+  const displayedProperties = React.useMemo(() => {
+    if (!properties || !Array.isArray(properties)) return [];
+    return properties
+      .filter((p) => {
+        const s = ((p as any).status || '').toLowerCase().trim();
+        return !p.status || s === 'approved' || s === 'active';
+      })
+      .slice(0, 20);
+  }, [properties]);
   
   // South African university coordinates
   const universityLocations = {
@@ -440,7 +451,7 @@ const RandomListings = () => {
         {/* Properties Grid */}
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {Array.from({ length: 9 }).map((_, i) => (
+            {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="bg-white rounded-3xl overflow-hidden mt-6 shadow-md border border-transparent">
                 {/* Image skeleton */}
                 <div className="relative w-full aspect-[4/3] px-2 pt-2">
@@ -493,14 +504,14 @@ const RandomListings = () => {
               </div>
             ))}
           </div>
-        ) : !properties || properties.length === 0 ? (
+        ) : !displayedProperties || displayedProperties.length === 0 ? (
           <div className="flex flex-col justify-center items-center min-h-[300px]">
             <div className="text-xl font-semibold mb-2">No properties found</div>
             <p className="text-gray-600">Try adjusting your filters or selecting a different city</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {properties.map((property) => (
+            {displayedProperties.map((property) => (
               <Card
                 key={property.id}
                 property={property}

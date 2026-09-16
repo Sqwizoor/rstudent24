@@ -54,7 +54,12 @@ const Listings = () => {
     if (!allProperties || allProperties.length === 0) return [];
     
     // Return processed properties with guaranteed values for required fields
-    return allProperties.map(property => ({
+    return allProperties
+      .filter((property) => {
+        const s = ((property as any).status || '').toLowerCase().trim();
+        return !property.status || s === 'approved' || s === 'active';
+      })
+      .map(property => ({
       ...property,
       // Ensure price is available (default to 0 for sorting/display purposes)
       price: typeof property.price === 'number' ? property.price : 0,

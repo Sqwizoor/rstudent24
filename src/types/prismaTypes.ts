@@ -76,6 +76,7 @@ export interface Property {
   name: string;
   description?: string;
   propertyType?: string;
+  status?: string;
   price: number;
   pricePerMonth?: number;
   minRoomPrice?: number;

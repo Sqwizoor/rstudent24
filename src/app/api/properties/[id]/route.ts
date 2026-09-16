@@ -27,6 +27,7 @@ function mapSingleConvexProperty(p: any): any {
     name: p.name || 'Student Residence',
     description: p.description || '',
     propertyType: p.propertyType || 'APARTMENT',
+    status: p.status || 'Approved',
     photoUrls: images,
     images: images,
     beds: p.beds ?? 1,
@@ -100,7 +101,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           path: 'properties:getProperties',
-          args: { limit: 100 },
+          args: { limit: 100, status: 'all' },
         }),
         cache: 'no-store',
       });
@@ -115,6 +116,23 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     if (found) {
+      const status = (found.status || '').toLowerCase().trim();
+      const isApproved = status === 'approved' || status === 'active';
+
+      if (!isApproved) {
+        // If not approved, verify if current caller is an admin or the property's owner manager
+        const auth = await verifyAuth(request);
+        const isOwnerOrAdmin = auth.isAuthenticated && (
+          auth.userRole === 'admin' ||
+          auth.userId === found.managerId ||
+          (found.managerId && auth.userEmail && found.managerId.toLowerCase() === auth.userEmail.toLowerCase())
+        );
+
+        if (!isOwnerOrAdmin) {
+          return NextResponse.json({ message: "Property not found" }, { status: 404 });
+        }
+      }
+
       return NextResponse.json(mapSingleConvexProperty(found), {
         headers: {
           'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',

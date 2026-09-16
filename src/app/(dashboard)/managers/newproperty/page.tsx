@@ -110,20 +110,20 @@ const FormStep = ({
           >
             <div className={`p-2 rounded-xl border transition-colors ${
               isCompleted 
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
-                : 'bg-zinc-900 border-zinc-800 text-zinc-100'
+                ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30' 
+                : 'bg-slate-100 border-slate-200 text-slate-800 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100'
             }`}>
               {isCompleted ? <CheckCircle2 size={18} /> : icon}
             </div>
-            <h2 className="text-lg font-bold text-zinc-100 hover:text-white transition-colors">{title}</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-white transition-colors">{title}</h2>
           </div>
-          <div className="text-xs text-zinc-400 font-mono">
+          <div className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
             Step {stepNumber} of {totalSteps}
           </div>
         </div>
-        <Progress value={(stepNumber / totalSteps) * 100} className="h-1 mb-6 bg-zinc-900 [&>div]:bg-white" />
+        <Progress value={(stepNumber / totalSteps) * 100} className="h-1.5 mb-6 bg-slate-200 dark:bg-zinc-900 [&>div]:bg-slate-900 dark:[&>div]:bg-white" />
       </div>
-      <div className="p-6 sm:p-7 border border-zinc-800/80 rounded-2xl bg-zinc-950/70 backdrop-blur-xl shadow-xl shadow-black/50">
+      <div className="p-6 sm:p-7 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl bg-white dark:bg-zinc-950/70 backdrop-blur-xl shadow-sm dark:shadow-xl dark:shadow-black/50">
         {children}
       </div>
     </motion.div>
@@ -149,12 +149,12 @@ const StepNavigation = ({
   isLastStep,
 }: StepNavigationProps) => {
   return (
-    <div className="flex justify-between items-center mt-8 pt-4 border-t border-zinc-800/80">
+    <div className="flex justify-between items-center mt-8 pt-4 border-t border-slate-200 dark:border-zinc-800/80">
       {currentStep > 1 ? (
         <Button
           type="button"
           onClick={onPrev}
-          className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 font-medium py-2 px-4 rounded-xl flex items-center gap-2 text-xs transition-all active:scale-95"
+          className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-800 font-medium py-2 px-4 rounded-xl flex items-center gap-2 text-xs transition-all active:scale-95 shadow-sm"
           disabled={isSubmitting}
         >
           <ArrowLeft size={15} />
@@ -165,12 +165,12 @@ const StepNavigation = ({
       <Button
         type={isLastStep ? "submit" : "button"}
         onClick={isLastStep ? undefined : onNext}
-        className="bg-white hover:bg-zinc-200 text-black font-semibold py-2.5 px-6 rounded-xl flex items-center gap-2 text-xs ml-auto transition-all active:scale-95 shadow-md"
+        className="bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-black font-semibold py-2.5 px-6 rounded-xl flex items-center gap-2 text-xs ml-auto transition-all active:scale-95 shadow-md"
         disabled={isSubmitting}
       >
         {isSubmitting ? (
           <>
-            <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+            <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
             Processing...
           </>
         ) : isLastStep ? (
@@ -544,15 +544,15 @@ const NewProperty = () => {
   };
 
   // Style for form field labels
-  const labelStyle = "text-xs font-medium text-zinc-300";
+  const labelStyle = "text-xs font-semibold text-slate-700 dark:text-zinc-300";
 
   // Style for form field inputs
   const inputStyle =
-    "bg-zinc-900/80 text-zinc-100 placeholder:text-zinc-500 border border-zinc-800 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 rounded-xl text-xs sm:text-sm";
+    "bg-white dark:bg-zinc-900/80 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 border border-slate-300 dark:border-zinc-800 focus:border-blue-500 dark:focus:border-zinc-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-zinc-500 rounded-xl text-xs sm:text-sm shadow-sm";
 
   return (
-    <div className="min-h-screen bg-[#000000] text-zinc-100 selection:bg-zinc-800 pb-16">
-      <Toaster richColors position="top-center" theme="dark" />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#000000] text-slate-900 dark:text-zinc-100 selection:bg-blue-100 dark:selection:bg-zinc-800 pb-16 transition-colors duration-200">
+      <Toaster richColors position="top-center" />
       <div className="relative max-w-4xl mx-auto px-4 py-6">
         {/* Background glow */}
         <div className="absolute top-10 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-500/5 blur-[120px] rounded-full pointer-events-none" />
@@ -563,14 +563,14 @@ const NewProperty = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="text-zinc-400 hover:text-white bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 rounded-xl h-9 w-9"
+              className="text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white bg-white dark:bg-zinc-900/80 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 rounded-xl h-9 w-9 shadow-sm transition-colors"
               onClick={() => router.back()}
             >
               <ArrowLeft size={16} />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white">Add New Property</h1>
-              <p className="text-xs text-zinc-400 mt-0.5">Create a student accommodation listing step-by-step</p>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Add New Property</h1>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">Create a student accommodation listing step-by-step</p>
             </div>
           </div>
         </div>
@@ -592,18 +592,18 @@ const NewProperty = () => {
                 aria-label={`Go to step ${stepNum}`}
               >
                 <div 
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center mb-1.5 transition-all text-xs font-semibold border ${
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center mb-1.5 transition-all text-xs font-semibold border shadow-sm ${
                     isActive 
-                      ? 'bg-white text-black border-white shadow-md' 
+                      ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-black dark:border-white shadow-md' 
                       : isCompleted 
-                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' 
-                        : 'bg-zinc-900 text-zinc-500 border-zinc-800 group-hover:border-zinc-700'
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30' 
+                        : 'bg-white text-slate-400 border-slate-200 group-hover:border-slate-300 dark:bg-zinc-900 dark:text-zinc-500 dark:border-zinc-800 dark:group-hover:border-zinc-700'
                   }`}
                 >
                   {isCompleted ? <CheckCircle2 size={15} /> : stepNum}
                 </div>
                 <div className={`text-[11px] font-medium ${
-                  isActive ? 'text-zinc-100' : isCompleted ? 'text-emerald-400' : 'text-zinc-500'
+                  isActive ? 'text-slate-900 dark:text-zinc-100 font-semibold' : isCompleted ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-slate-500 dark:text-zinc-500'
                 }`}>
                   {stepNum === 1 && 'Basic Info'}
                   {stepNum === 2 && 'Rooms'}
@@ -617,7 +617,7 @@ const NewProperty = () => {
         </div>
 
         {/* Main Form */}
-        <div className="rounded-2xl p-6 sm:p-8 border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl shadow-2xl shadow-black/80">
+        <div className="rounded-2xl p-6 sm:p-8 border border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/70 backdrop-blur-xl shadow-xl shadow-slate-200/50 dark:shadow-2xl dark:shadow-black/80">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {/* Step 1: Basic Information */}
@@ -672,21 +672,21 @@ const NewProperty = () => {
                   {/* NSFAS Accreditation - Accessible + Dark Mode Optimized */}
                   <div
                     className="relative group rounded-lg p-4 border
-                    bg-green-50/70 dark:bg-slate-800/70
-                    border-green-200 dark:border-slate-600
-                    shadow-sm dark:shadow-[0_0_0_1px_rgba(56,189,248,0.15)] transition-colors"
+                    bg-emerald-50/70 dark:bg-emerald-950/20
+                    border-emerald-200 dark:border-emerald-800/40
+                    shadow-sm transition-colors"
                   >
-                    <div className="absolute inset-0 rounded-lg pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-green-500/5 via-emerald-400/5 to-cyan-400/5" />
+                    <div className="absolute inset-0 rounded-lg pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-emerald-500/5 via-teal-400/5 to-cyan-400/5" />
                     <div className="relative flex items-start justify-between gap-4">
                       <CreateFormField
                         name="isNsfassAccredited"
                         label="NSFAS Accredited Property"
                         type="switch"
-                        labelClassName={`${labelStyle} font-semibold text-green-700 dark:text-green-300`}
+                        labelClassName={`${labelStyle} font-semibold text-emerald-800 dark:text-emerald-300`}
                       />
                       {/* Visual status pill (mirrors switch state via form value in future if desired) */}
                     </div>
-                    <p className="relative text-xs mt-1 leading-relaxed text-green-700 dark:text-slate-300/80">
+                    <p className="relative text-xs mt-1 leading-relaxed text-emerald-700/80 dark:text-emerald-300/70">
                       Mark if this property accepts NSFAS funding. Accredited listings surface faster for students with government funding.
                     </p>
                   </div>
@@ -756,14 +756,14 @@ const NewProperty = () => {
                       {form.watch("amenities")?.map((amenity, idx) => (
                         <Badge
                           key={idx}
-                          className="bg-[#1E3A8A]/30 text-[#60A5FA] border-[#1E3A8A] px-3 py-1.5 flex items-center gap-1.5"
+                          className="bg-blue-50 dark:bg-[#1E3A8A]/30 text-blue-700 dark:text-[#60A5FA] border-blue-200 dark:border-[#1E3A8A] px-3 py-1.5 flex items-center gap-1.5"
                         >
                           <Coffee className="w-3 h-3" />
                           {amenity}
                           <button
                             type="button"
                             onClick={() => handleRemoveAmenity(amenity)}
-                            className="ml-1 hover:bg-[#1E3A8A] rounded-full p-0.5"
+                            className="ml-1 hover:bg-blue-200/60 dark:hover:bg-[#1E3A8A] rounded-full p-0.5"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -788,14 +788,14 @@ const NewProperty = () => {
                       {form.watch("highlights")?.map((highlight, idx) => (
                         <Badge
                           key={idx}
-                          className="bg-[#5B21B6]/30 text-[#A78BFA] border-[#5B21B6] px-3 py-1.5 flex items-center gap-1.5"
+                          className="bg-purple-50 dark:bg-[#5B21B6]/30 text-purple-700 dark:text-[#A78BFA] border-purple-200 dark:border-[#5B21B6] px-3 py-1.5 flex items-center gap-1.5"
                         >
                           <Check className="w-3 h-3" />
                           {highlight}
                           <button
                             type="button"
                             onClick={() => handleRemoveHighlight(highlight)}
-                            className="ml-1 hover:bg-[#5B21B6] rounded-full p-0.5"
+                            className="ml-1 hover:bg-purple-200/60 dark:hover:bg-[#5B21B6] rounded-full p-0.5"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -834,14 +834,14 @@ const NewProperty = () => {
                       : uploadedFiles;
                     return previewFiles.length > 0 ? (
                     <div className="mb-6">
-                      <p className="text-xs text-zinc-400 mb-3">Selected property photos ({previewFiles.length}):</p>
+                      <p className="text-xs text-slate-500 dark:text-zinc-400 mb-3">Selected property photos ({previewFiles.length}):</p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         {previewFiles.map((file, index) => {
                           const isFeatured = index === featuredImageIndex;
                           return (
                             <div
                               key={index}
-                              className={`relative group bg-zinc-900 rounded-xl p-1 h-24 flex items-center justify-center overflow-hidden border ${isFeatured ? 'border-white ring-2 ring-white/20' : 'border-zinc-800'}`}
+                              className={`relative group bg-slate-100 dark:bg-zinc-900 rounded-xl p-1 h-24 flex items-center justify-center overflow-hidden border ${isFeatured ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-zinc-800'}`}
                             >
                               <Image
                                 src={URL.createObjectURL(file)}
@@ -854,7 +854,7 @@ const NewProperty = () => {
                               <button
                                 type="button"
                                 onClick={() => setFeaturedImageIndex(index)}
-                                className={`absolute top-1 left-1 text-[10px] px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-sm border border-white/20 transition ${isFeatured ? 'text-emerald-400 font-semibold border-emerald-500/40' : 'text-zinc-300 hover:text-white'}`}
+                                className={`absolute top-1 left-1 text-[10px] px-2 py-0.5 rounded-md bg-white/90 dark:bg-black/80 backdrop-blur-sm border shadow-sm transition ${isFeatured ? 'text-emerald-600 dark:text-emerald-400 font-semibold border-emerald-500/40' : 'text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white border-slate-200 dark:border-white/20'}`}
                                 title={isFeatured ? 'Featured image' : 'Set as featured'}
                               >
                                 {isFeatured ? 'Featured' : 'Set Featured'}
@@ -863,7 +863,7 @@ const NewProperty = () => {
                           );
                         })}
                       </div>
-                      <p className="mt-2 text-[11px] text-zinc-500">The featured image appears first in listings. Click thumbnail badge to set featured photo.</p>
+                      <p className="mt-2 text-[11px] text-slate-500 dark:text-zinc-500">The featured image appears first in listings. Click thumbnail badge to set featured photo.</p>
                     </div>
                     ) : null;
                   })()}
@@ -881,14 +881,14 @@ const NewProperty = () => {
                       <div className="mt-2">
                         <label
                           htmlFor={`${field.name}-input`}
-                          className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-zinc-800 hover:border-zinc-700 rounded-2xl cursor-pointer bg-zinc-900/40 hover:bg-zinc-900/80 transition-colors shadow-sm"
+                          className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-slate-300 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-zinc-700 rounded-2xl cursor-pointer bg-slate-50/60 dark:bg-zinc-900/40 hover:bg-slate-100/80 dark:hover:bg-zinc-900/80 transition-colors shadow-sm"
                         >
                           <div className="flex flex-col items-center justify-center pt-6 pb-6">
-                            <Upload className="w-8 h-8 mb-3 text-zinc-400" />
-                            <p className="mb-1 text-xs text-zinc-300">
-                              <span className="font-semibold text-white">Click to upload photos</span> or drag and drop
+                            <Upload className="w-8 h-8 mb-3 text-slate-400 dark:text-zinc-400" />
+                            <p className="mb-1 text-xs text-slate-600 dark:text-zinc-300">
+                              <span className="font-semibold text-slate-900 dark:text-white">Click to upload photos</span> or drag and drop
                             </p>
-                            <p className="text-[10px] text-zinc-500">PNG, JPG, WEBP up to 10MB</p>
+                            <p className="text-[10px] text-slate-500 dark:text-zinc-500">PNG, JPG, WEBP up to 10MB</p>
                           </div>
                           <input
                             id={`${field.name}-input`}
@@ -1010,7 +1010,7 @@ const NewProperty = () => {
                         <SelectTrigger className={`${inputStyle}`}>
                           <SelectValue placeholder="Select campus" />
                         </SelectTrigger>
-                        <SelectContent className="border-zinc-800 bg-zinc-950 text-zinc-200">
+                        <SelectContent className="border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-200 shadow-md">
                           {filteredCampusOptions.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
@@ -1030,16 +1030,16 @@ const NewProperty = () => {
                   />
 
                   {/* Divider for redirect settings */}
-                  <div className="pt-6 mt-6 border-t border-zinc-800">
-                    <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                      <span className="bg-zinc-800 p-1.5 rounded-lg text-zinc-300">
+                  <div className="pt-6 mt-6 border-t border-slate-200 dark:border-zinc-800">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                      <span className="bg-slate-100 dark:bg-zinc-800 p-1.5 rounded-lg text-slate-600 dark:text-zinc-300">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
                         </svg>
                       </span>
                       After Application Redirect (Optional)
                     </h3>
-                    <p className="text-xs text-zinc-400 mb-4">
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 mb-4">
                       Configure where students are redirected after submitting an application. This helps you connect with applicants faster!
                     </p>
                   </div>
@@ -1061,7 +1061,7 @@ const NewProperty = () => {
 
                   {/* WhatsApp Number (conditional) */}
                   {form.watch("redirectType") === RedirectTypeEnum.WHATSAPP && (
-                    <div className="space-y-2 bg-zinc-900/60 border border-zinc-800 rounded-xl p-4">
+                    <div className="space-y-2 bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 rounded-xl p-4">
                       <CreateFormField
                         name="whatsappNumber"
                         label="WhatsApp Number"
@@ -1070,7 +1070,7 @@ const NewProperty = () => {
                         inputClassName={`${inputStyle}`}
                         placeholder="27123456789 (with country code, no + or spaces)"
                       />
-                      <p className="text-[11px] text-zinc-400 mt-1">
+                      <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">
                         📱 Enter your WhatsApp number with country code (e.g., 27123456789 for South Africa). 
                         Students will be redirected to WhatsApp after applying.
                       </p>
@@ -1079,7 +1079,7 @@ const NewProperty = () => {
 
                   {/* Custom Link (conditional) */}
                   {form.watch("redirectType") === RedirectTypeEnum.CUSTOM_LINK && (
-                    <div className="space-y-2 bg-zinc-900/60 border border-zinc-800 rounded-xl p-4">
+                    <div className="space-y-2 bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 rounded-xl p-4">
                       <CreateFormField
                         name="customLink"
                         label="Custom Link/Website"
@@ -1088,7 +1088,7 @@ const NewProperty = () => {
                         inputClassName={`${inputStyle}`}
                         placeholder="https://your-website.com/contact"
                       />
-                      <p className="text-[11px] text-zinc-400 mt-1">
+                      <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">
                         🔗 Enter the URL where students should be redirected after applying 
                         (e.g., your website, booking system, or contact form).
                       </p>
@@ -1108,16 +1108,16 @@ const NewProperty = () => {
               </FormStep>
 
               {/* Form completion progress */}
-              <div className="mt-8 mb-4 bg-zinc-950/80 p-5 rounded-2xl border border-zinc-800 shadow-xl">
+              <div className="mt-8 mb-4 bg-white dark:bg-zinc-950/80 p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xl">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xs font-semibold text-white uppercase tracking-wider font-mono">Form Progress</h3>
-                  <span className="text-xs text-zinc-400 font-mono">
+                  <h3 className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider font-mono">Form Progress</h3>
+                  <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
                     {completedSteps.length} of {totalSteps} steps completed
                   </span>
                 </div>
                 <Progress 
                   value={(completedSteps.length / totalSteps) * 100} 
-                  className="h-1.5 bg-zinc-900 [&>div]:bg-white mb-3" 
+                  className="h-1.5 bg-slate-200 dark:bg-zinc-900 [&>div]:bg-slate-900 dark:[&>div]:bg-white mb-3" 
                 />
                 
                 {/* Step indicators */}
@@ -1129,7 +1129,7 @@ const NewProperty = () => {
                     return (
                       <div 
                         key={stepNum} 
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold ${isCompleted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-zinc-900 text-zinc-500 border border-zinc-800'} cursor-pointer transition-colors`}
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold ${isCompleted ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40' : 'bg-slate-100 text-slate-400 border border-slate-200 dark:bg-zinc-900 dark:text-zinc-500 dark:border-zinc-800'} cursor-pointer transition-colors`}
                         onClick={() => {
                           // Allow jumping to completed steps or the next available step
                           if (isCompleted || stepNum === Math.min(currentStep + 1, totalSteps)) {

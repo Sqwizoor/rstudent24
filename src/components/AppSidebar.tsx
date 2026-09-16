@@ -23,7 +23,6 @@ import {
   LogOut,
   ChevronRight,
   Sparkles,
-  ShieldCheck,
 } from "lucide-react";
 import { NAVBAR_HEIGHT } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -68,7 +67,6 @@ const AppSidebar = ({ userType }: AppSidebarProps) => {
   ];
   
   const bottomLinks = [
-    { icon: ShieldCheck, label: "Admin Console", href: "/admin" },
     { icon: Settings, label: "Settings", href: `/${userType}s/settings` },
   ];
 

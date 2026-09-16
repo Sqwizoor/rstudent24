@@ -332,6 +332,24 @@ const SingleListing = () => {
   if (isLoading || roomsLoading) return <PropertyDetailSkeleton />;
   if (isError || !property || !processedProperty) return <div>Property not found</div>;
 
+  const propertyStatus = ((property as any).status || '').toLowerCase().trim();
+  const isApproved = !property.status || propertyStatus === 'approved' || propertyStatus === 'active';
+  const isOwnerOrAdmin = authUser && (
+    authUser.role === 'admin' ||
+    authUser.id === (property as any).managerCognitoId ||
+    authUser.id === (property as any).managerId
+  );
+  if (!isApproved && !isOwnerOrAdmin) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center p-8 text-center">
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Property Not Available</h2>
+        <p className="text-gray-600 max-w-md">
+          This property is currently pending administrative approval and is not publicly accessible.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white min-h-screen">
       {/* Outer wrapper adjusted: add mx-auto and narrower base width for better centering on very small screens */}

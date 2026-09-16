@@ -51,7 +51,7 @@ export async function GET(
       const res = await fetch(`${CONVEX_URL}/api/query`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: "properties:getProperties", args: {} }),
+        body: JSON.stringify({ path: "properties:getProperties", args: { status: "all" } }),
       });
       const data = await res.json();
       if (Array.isArray(data?.value)) {

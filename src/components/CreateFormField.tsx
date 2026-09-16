@@ -66,12 +66,12 @@ export const CreateFormField: React.FC<CustomFormFieldProps> = ({
               <Textarea {...field} placeholder={placeholder} className={inputClassName} {...props} />
             ) : type === "select" ? (
               <Select onValueChange={field.onChange} defaultValue={field.value} {...props}>
-                <SelectTrigger className={`${inputClassName} bg-[#0B1120] text-white`}>
+                <SelectTrigger className={inputClassName}>
                   <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
-                <SelectContent className="bg-[#0B1120] border-[#1E2A45] text-white">
+                <SelectContent className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 shadow-lg">
                   {options.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="hover:bg-[#1E2A45]">
+                    <SelectItem key={option.value} value={option.value} className="hover:bg-slate-100 dark:hover:bg-zinc-900 focus:bg-slate-100 dark:focus:bg-zinc-900 cursor-pointer">
                       {option.label}
                     </SelectItem>
                   ))}

@@ -19,6 +19,7 @@ export interface Property {
   name: string;
   description?: string;
   propertyType: PropertyType;
+  status?: string;
   photoUrls: string[];
   images?: string[];      // Added images property
   beds: number;

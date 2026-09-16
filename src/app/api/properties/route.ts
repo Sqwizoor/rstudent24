@@ -23,6 +23,7 @@ function mapConvexProperty(p: any, idx: number): Property {
     name: p.name || 'Student Residence',
     description: p.description || '',
     propertyType: (p.propertyType as any) || 'APARTMENT',
+    status: p.status || 'Approved',
     photoUrls: images,
     images: images,
     beds: p.beds ?? 1,
@@ -72,11 +73,17 @@ export async function GET(request: NextRequest) {
     const longitudeParam = searchParams.get('longitude');
     const propertyName = searchParams.get('propertyName');
     const limitParam = searchParams.get('limit');
+    const locationParam = searchParams.get('location');
+    const cityParam = searchParams.get('city');
+    const orderByParam = searchParams.get('orderBy');
+    const favoriteIdsParam = searchParams.get('favoriteIds');
     
     let limit = 50;
     if (limitParam) {
       const parsed = parseInt(limitParam, 10);
-      if (!isNaN(parsed)) limit = Math.min(Math.max(parsed, 1), 100);
+      if (!isNaN(parsed) && parsed > 0) limit = parsed;
+    } else if (orderByParam === 'random') {
+      limit = 20;
     }
 
     let latNum: number | null = null;
@@ -86,7 +93,7 @@ export async function GET(request: NextRequest) {
       const [lngStr, latStr] = coordinates.split(',');
       const parsedLat = parseFloat(latStr);
       const parsedLng = parseFloat(lngStr);
-      if (Number.isFinite(parsedLat) && Number.isFinite(parsedLng)) {
+      if (Number.isFinite(parsedLat) && Number.isFinite(parsedLng) && (parsedLat !== 0 || parsedLng !== 0)) {
         latNum = parsedLat;
         lngNum = parsedLng;
       }
@@ -94,15 +101,28 @@ export async function GET(request: NextRequest) {
 
     if (latNum === null && latitudeParam) {
       const parsedLat = parseFloat(latitudeParam);
-      if (Number.isFinite(parsedLat)) latNum = parsedLat;
+      if (Number.isFinite(parsedLat) && parsedLat !== 0) latNum = parsedLat;
     }
     if (lngNum === null && longitudeParam) {
       const parsedLng = parseFloat(longitudeParam);
-      if (Number.isFinite(parsedLng)) lngNum = parsedLng;
+      if (Number.isFinite(parsedLng) && parsedLng !== 0) lngNum = parsedLng;
+    }
+
+    let inferredCity: string | null = null;
+    if (cityParam && cityParam.trim() && cityParam.toLowerCase() !== 'all') {
+      inferredCity = cityParam.trim();
+    } else if (locationParam && locationParam.trim()) {
+      const firstPart = locationParam.split(',')[0].trim();
+      if (firstPart && firstPart.toLowerCase() !== 'south africa' && firstPart.toLowerCase() !== 'all') {
+        inferredCity = firstPart;
+      }
     }
 
     let queryPath = 'properties:getProperties';
-    let queryArgs: any = { limit: 500 };
+    let queryArgs: any = { limit: 500, status: 'Approved' };
+    if (inferredCity) {
+      queryArgs.city = inferredCity;
+    }
 
     if (latNum !== null && lngNum !== null && (!propertyName || propertyName === 'any')) {
       queryPath = 'properties:getNearbyProperties';
@@ -110,7 +130,7 @@ export async function GET(request: NextRequest) {
         searchLat: latNum,
         searchLng: lngNum,
         radiusKm: 50,
-        limit,
+        limit: Math.max(limit, 50),
       };
       if (propertyType && propertyType !== 'any') queryArgs.propertyType = propertyType;
       if (priceMin) queryArgs.priceMin = Number(priceMin);
@@ -137,8 +157,26 @@ export async function GET(request: NextRequest) {
       const rawList = Array.isArray(data.value) ? data.value : [];
       
       let filtered = rawList;
+
+      // 1. STRICT FRONTEND FILTER: Only approved/active properties allowed!
+      filtered = filtered.filter((p: any) => {
+        const s = (p.status || '').toLowerCase().trim();
+        return s === 'approved' || s === 'active';
+      });
+
+      // 2. Filter by favoriteIds if requested
+      if (favoriteIdsParam) {
+        const favIds = favoriteIdsParam.split(',').map(s => s.trim()).filter(Boolean);
+        filtered = filtered.filter((p: any) => 
+          favIds.includes(String(p._id)) || 
+          favIds.includes(String(p.legacyId)) ||
+          favIds.includes(String(p.id))
+        );
+      }
+
+      // 3. Filter by propertyName if requested
       if (propertyName && propertyName !== 'any') {
-        const queryTerm = propertyName.toLowerCase();
+        const queryTerm = propertyName.toLowerCase().trim();
         filtered = filtered.filter((p: any) => 
           (p.name && p.name.toLowerCase().includes(queryTerm)) ||
           (p.address && p.address.toLowerCase().includes(queryTerm)) ||
@@ -146,10 +184,68 @@ export async function GET(request: NextRequest) {
         );
       }
 
+      // 4. Filter by city if location was provided and nearby search was not used
+      if (inferredCity && queryPath === 'properties:getProperties') {
+        const cityQuery = inferredCity.toLowerCase().trim();
+        filtered = filtered.filter((p: any) => 
+          (p.city && p.city.toLowerCase().includes(cityQuery)) ||
+          (p.address && p.address.toLowerCase().includes(cityQuery))
+        );
+      }
+
+      // 5. Filter by propertyType
+      if (propertyType && propertyType !== 'any') {
+        const pt = propertyType.toLowerCase().trim();
+        filtered = filtered.filter((p: any) => 
+          p.propertyType && p.propertyType.toLowerCase() === pt
+        );
+      }
+
+      // 6. Filter by priceMin and priceMax
+      if (priceMin) {
+        const minP = Number(priceMin);
+        if (!isNaN(minP)) {
+          filtered = filtered.filter((p: any) => (Number(p.pricePerMonth) || Number(p.price) || 0) >= minP);
+        }
+      }
+      if (priceMax) {
+        const maxP = Number(priceMax);
+        if (!isNaN(maxP)) {
+          filtered = filtered.filter((p: any) => (Number(p.pricePerMonth) || Number(p.price) || 0) <= maxP);
+        }
+      }
+
+      // 7. Filter by beds and baths
+      if (beds && beds !== 'any') {
+        const bedsNum = Number(beds);
+        if (!isNaN(bedsNum)) {
+          filtered = filtered.filter((p: any) => (p.beds ?? 1) >= bedsNum);
+        }
+      }
+      if (baths && baths !== 'any') {
+        const bathsNum = Number(baths);
+        if (!isNaN(bathsNum)) {
+          filtered = filtered.filter((p: any) => (p.baths ?? 1) >= bathsNum);
+        }
+      }
+
+      // 8. Order by random if requested (e.g. Home page)
+      if (orderByParam === 'random') {
+        for (let i = filtered.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+        }
+      }
+
+      // 9. Apply limit (e.g. 20 for home page)
+      if (limit && limit > 0) {
+        filtered = filtered.slice(0, limit);
+      }
+
       properties = filtered.map((p: any, idx: number) => mapConvexProperty(p, idx));
     }
 
-    console.log(`✅ Returned ${properties.length} properties from Convex`);
+    console.log(`✅ Returned ${properties.length} approved properties from Convex`);
 
     return NextResponse.json(properties, {
       headers: {

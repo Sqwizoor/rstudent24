@@ -50,7 +50,7 @@ export function MultiSelect({
           <div className="flex flex-wrap gap-1">
             {selected.length > 0 ? (
               selected.map((item) => (
-                <Badge key={item} variant="secondary" className="bg-[#0F1112] text-white border-[#0F1112] mr-1 mb-1">
+                <Badge key={item} variant="secondary" className="bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 border border-slate-200 dark:border-zinc-700 mr-1 mb-1 font-normal text-xs">
                   {item}
                   <button
                     className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
@@ -65,7 +65,7 @@ export function MultiSelect({
                     }}
                     onClick={() => handleRemove(item)}
                   >
-                    <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                    <X className="h-3 w-3 text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200" />
                   </button>
                 </Badge>
               ))
@@ -75,23 +75,29 @@ export function MultiSelect({
           </div>
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 bg-[#0B1120] border-[#1E2A45] text-white">
-        <Command className="bg-[#0B1120]">
-          <CommandGroup className="max-h-64 overflow-auto">
+      <PopoverContent className="w-full p-0 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 shadow-xl">
+        <Command className="bg-white dark:bg-zinc-950">
+          <CommandGroup className="max-h-64 overflow-auto p-1">
             {options.map((option) => {
               const isSelected = selected.includes(option.value)
               return (
                 <CommandItem
                   key={option.value}
                   onSelect={() => handleSelect(option.value)}
-                  className={`flex items-center gap-2 ${isSelected ? "bg-[#1E2A45]" : ""} hover:bg-[#1E2A45]`}
+                  className={`flex items-center gap-2 rounded-lg px-2 py-1.5 cursor-pointer text-xs sm:text-sm ${
+                    isSelected
+                      ? "bg-slate-100 dark:bg-zinc-800/80 font-medium text-slate-900 dark:text-white"
+                      : "text-slate-700 dark:text-zinc-300"
+                  } hover:bg-slate-100 dark:hover:bg-zinc-900`}
                 >
                   <div
-                    className={`mr-2 flex h-4 w-4 text-white items-center justify-center rounded-sm border ${
-                      isSelected ? "border-[#4F9CF9] bg-[#4F9CF9]" : "border-[#1E2A45] bg-transparent"
+                    className={`mr-2 flex h-4 w-4 items-center justify-center rounded border ${
+                      isSelected
+                        ? "border-blue-600 bg-blue-600 text-white"
+                        : "border-slate-300 dark:border-zinc-700 bg-transparent"
                     }`}
                   >
-                    {isSelected && <span className="text-white">✓</span>}
+                    {isSelected && <span className="text-white text-[10px] leading-none">✓</span>}
                   </div>
                   {option.label}
                 </CommandItem>

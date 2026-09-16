@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       const res = await fetch(`${CONVEX_URL}/api/query`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: "properties:getProperties", args: {} }),
+        body: JSON.stringify({ path: "properties:getProperties", args: { status: "all" } }),
       });
       if (res.ok) {
         const data = await res.json();

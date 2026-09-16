@@ -35,9 +35,10 @@ export const getNearbyProperties = query({
 
     // Fetch approved/active properties
     const allProps = await ctx.db.query("properties").order("desc").collect();
-    const properties = allProps.filter(
-      (p) => !p.status || p.status.toLowerCase() === "approved" || p.status.toLowerCase() === "active"
-    );
+    const properties = allProps.filter((p) => {
+      const s = (p.status || "").toLowerCase().trim();
+      return s === "approved" || s === "active";
+    });
 
     const matched = [];
 
@@ -106,10 +107,17 @@ export const getProperties = query({
   handler: async (ctx, args) => {
     let properties = await ctx.db.query("properties").order("desc").collect();
 
-    if (args.status && args.status !== "all") {
-      properties = properties.filter(
-        (p) => (p.status || "Approved").toLowerCase() === args.status?.toLowerCase()
-      );
+    if (args.status && args.status === "all") {
+      // Return all properties (admin view)
+    } else {
+      const targetStatus = (args.status || "Approved").toLowerCase().trim();
+      properties = properties.filter((p) => {
+        const s = (p.status || "").toLowerCase().trim();
+        if (targetStatus === "approved") {
+          return s === "approved" || s === "active";
+        }
+        return s === targetStatus;
+      });
     }
     if (args.city && args.city !== "all") {
       const cityQuery = args.city.toLowerCase();
