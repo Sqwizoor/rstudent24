@@ -52,8 +52,7 @@ const AdminNavbar = () => {
   return (
     <header className="fixed top-0 left-0 w-full z-50">
       <div 
-        className="flex justify-between items-center w-full px-6 md:px-8 transition-colors backdrop-blur-lg border-b
-                  bg-white/90 dark:bg-slate-900/90 border-slate-200 dark:border-slate-700/40"
+        className="flex justify-between items-center w-full px-6 md:px-8 transition-colors backdrop-blur-xl border-b bg-[#09090b]/95 border-zinc-800/80 text-zinc-100"
         style={{ height: `${NAVBAR_HEIGHT}px` }}
       >
         {/* Left section: Logo and admin title */}
@@ -78,9 +77,9 @@ const AdminNavbar = () => {
                       sizes="160px"
                     />
                   </picture>
-                  <div className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
-                    <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    <span className="font-medium text-blue-700 dark:text-blue-400 text-sm">Admin</span>
+                  <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full">
+                    <Shield className="h-4 w-4 text-emerald-400" />
+                    <span className="font-medium text-emerald-400 text-xs uppercase tracking-wider">Admin</span>
                   </div>
                 </div>
               </Link>
@@ -91,36 +90,36 @@ const AdminNavbar = () => {
         {/* Center section: Main navigation */}
         <nav className="hidden md:flex items-center gap-1">
           <Button
-            variant={pathname === "/admin" ? "default" : "ghost"}
+            variant="ghost"
             size="sm"
-            className="gap-2"
+            className={`gap-2 rounded-lg text-xs font-medium ${pathname === "/admin" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-900"}`}
             onClick={() => router.push("/admin")}
           >
             <LayoutDashboard className="h-4 w-4" />
             <span>Dashboard</span>
           </Button>
           <Button
-            variant={pathname.includes("/admin/students") ? "default" : "ghost"}
+            variant="ghost"
             size="sm"
-            className="gap-2"
+            className={`gap-2 rounded-lg text-xs font-medium ${pathname.includes("/admin/students") ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-900"}`}
             onClick={() => router.push("/admin/students")}
           >
             <Users className="h-4 w-4" />
             <span>Students</span>
           </Button>
           <Button
-            variant={pathname.includes("/admin/properties") ? "default" : "ghost"}
+            variant="ghost"
             size="sm"
-            className="gap-2"
+            className={`gap-2 rounded-lg text-xs font-medium ${pathname.includes("/admin/properties") ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-900"}`}
             onClick={() => router.push("/admin/properties")}
           >
             <Home className="h-4 w-4" />
             <span>Properties</span>
           </Button>
           <Button
-            variant={pathname.includes("/admin/analytics") ? "default" : "ghost"}
+            variant="ghost"
             size="sm"
-            className="gap-2"
+            className={`gap-2 rounded-lg text-xs font-medium ${pathname.includes("/admin/analytics") ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-900"}`}
             onClick={() => router.push("/admin/analytics")}
           >
             <BarChart4 className="h-4 w-4" />
@@ -129,7 +128,7 @@ const AdminNavbar = () => {
           <Button
             variant="ghost"
             size="sm"
-            className="gap-2"
+            className="gap-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-900"
             onClick={() => router.push("/")}
           >
             <Home className="h-4 w-4" />
@@ -146,43 +145,43 @@ const AdminNavbar = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-2 px-2 md:px-3"
+                className="gap-2 px-2 md:px-3 text-zinc-200 hover:bg-zinc-900 hover:text-white"
               >
-                <Avatar className="h-8 w-8 border-2 border-blue-200 dark:border-blue-800">
-                  <AvatarFallback className="bg-blue-600 text-white">
+                <Avatar className="h-8 w-8 border border-zinc-700">
+                  <AvatarFallback className="bg-zinc-800 text-white font-semibold">
                     {getUserInitial()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-start text-left">
-                  <span className="text-sm font-medium">
+                  <span className="text-xs font-medium text-white">
                     {authUser?.cognitoInfo?.username ? 
                       authUser.cognitoInfo.username.charAt(0).toUpperCase() + authUser.cognitoInfo.username.slice(1) : 
                       "Admin User"}
                   </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                  <span className="text-[10px] text-zinc-400">
                     Administrator
                   </span>
                 </div>
-                <ChevronDown className="h-4 w-4 text-slate-500" />
+                <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="bg-white dark:bg-slate-900 shadow-xl rounded-xl border border-slate-200 dark:border-slate-800 mt-2 p-1 min-w-[200px] animate-in fade-in-50 zoom-in-95 duration-200"
+              className="bg-zinc-950 shadow-2xl rounded-xl border border-zinc-800 mt-2 p-1.5 min-w-[200px] text-zinc-200 animate-in fade-in-50 zoom-in-95 duration-200"
               align="end"
               sideOffset={8}
             >
               <DropdownMenuItem
-                className="cursor-pointer py-2.5 px-3 my-1 rounded-md text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 flex items-center gap-2 text-sm"
+                className="cursor-pointer py-2 px-3 my-0.5 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors duration-150 flex items-center gap-2 text-xs"
                 onClick={() => router.push("/admin/settings")}
               >
-                <Settings className="w-4 h-4" />
+                <Settings className="w-4 h-4 text-zinc-400" />
                 <span>Settings</span>
               </DropdownMenuItem>
 
-              <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-800 my-1" />
+              <DropdownMenuSeparator className="bg-zinc-800 my-1" />
 
               <DropdownMenuItem
-                className="cursor-pointer py-2.5 px-3 my-1 rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 transition-colors duration-200 flex items-center gap-2 text-sm"
+                className="cursor-pointer py-2 px-3 my-0.5 rounded-lg text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-colors duration-150 flex items-center gap-2 text-xs"
                 onClick={handleSignOut}
               >
                 <LogOut className="w-4 h-4" />

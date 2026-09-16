@@ -247,20 +247,16 @@ export default function AdminApplicationsPage() {
       </div>
 
       {error ? (
-        <Card className="p-6 text-center text-sm text-red-500">
+        <Card className="p-8 text-center rounded-2xl border border-zinc-800 bg-zinc-950/70 text-rose-400 text-xs">
           Failed to load applications. Please try again later.
         </Card>
       ) : isLoading ? (
-        <Card className="space-y-3 p-6">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-28 rounded-md bg-gray-100 dark:bg-gray-800 animate-pulse"
-            />
-          ))}
-        </Card>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="h-10 w-10 border-2 border-zinc-800 border-t-white rounded-full animate-spin"></div>
+          <p className="mt-3 text-xs font-mono text-zinc-500">Loading applications...</p>
+        </div>
       ) : filteredApplications.length === 0 ? (
-        <Card className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+        <Card className="p-8 text-center rounded-2xl border border-zinc-800 bg-zinc-950/70 text-zinc-400 text-xs">
           No applications match the current filters.
         </Card>
       ) : (

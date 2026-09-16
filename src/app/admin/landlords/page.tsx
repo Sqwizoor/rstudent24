@@ -240,21 +240,21 @@ export default function LandlordsPage() {
 
       {/* Status change dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="border-zinc-800 bg-zinc-950 text-zinc-100 rounded-2xl">
           <DialogHeader>
-            <DialogTitle>Update Landlord Status</DialogTitle>
-            <DialogDescription>
-              You are about to change {selectedManager?.username || selectedManager?.email}&apos;s status to <strong>{newStatus}</strong>.
+            <DialogTitle className="text-white">Update Landlord Status</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              You are about to change {selectedManager?.username || selectedManager?.email}&apos;s status to <strong className="text-white">{newStatus}</strong>.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
+              <label className="text-sm font-medium text-zinc-300">Status</label>
               <Select value={newStatus} onValueChange={(val) => setNewStatus(val)}>
-                <SelectTrigger className="w-full sm:w-40">
+                <SelectTrigger className="w-full sm:w-40 border-zinc-800 bg-zinc-900 text-zinc-100">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="border-zinc-800 bg-zinc-950 text-zinc-100">
                   <SelectItem value="Pending">Pending</SelectItem>
                   <SelectItem value="Active">Active</SelectItem>
                   <SelectItem value="Disabled">Disabled</SelectItem>
@@ -263,17 +263,18 @@ export default function LandlordsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Notes (optional)</label>
+              <label className="text-sm font-medium text-zinc-300">Notes (optional)</label>
               <Textarea
                 placeholder="Add notes about this status change..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+                className="border-zinc-800 bg-zinc-900 text-zinc-100 placeholder:text-zinc-500 rounded-xl"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleStatusChange}>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white">Cancel</Button>
+            <Button onClick={handleStatusChange} className="bg-primary text-primary-foreground">
               Confirm Status Change
             </Button>
           </DialogFooter>
@@ -282,25 +283,25 @@ export default function LandlordsPage() {
       
       {/* Delete confirmation dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="border-zinc-800 bg-zinc-950 text-zinc-100 rounded-2xl">
           <DialogHeader>
-            <DialogTitle>Delete Landlord Account</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-white">Delete Landlord Account</DialogTitle>
+            <DialogDescription className="text-zinc-400">
               {selectedManager?.email === 'manager@example.com' ? (
                 <>
-                  You are about to delete the demo account for <strong>{selectedManager?.username || selectedManager?.email}</strong>. 
+                  You are about to delete the demo account for <strong className="text-white">{selectedManager?.username || selectedManager?.email}</strong>. 
                   This will remove the account and all associated demo properties.
                 </>
               ) : (
                 <>
-                  Are you sure you want to permanently delete <strong>{selectedManager?.username || selectedManager?.email}</strong>? 
+                  Are you sure you want to permanently delete <strong className="text-white">{selectedManager?.username || selectedManager?.email}</strong>? 
                   This action cannot be undone and will remove all properties managed by this account.
                 </>
               )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} className="border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white">Cancel</Button>
             <Button variant="destructive" onClick={handleDeleteManager}>
               {selectedManager?.email === 'manager@example.com' ? 'Delete Demo Account' : 'Permanently Delete'}
             </Button>

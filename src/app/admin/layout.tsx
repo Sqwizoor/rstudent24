@@ -37,6 +37,10 @@ export default function AdminLayout({
   const activeUser = authUser || unifiedUser;
 
   useEffect(() => {
+    if (typeof window !== "undefined" && document) {
+      document.documentElement.classList.remove("light");
+      document.documentElement.classList.add("dark");
+    }
     localStorage.setItem('isAdminAuthenticated', 'true');
     if (!isLoading && activeUser) {
       const userRole = ((activeUser as any)?.role || (activeUser as any)?.userRole || "").toLowerCase();

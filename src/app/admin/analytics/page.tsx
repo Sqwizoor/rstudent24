@@ -27,19 +27,20 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-7xl mx-auto p-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Analytics Dashboard</h1>
           <Button 
             variant="outline" 
             onClick={() => router.push('/admin')}
+            className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-9"
           >
             Back to Dashboard
           </Button>
         </div>
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Loading analytics data...</span>
+        <div className="flex items-center justify-center h-64 text-zinc-400">
+          <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+          <span className="ml-2 text-sm">Loading analytics data...</span>
         </div>
       </div>
     );
@@ -47,17 +48,18 @@ export default function AnalyticsPage() {
 
   if (error) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-7xl mx-auto p-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Analytics Dashboard</h1>
           <Button 
             variant="outline" 
             onClick={() => router.push('/admin')}
+            className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-9"
           >
             Back to Dashboard
           </Button>
         </div>
-        <div className="text-center text-red-600">
+        <div className="text-center text-rose-400 py-12">
           <p>Error loading analytics data. Please try again later.</p>
         </div>
       </div>
@@ -66,17 +68,18 @@ export default function AnalyticsPage() {
 
   if (!analyticsData) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-7xl mx-auto p-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Analytics Dashboard</h1>
           <Button 
             variant="outline" 
             onClick={() => router.push('/admin')}
+            className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white text-xs h-9"
           >
             Back to Dashboard
           </Button>
         </div>
-        <div className="text-center">
+        <div className="text-center text-zinc-400 py-12">
           <p>No analytics data available.</p>
         </div>
       </div>
@@ -176,18 +179,18 @@ export default function AnalyticsPage() {
 
       {/* Tabs for different analytics views */}
       <Tabs defaultValue="properties" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="properties">Property Analytics</TabsTrigger>
-          <TabsTrigger value="landlords">Landlord Analytics</TabsTrigger>
-          <TabsTrigger value="students">Student Analytics</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 bg-zinc-900 border border-zinc-800 text-zinc-400 p-1 rounded-xl">
+          <TabsTrigger value="properties" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white rounded-lg text-xs font-medium">Property Analytics</TabsTrigger>
+          <TabsTrigger value="landlords" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white rounded-lg text-xs font-medium">Landlord Analytics</TabsTrigger>
+          <TabsTrigger value="students" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white rounded-lg text-xs font-medium">Student Analytics</TabsTrigger>
         </TabsList>
         
         {/* Property Analytics */}
         <TabsContent value="properties" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             {/* Property Types */}
-            <Card className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Property Types</h3>
+            <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+              <h3 className="text-base font-semibold mb-4 text-white">Property Types</h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -205,16 +208,16 @@ export default function AnalyticsPage() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
-                    <Legend />
+                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #27272a', color: '#ffffff' }} />
+                    <Legend wrapperStyle={{ color: '#a1a1aa' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
             </Card>
             
             {/* Property Locations */}
-            <Card className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Property Locations</h3>
+            <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+              <h3 className="text-base font-semibold mb-4 text-white">Property Locations</h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -222,40 +225,40 @@ export default function AnalyticsPage() {
                     layout="vertical"
                     margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={80} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="count" fill="#8884d8" name="Properties" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                    <XAxis type="number" stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                    <YAxis dataKey="name" type="category" width={80} stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #27272a', color: '#ffffff' }} />
+                    <Legend wrapperStyle={{ color: '#a1a1aa' }} />
+                    <Bar dataKey="count" fill="#3b82f6" name="Properties" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </Card>
             
             {/* Price Ranges */}
-            <Card className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Price Ranges</h3>
+            <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+              <h3 className="text-base font-semibold mb-4 text-white">Price Ranges</h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={priceRangeData}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="count" fill="#82ca9d" name="Properties" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                    <XAxis dataKey="name" stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                    <YAxis stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #27272a', color: '#ffffff' }} />
+                    <Legend wrapperStyle={{ color: '#a1a1aa' }} />
+                    <Bar dataKey="count" fill="#10b981" name="Properties" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </Card>
             
             {/* Property Availability */}
-            <Card className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Property Status</h3>
+            <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+              <h3 className="text-base font-semibold mb-4 text-white">Property Status</h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -273,8 +276,8 @@ export default function AnalyticsPage() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
-                    <Legend />
+                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #27272a', color: '#ffffff' }} />
+                    <Legend wrapperStyle={{ color: '#a1a1aa' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -286,8 +289,8 @@ export default function AnalyticsPage() {
         <TabsContent value="landlords" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             {/* Top Landlords by Properties */}
-            <Card className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Top Landlords by Properties</h3>
+            <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+              <h3 className="text-base font-semibold mb-4 text-white">Top Landlords by Properties</h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -295,20 +298,20 @@ export default function AnalyticsPage() {
                     layout="vertical"
                     margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={100} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="properties" fill="#8884d8" name="Properties" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                    <XAxis type="number" stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                    <YAxis dataKey="name" type="category" width={100} stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #27272a', color: '#ffffff' }} />
+                    <Legend wrapperStyle={{ color: '#a1a1aa' }} />
+                    <Bar dataKey="properties" fill="#8b5cf6" name="Properties" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </Card>
             
             {/* Top Landlords by Applications */}
-            <Card className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Top Landlords by Applications</h3>
+            <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+              <h3 className="text-base font-semibold mb-4 text-white">Top Landlords by Applications</h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -316,20 +319,20 @@ export default function AnalyticsPage() {
                     layout="vertical"
                     margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={100} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="applications" fill="#82ca9d" name="Applications" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                    <XAxis type="number" stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                    <YAxis dataKey="name" type="category" width={100} stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #27272a', color: '#ffffff' }} />
+                    <Legend wrapperStyle={{ color: '#a1a1aa' }} />
+                    <Bar dataKey="applications" fill="#10b981" name="Applications" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </Card>
             
             {/* Top Landlords by Leases */}
-            <Card className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Top Landlords by Leases</h3>
+            <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+              <h3 className="text-base font-semibold mb-4 text-white">Top Landlords by Leases</h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -337,20 +340,20 @@ export default function AnalyticsPage() {
                     layout="vertical"
                     margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={100} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="leases" fill="#ffc658" name="Leases" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                    <XAxis type="number" stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                    <YAxis dataKey="name" type="category" width={100} stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #27272a', color: '#ffffff' }} />
+                    <Legend wrapperStyle={{ color: '#a1a1aa' }} />
+                    <Bar dataKey="leases" fill="#f59e0b" name="Leases" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </Card>
             
             {/* Landlord Status */}
-            <Card className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Landlord Status</h3>
+            <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+              <h3 className="text-base font-semibold mb-4 text-white">Landlord Status</h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -368,8 +371,8 @@ export default function AnalyticsPage() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
-                    <Legend />
+                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #27272a', color: '#ffffff' }} />
+                    <Legend wrapperStyle={{ color: '#a1a1aa' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -381,30 +384,30 @@ export default function AnalyticsPage() {
         <TabsContent value="students" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             {/* Student Activity Over Time */}
-            <Card className="p-4 md:col-span-2">
-              <h3 className="text-lg font-semibold mb-4">Student Activity Over Time</h3>
+            <Card className="p-5 md:col-span-2 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+              <h3 className="text-base font-semibold mb-4 text-white">Student Activity Over Time</h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={studentActivityData}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="favorites" fill="#8884d8" name="Favorites" />
-                    <Bar dataKey="applications" fill="#82ca9d" name="Applications" />
-                    <Bar dataKey="leases" fill="#ffc658" name="Leases" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                    <XAxis dataKey="month" stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                    <YAxis stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #27272a', color: '#ffffff' }} />
+                    <Legend wrapperStyle={{ color: '#a1a1aa' }} />
+                    <Bar dataKey="favorites" fill="#8b5cf6" name="Favorites" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="applications" fill="#10b981" name="Applications" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="leases" fill="#f59e0b" name="Leases" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </Card>
             
             {/* Student Preferences - Property Types */}
-            <Card className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Student Preferences - Property Types</h3>
+            <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+              <h3 className="text-base font-semibold mb-4 text-white">Student Preferences - Property Types</h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -422,16 +425,16 @@ export default function AnalyticsPage() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
-                    <Legend />
+                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #27272a', color: '#ffffff' }} />
+                    <Legend wrapperStyle={{ color: '#a1a1aa' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
             </Card>
             
             {/* Student Preferences - Price Range */}
-            <Card className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Student Preferences - Price Range</h3>
+            <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+              <h3 className="text-base font-semibold mb-4 text-white">Student Preferences - Price Range</h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -449,8 +452,8 @@ export default function AnalyticsPage() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
-                    <Legend />
+                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderRadius: '12px', border: '1px solid #27272a', color: '#ffffff' }} />
+                    <Legend wrapperStyle={{ color: '#a1a1aa' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>

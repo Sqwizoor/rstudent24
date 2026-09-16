@@ -79,144 +79,108 @@ export default function AdminSettings() {
   }
   
   return (
-    <div className={cn(
-      "max-w-3xl mx-auto",
-      isDark ? "text-white" : "text-slate-800"
-    )}>
-      <div className="flex items-center mb-6">
-        <Settings className="h-8 w-8 mr-3 text-blue-500" />
-        <h1 className="text-2xl font-bold">Admin Settings</h1>
+    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
+      <div className="flex items-center justify-between p-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-400">
+            <Settings className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Admin Settings</h1>
+            <p className="text-xs text-zinc-400 mt-0.5">Manage administrator profile, credentials, and notification details.</p>
+          </div>
+        </div>
       </div>
       
-      <div className={cn(
-        "rounded-lg p-6 shadow-md",
-        isDark ? "bg-slate-800" : "bg-white"
-      )}>
-        <h2 className="text-xl font-semibold mb-4">Account Information</h2>
+      <div className="rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400 font-mono mb-4">Account Information</h2>
         
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            {/* Name field */}
-            <div>
-              <label className={cn(
-                "block text-sm font-medium mb-1",
-                isDark ? "text-slate-300" : "text-slate-700"
-              )}>
-                <div className="flex items-center">
-                  <User className="h-4 w-4 mr-2" />
-                  Full Name
-                </div>
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className={cn(
-                  "w-full px-4 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:outline-none",
-                  isDark 
-                    ? "bg-slate-700 border-slate-600 text-white" 
-                    : "bg-white border-slate-300"
-                )}
-                placeholder="Your full name"
-              />
-            </div>
-            
-            {/* Email field */}
-            <div>
-              <label className={cn(
-                "block text-sm font-medium mb-1",
-                isDark ? "text-slate-300" : "text-slate-700"
-              )}>
-                <div className="flex items-center">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Email Address
-                </div>
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={cn(
-                  "w-full px-4 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:outline-none",
-                  isDark 
-                    ? "bg-slate-700 border-slate-600 text-white" 
-                    : "bg-white border-slate-300"
-                )}
-                placeholder="your.email@example.com"
-              />
-            </div>
-            
-            {/* Phone field */}
-            <div>
-              <label className={cn(
-                "block text-sm font-medium mb-1",
-                isDark ? "text-slate-300" : "text-slate-700"
-              )}>
-                <div className="flex items-center">
-                  <Phone className="h-4 w-4 mr-2" />
-                  Phone Number
-                </div>
-              </label>
-              <input
-                type="tel"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                className={cn(
-                  "w-full px-4 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:outline-none",
-                  isDark 
-                    ? "bg-slate-700 border-slate-600 text-white" 
-                    : "bg-white border-slate-300"
-                )}
-                placeholder="+27 12 345 6789"
-              />
-            </div>
-            
-            <div className="pt-4">
-              <button
-                type="submit"
-                disabled={isUpdating}
-                className={cn(
-                  "w-full flex items-center justify-center px-4 py-2 rounded-md font-medium text-white",
-                  isUpdating
-                    ? "bg-blue-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
-                )}
-              >
-                {isUpdating ? (
-                  <>
-                    <div className="h-4 w-4 mr-2 bg-white/30 rounded animate-pulse"></div>
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </button>
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Name field */}
+          <div>
+            <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5 text-zinc-500" />
+                Full Name
+              </div>
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full h-10 px-3 rounded-xl border border-zinc-800 bg-zinc-900 text-xs text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-600 focus:outline-none transition"
+              placeholder="Your full name"
+            />
+          </div>
+          
+          {/* Email field */}
+          <div>
+            <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5 text-zinc-500" />
+                Email Address
+              </div>
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full h-10 px-3 rounded-xl border border-zinc-800 bg-zinc-900 text-xs text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-600 focus:outline-none transition"
+              placeholder="your.email@example.com"
+            />
+          </div>
+          
+          {/* Phone field */}
+          <div>
+            <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5 text-zinc-500" />
+                Phone Number
+              </div>
+            </label>
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              className="w-full h-10 px-3 rounded-xl border border-zinc-800 bg-zinc-900 text-xs text-zinc-100 font-mono placeholder:text-zinc-500 focus:border-zinc-600 focus:outline-none transition"
+              placeholder="+27 12 345 6789"
+            />
+          </div>
+          
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={isUpdating}
+              className="w-full flex items-center justify-center gap-2 h-10 rounded-xl bg-white text-black font-semibold hover:bg-zinc-200 text-xs transition disabled:opacity-50"
+            >
+              {isUpdating ? (
+                <>
+                  <div className="h-3.5 w-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <Save className="h-3.5 w-3.5" />
+                  Save Changes
+                </>
+              )}
+            </button>
           </div>
         </form>
       </div>
       
-      <div className={cn(
-        "mt-6 rounded-lg p-6 shadow-md",
-        isDark ? "bg-slate-800" : "bg-white"
-      )}>
-        <h2 className="text-xl font-semibold mb-4">Account Status</h2>
-        <div className={cn(
-          "px-4 py-3 rounded-md",
-          isDark ? "bg-green-900/30 text-green-400" : "bg-green-100 text-green-700"
-        )}>
-          <div className="flex items-center">
-            <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
-            <span className="font-medium">Active Admin Account</span>
+      <div className="rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400 font-mono mb-3">Account Status</h2>
+        <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></div>
+            <span className="font-semibold text-xs text-emerald-400 uppercase tracking-wider">Active Admin Console</span>
           </div>
-          <p className="mt-1 text-sm">
-            You have full administrative privileges on the Student24 Rental App platform.
+          <p className="mt-1.5 text-xs text-emerald-200/80">
+            You have full administrative privileges on the Student24 platform.
           </p>
         </div>
       </div>

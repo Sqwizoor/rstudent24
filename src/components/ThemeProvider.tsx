@@ -11,26 +11,30 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   const [mounted, setMounted] = React.useState(false);
   const pathname = usePathname();
 
-  // Determine if we're on a dashboard page
+  const isAdminPage = pathname.startsWith("/admin");
   const isDashboardPage = pathname.includes("/managers") || 
                           pathname.includes("/tenants") || 
-                          pathname.includes("/admin");
+                          isAdminPage;
 
   // After mounting, we have access to the client's theme preferences
   React.useEffect(() => {
     setMounted(true);
     
-    // Force light theme on non-dashboard pages
-    if (!isDashboardPage && window && document) {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.classList.add('light');
+    if (typeof window !== "undefined" && document) {
+      if (isAdminPage) {
+        document.documentElement.classList.remove('light');
+        document.documentElement.classList.add('dark');
+      } else if (!isDashboardPage) {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+      }
     }
-  }, [isDashboardPage]);
+  }, [isDashboardPage, isAdminPage, pathname]);
 
-  // Create modified props to force light theme on non-dashboard pages
+  // Create modified props: force dark on admin, force light on non-dashboard pages
   const themeProps = {
     ...props,
-    forcedTheme: !isDashboardPage ? 'light' : undefined,
+    forcedTheme: isAdminPage ? 'dark' : (!isDashboardPage ? 'light' : undefined),
   };
 
   // Avoid rendering children until mounted on the client

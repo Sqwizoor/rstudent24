@@ -37,8 +37,6 @@ export default function LandlordDetailsPage() {
   const params = useParams();
   const id = params.id as string;
   
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
   const router = useRouter();
   
   const { data: landlord, isLoading, error: fetchError, refetch } = useGetManagerDetailsQuery(id);

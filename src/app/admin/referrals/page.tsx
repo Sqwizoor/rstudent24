@@ -238,70 +238,66 @@ export default function AdminReferralsPage() {
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4">
+        <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Referrals</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{stats.totalReferrals}</p>
+              <p className="text-xs font-medium text-zinc-400">Total Referrals</p>
+              <p className="text-2xl font-bold text-white mt-1">{stats.totalReferrals}</p>
             </div>
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-full">
-              <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+              <Users className="h-5 w-5 text-blue-400" />
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Completed</p>
-              <p className="text-2xl font-semibold text-green-900 dark:text-green-100">{stats.completedReferrals}</p>
+              <p className="text-xs font-medium text-zinc-400">Completed</p>
+              <p className="text-2xl font-bold text-white mt-1">{stats.completedReferrals}</p>
             </div>
-            <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-full">
-              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+              <CheckCircle className="h-5 w-5 text-emerald-400" />
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Pending</p>
-              <p className="text-2xl font-semibold text-amber-900 dark:text-amber-100">{stats.pendingReferrals}</p>
+              <p className="text-xs font-medium text-zinc-400">Pending</p>
+              <p className="text-2xl font-bold text-white mt-1">{stats.pendingReferrals}</p>
             </div>
-            <div className="p-2 bg-amber-100 dark:bg-amber-900/20 rounded-full">
-              <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+              <Clock className="h-5 w-5 text-amber-400" />
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Active Vouchers</p>
-              <p className="text-2xl font-semibold text-purple-900 dark:text-purple-100">{stats.activeVouchers}</p>
+              <p className="text-xs font-medium text-zinc-400">Active Vouchers</p>
+              <p className="text-2xl font-bold text-white mt-1">{stats.activeVouchers}</p>
             </div>
-            <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-full">
-              <Gift className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <div className="p-2.5 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+              <Gift className="h-5 w-5 text-purple-400" />
             </div>
           </div>
         </Card>
       </div>
 
       {error ? (
-        <Card className="p-6 text-center text-sm text-red-500">
+        <Card className="p-8 text-center rounded-2xl border border-zinc-800 bg-zinc-950/70 text-rose-400 text-xs">
           {error}
         </Card>
       ) : isLoading ? (
-        <Card className="space-y-3 p-6">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-28 rounded-md bg-gray-100 dark:bg-gray-800 animate-pulse"
-            />
-          ))}
-        </Card>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="h-10 w-10 border-2 border-zinc-800 border-t-white rounded-full animate-spin"></div>
+          <p className="mt-3 text-xs font-mono text-zinc-500">Loading referral directory...</p>
+        </div>
       ) : filteredReferrals.length === 0 ? (
-        <Card className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+        <Card className="p-8 text-center rounded-2xl border border-zinc-800 bg-zinc-950/70 text-zinc-400 text-xs">
           No referrals found matching the current filters.
         </Card>
       ) : (
@@ -312,26 +308,26 @@ export default function AdminReferralsPage() {
             const voucher = referral.vouchers[0];
 
             return (
-              <Card key={referral.id} className="p-5">
+              <Card key={referral.id} className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl text-zinc-100">
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        <h3 className="text-base font-semibold text-white">
                           {referral.referralCode}
                         </h3>
                         <Badge className={getStatusBadgeClass(referral.isCompleted)}>
                           {referral.isCompleted ? "Completed" : "Pending"}
                         </Badge>
                         {referral.voucherGenerated && (
-                          <Badge className="bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300">
+                          <Badge className="bg-purple-950/80 text-purple-300 border border-purple-800">
                             <Gift className="h-3 w-3 mr-1" />
                             Voucher Generated
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        <Calendar className="h-4 w-4" />
+                      <div className="flex items-center gap-2 text-xs text-zinc-400">
+                        <Calendar className="h-3.5 w-3.5" />
                         Created on {createdDate}
                         {referral.isCompleted && ` • Completed on ${completedDate}`}
                       </div>
@@ -339,90 +335,90 @@ export default function AdminReferralsPage() {
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4" />
+                    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+                      <h4 className="text-xs font-medium text-zinc-300 mb-2 flex items-center gap-2">
+                        <TrendingUp className="h-3.5 w-3.5 text-blue-400" />
                         Referrer (Who Shared)
                       </h4>
                       {referral.referrer ? (
-                        <div className="space-y-1 text-sm">
-                          <p className="font-medium text-gray-900 dark:text-gray-100">{referral.referrer.name}</p>
-                          <p className="text-gray-600 dark:text-gray-400">{referral.referrer.email}</p>
-                          <p className="text-gray-600 dark:text-gray-400">{referral.referrer.phoneNumber}</p>
+                        <div className="space-y-1 text-xs">
+                          <p className="font-semibold text-white">{referral.referrer.name}</p>
+                          <p className="text-zinc-400">{referral.referrer.email}</p>
+                          <p className="text-zinc-500 font-mono">{referral.referrer.phoneNumber}</p>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="mt-2"
+                            className="mt-2 rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white text-xs h-7"
                             onClick={() => router.push(`/admin/students/${referral.referrer?.id}`)}
                           >
                             View Profile
                           </Button>
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">No referrer data</p>
+                        <p className="text-xs text-zinc-500">No referrer data</p>
                       )}
                     </div>
 
-                    <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                        <Users className="h-4 w-4" />
+                    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+                      <h4 className="text-xs font-medium text-zinc-300 mb-2 flex items-center gap-2">
+                        <Users className="h-3.5 w-3.5 text-emerald-400" />
                         Referred (Who Joined)
                       </h4>
                       {referral.referred ? (
-                        <div className="space-y-1 text-sm">
-                          <p className="font-medium text-gray-900 dark:text-gray-100">{referral.referred.name}</p>
-                          <p className="text-gray-600 dark:text-gray-400">{referral.referred.email}</p>
-                          <p className="text-gray-600 dark:text-gray-400">{referral.referred.phoneNumber}</p>
+                        <div className="space-y-1 text-xs">
+                          <p className="font-semibold text-white">{referral.referred.name}</p>
+                          <p className="text-zinc-400">{referral.referred.email}</p>
+                          <p className="text-zinc-500 font-mono">{referral.referred.phoneNumber}</p>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="mt-2"
+                            className="mt-2 rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white text-xs h-7"
                             onClick={() => router.push(`/admin/students/${referral.referred?.id}`)}
                           >
                             View Profile
                           </Button>
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Pending sign-up</p>
+                        <p className="text-xs text-zinc-500">Pending sign-up</p>
                       )}
                     </div>
                   </div>
 
                   {voucher && (
-                    <div className="rounded-md bg-purple-50 dark:bg-purple-900/20 p-4">
+                    <div className="rounded-xl bg-purple-950/20 border border-purple-800/40 p-4">
                       <div className="flex items-start justify-between">
                         <div>
-                          <h4 className="font-medium text-purple-900 dark:text-purple-100 flex items-center gap-2">
-                            <Gift className="h-4 w-4" />
+                          <h4 className="font-semibold text-purple-200 flex items-center gap-2 text-xs">
+                            <Gift className="h-3.5 w-3.5 text-purple-400" />
                             Voucher Details
                           </h4>
-                          <div className="mt-2 space-y-1 text-sm">
-                            <p className="text-purple-700 dark:text-purple-300">
-                              <span className="font-medium">Code:</span> {voucher.code}
+                          <div className="mt-2 space-y-1 text-xs">
+                            <p className="text-purple-300">
+                              <span className="font-medium text-zinc-300">Code:</span> {voucher.code}
                             </p>
-                            <p className="text-purple-700 dark:text-purple-300">
-                              <span className="font-medium">Discount:</span> R{voucher.discountAmount}
+                            <p className="text-purple-300">
+                              <span className="font-medium text-zinc-300">Discount:</span> R{voucher.discountAmount}
                               {voucher.discountPercent && ` (${voucher.discountPercent}%)`}
                             </p>
-                            <p className="text-purple-700 dark:text-purple-300">
-                              <span className="font-medium">Status:</span> {voucher.status}
+                            <p className="text-purple-300">
+                              <span className="font-medium text-zinc-300">Status:</span> {voucher.status}
                             </p>
-                            <p className="text-purple-700 dark:text-purple-300">
-                              <span className="font-medium">Expires:</span> {formatDate(voucher.expiresAt)}
+                            <p className="text-purple-300">
+                              <span className="font-medium text-zinc-300">Expires:</span> {formatDate(voucher.expiresAt)}
                             </p>
                             {voucher.usedAt && (
-                              <p className="text-purple-700 dark:text-purple-300">
-                                <span className="font-medium">Used on:</span> {formatDate(voucher.usedAt)}
+                              <p className="text-purple-300">
+                                <span className="font-medium text-zinc-300">Used on:</span> {formatDate(voucher.usedAt)}
                               </p>
                             )}
                           </div>
                         </div>
                         <Badge className={
                           voucher.status === 'Active' 
-                            ? "bg-green-100 text-green-700" 
+                            ? "bg-emerald-950/80 text-emerald-400 border-emerald-800" 
                             : voucher.status === 'Used' 
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-gray-100 text-gray-700"
+                            ? "bg-blue-950/80 text-blue-400 border-blue-800"
+                            : "bg-zinc-800 text-zinc-300 border-zinc-700"
                         }>
                           {voucher.status}
                         </Badge>
