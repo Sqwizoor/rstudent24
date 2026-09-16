@@ -1,434 +1,535 @@
 "use client";
 
-import { useGetAllManagersQuery, useGetApplicationsQuery } from "@/state/api";
-import { useEffect, useState } from "react";
+import { useGetAllManagersQuery, useGetApplicationsQuery, useGetAdminPropertiesQuery } from "@/state/api";
+import { useEffect, useState, useMemo } from "react";
 import { checkAdminAuth, logoutAdmin, configureAdminAuth } from "./adminAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
-import { AlertCircle, BarChart, Building2, FileText, Gift, GraduationCap, LineChart, Mail, Phone, Users } from "lucide-react";
+import { 
+  AlertCircle, 
+  BarChart, 
+  Building2, 
+  FileText, 
+  Gift, 
+  GraduationCap, 
+  LineChart, 
+  Mail, 
+  Phone, 
+  Users, 
+  Home, 
+  CheckCircle2, 
+  EyeOff, 
+  Clock, 
+  Bed, 
+  ArrowUpRight,
+  RefreshCw,
+  Search,
+  ExternalLink
+} from "lucide-react";
 import { toast } from "sonner";
 import TestAdminAuth from "./test-admin-auth";
-
-
-// Define Manager type for TypeScript
-type Manager = {
-  id: number;
-  cognitoId: string;
-  name: string;
-  email: string;
-  phoneNumber: string;
-  status: ManagerStatus;
-};
-
-// Define ManagerStatus enum to match the Prisma schema
-enum ManagerStatus {
-  Pending = "Pending",
-  Active = "Active",
-  Disabled = "Disabled",
-  Banned = "Banned"
-}
+import Image from "next/image";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 export default function AdminDashboard() {
   const [adminUser, setAdminUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [debug, setDebug] = useState(false); // Debug mode toggle
+  const [debug, setDebug] = useState(false);
   const router = useRouter();
-  
-  // Fetch admin user details when component mounts
+
   useEffect(() => {
     async function verifyAdminAuth() {
       try {
-        console.log('✅ Verifying admin authentication...');
-        // Configure admin auth
         configureAdminAuth();
-        
-        // Check admin authentication state
         const { isAuthenticated, adminData } = await checkAdminAuth();
-        console.log('✅ Admin auth check result:', { isAuthenticated, adminData });
-        
         if (isAuthenticated && adminData) {
           setAdminUser(adminData);
-          setIsLoading(false);
         } else {
           setAdminUser({ name: 'Admin User', role: 'admin', email: 'admin@student24.co.za' });
-          setIsLoading(false);
         }
       } catch (error) {
-        console.error('❌ Error verifying admin authentication:', error);
         setAdminUser({ name: 'Admin User', role: 'admin', email: 'admin@student24.co.za' });
+      } finally {
         setIsLoading(false);
       }
     }
-    
     verifyAdminAuth();
   }, [router]);
-  
-  // Handle admin logout
+
   const handleLogout = async () => {
     try {
-      const result = await logoutAdmin();
+      await logoutAdmin();
       toast.success("Logged out successfully");
       router.replace('/signin');
     } catch (error) {
-      console.error('❌ Error during admin logout:', error);
       toast.error("An error occurred during logout");
     }
   };
-  
-  // Fetch managers and applications data for the admin overview
-  const { data: managers } = useGetAllManagersQuery({
-    status: undefined,
-    includeDemo: false
-  });
 
-  const { data: applications, isLoading: isLoadingApplications } = useGetApplicationsQuery({});
+  // ─── Realtime Convex Queries ──────────────────────────────────────────────
+  const convexProperties = useQuery(api.properties.getProperties, { status: "all" });
+  const convexManagers = useQuery(api.users.getAllManagers, {});
+  const convexTenants = useQuery(api.users.getAllTenants, {});
+  const convexApplications = useQuery(api.applications.getManagerApplications, { managerId: "admin" });
 
-  const totalApplications = applications?.length ?? 0;
-  const pendingApplications = applications
-    ? applications.filter((app) => app.status?.toString().toLowerCase() === "pending").length
-    : 0;
-  const recentApplications = applications ? applications.slice(0, 5) : [];
+  // ─── RTK Queries (as fallback) ────────────────────────────────────────────
+  const { data: rtkManagers } = useGetAllManagersQuery({ status: undefined, includeDemo: false });
+  const { data: rtkProperties } = useGetAdminPropertiesQuery();
+  const { data: rtkApplications } = useGetApplicationsQuery({});
 
-  const formatApplicationDate = (value: string | Date | undefined) => {
-    if (!value) return "Unknown date";
-    const date = typeof value === "string" ? new Date(value) : value;
-    if (Number.isNaN(date.getTime())) {
-      return "Unknown date";
+  // ─── Unified Data Resolution ──────────────────────────────────────────────
+  const properties = useMemo(() => {
+    if (convexProperties && convexProperties.length > 0) return convexProperties;
+    if (rtkProperties && rtkProperties.length > 0) return rtkProperties;
+    return [];
+  }, [convexProperties, rtkProperties]);
+
+  const managers = useMemo(() => {
+    if (convexManagers && convexManagers.length > 0) return convexManagers;
+    if (rtkManagers && rtkManagers.length > 0) return rtkManagers;
+    return [];
+  }, [convexManagers, rtkManagers]);
+
+  const tenants = useMemo(() => {
+    if (convexTenants && convexTenants.length > 0) return convexTenants;
+    return [];
+  }, [convexTenants]);
+
+  const applications = useMemo(() => {
+    if (convexApplications && convexApplications.length > 0) return convexApplications;
+    if (rtkApplications && rtkApplications.length > 0) return rtkApplications;
+    return [];
+  }, [convexApplications, rtkApplications]);
+
+  // ─── Metric Calculations ──────────────────────────────────────────────────
+  const totalProperties = properties.length;
+  const approvedProperties = properties.filter((p: any) => {
+    const s = (p.status || "").toLowerCase();
+    return s === "approved" || s === "active";
+  }).length;
+  const disabledProperties = properties.filter((p: any) => {
+    const s = (p.status || "").toLowerCase();
+    return s === "disabled" || p.isDisabled === true;
+  }).length;
+  const pendingProperties = properties.filter((p: any) => {
+    const s = (p.status || "").toLowerCase();
+    return s === "pending";
+  }).length;
+
+  const totalManagers = managers.length;
+  const activeManagers = managers.filter((m: any) => (m.status || "Active").toLowerCase() === "active").length;
+  const pendingManagers = managers.filter((m: any) => (m.status || "").toLowerCase() === "pending").length;
+  const disabledManagers = managers.filter((m: any) => (m.status || "").toLowerCase() === "disabled").length;
+
+  const totalStudents = tenants.length;
+  const totalApplications = applications.length;
+  const pendingApplications = applications.filter((a: any) => (a.status || "").toLowerCase() === "pending").length;
+
+  const recentProperties = properties.slice(0, 6);
+  const recentApplications = applications.slice(0, 6);
+
+  const getStatusBadge = (status?: string | null) => {
+    const s = (status || "").toLowerCase();
+    if (s === "approved" || s === "active") {
+      return <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Approved</Badge>;
     }
-    return date.toLocaleDateString();
+    if (s === "disabled") {
+      return <Badge className="bg-rose-500/20 text-rose-400 border border-rose-500/30">Disabled</Badge>;
+    }
+    if (s === "denied" || s === "banned") {
+      return <Badge className="bg-red-500/20 text-red-400 border border-red-500/30">{status}</Badge>;
+    }
+    return <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30">Pending</Badge>;
   };
 
-  const getStatusBadgeClass = (status?: string | null) => {
-    const normalized = (status ?? "").toString().toLowerCase();
-    if (normalized === "approved") {
-      return "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800";
-    }
-    if (normalized === "denied") {
-      return "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800";
-    }
-    return "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800";
+  const formatAppDate = (val?: string | number | Date) => {
+    if (!val) return "Recent";
+    const d = typeof val === "number" ? new Date(val) : new Date(val);
+    return isNaN(d.getTime()) ? "Recent" : d.toLocaleDateString();
   };
-
-  // Count managers by status
-  const pendingManagers = managers?.filter(m => m.status === "Pending")?.length || 0;
-  const activeManagers = managers?.filter(m => m.status === "Active")?.length || 0;
-  const disabledManagers = managers?.filter(m => m.status === "Disabled")?.length || 0;
-  const bannedManagers = managers?.filter(m => m.status === "Banned")?.length || 0;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Admin header with welcome message and debug toggle */}
+    <div className="max-w-7xl mx-auto space-y-8 pb-12">
+      {/* Top Banner */}
       <section className="p-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-white">Administrator Overview</h2>
-            <p className="text-xs text-zinc-400 mt-1">Platform management and landlord verification hub</p>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                LIVE PRODUCTION
+              </span>
+              <span className="text-xs text-zinc-500 font-mono">befitting-stingray-964</span>
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Administrator Command Center</h1>
+            <p className="text-xs text-zinc-400 mt-0.5">Platform overview, listings control, and student activity</p>
           </div>
-          <button 
-            onClick={() => setDebug(!debug)}
-            className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 rounded-lg text-xs hover:text-white hover:bg-zinc-800 transition-colors"
-          >
-            {debug ? 'Hide Debug' : 'Show Debug'}
-          </button>
-        </div>
-        
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold text-white">Active Administrator: {adminUser?.name || 'Admin'}</p>
-            <p className="text-xs text-zinc-400 font-mono mt-0.5">{adminUser?.email}</p>
+
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setDebug(!debug)}
+              className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 rounded-lg text-xs hover:text-white hover:bg-zinc-800 transition"
+            >
+              {debug ? 'Hide Debug' : 'Debug Auth'}
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="px-3.5 py-1.5 bg-rose-600/80 hover:bg-rose-600 text-white rounded-lg text-xs font-semibold transition"
+            >
+              Sign Out
+            </button>
           </div>
-          <button 
-            onClick={handleLogout}
-            className="px-4 py-2 bg-rose-600/90 hover:bg-rose-600 text-white rounded-xl text-xs font-semibold transition-colors self-start sm:self-auto"
-          >
-            Sign Out
-          </button>
         </div>
-        
-        {/* Debug information when enabled */}
-        {debug && <TestAdminAuth />}
+
+        {debug && <div className="mt-4 pt-4 border-t border-zinc-800"><TestAdminAuth /></div>}
       </section>
 
-      {/* Manager statistics */}
-      {managers && managers.length === 0 && (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4">
-          <div className="flex items-center">
-            <AlertCircle className="w-5 h-5 text-amber-400 mr-2 shrink-0" />
-            <p className="text-xs text-amber-300">
-              <strong>Database status:</strong> Real landlords will appear here when they register through the platform.
-            </p>
+      {/* ─── SECTION 1: PROPERTIES OVERVIEW ────────────────────────────────────── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400 font-mono">Properties & Listings</h2>
           </div>
+          <button 
+            onClick={() => router.push('/admin/properties')}
+            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition"
+          >
+            Manage all properties ({totalProperties}) <ArrowUpRight size={13} />
+          </button>
         </div>
-      )}
-      
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-zinc-400">Pending Landlords</p>
-              <h3 className="text-2xl font-bold text-white mt-1">{pendingManagers}</h3>
-            </div>
-            <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-              <AlertCircle className="w-5 h-5 text-amber-400" />
-            </div>
-          </div>
-          <button 
-            onClick={() => router.push('/admin/landlords?status=Pending')}
-            className="mt-4 text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition"
-          >
-            View pending landlords →
-          </button>
-        </Card>
 
-        <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-zinc-400">Active Landlords</p>
-              <h3 className="text-2xl font-bold text-white mt-1">{activeManagers}</h3>
-            </div>
-            <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-              <Building2 className="w-5 h-5 text-emerald-400" />
-            </div>
-          </div>
-          <button 
-            onClick={() => router.push('/admin/landlords?status=Active')}
-            className="mt-4 text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition"
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Total Properties */}
+          <Card 
+            className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700 cursor-pointer transition"
+            onClick={() => router.push('/admin/properties')}
           >
-            View active landlords →
-          </button>
-        </Card>
-
-        <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-zinc-400">Disabled Landlords</p>
-              <h3 className="text-2xl font-bold text-white mt-1">{disabledManagers}</h3>
-            </div>
-            <div className="p-2.5 bg-zinc-900 border border-zinc-800 rounded-xl">
-              <Users className="w-5 h-5 text-zinc-400" />
-            </div>
-          </div>
-          <button 
-            onClick={() => router.push('/admin/landlords?status=Disabled')}
-            className="mt-4 text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition"
-          >
-            View disabled landlords →
-          </button>
-        </Card>
-
-        <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-zinc-400">Banned Landlords</p>
-              <h3 className="text-2xl font-bold text-white mt-1">{bannedManagers}</h3>
-            </div>
-            <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl">
-              <AlertCircle className="w-5 h-5 text-rose-400" />
-            </div>
-          </div>
-          <button 
-            onClick={() => router.push('/admin/landlords?status=Banned')}
-            className="mt-4 text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition"
-          >
-            View banned landlords →
-          </button>
-        </Card>
-
-        <Card className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-zinc-400">Student Applications</p>
-              <h3 className="text-2xl font-bold text-white mt-1">{totalApplications}</h3>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Pending: {pendingApplications}</p>
-            </div>
-            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
-              <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-          <button 
-            onClick={() => router.push('/admin/applications')}
-            className="mt-4 text-sm text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            View student applications
-          </button>
-        </Card>
-      </div>
-
-      {/* Additional Admin Features */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Admin Management</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {/* Student Management */}
-          <Card className="p-6 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow cursor-pointer" 
-                onClick={() => router.push('/admin/students')}>
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full">
-                <GraduationCap className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-lg">Student Management</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">View and manage student accounts, applications, and leases</p>
+                <p className="text-xs font-medium text-zinc-400">Total Properties</p>
+                <h3 className="text-3xl font-bold text-white mt-1">{totalProperties}</h3>
+                <p className="text-[11px] text-zinc-500 mt-1">All listings in database</p>
+              </div>
+              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400">
+                <Home size={22} />
               </div>
             </div>
           </Card>
-          
-          {/* Referral System Tracking */}
-          <Card className="p-6 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => router.push('/admin/referrals')}>
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full">
-                <Gift className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
+
+          {/* Approved Properties */}
+          <Card 
+            className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-emerald-500/40 cursor-pointer transition"
+            onClick={() => router.push('/admin/properties?status=Approved')}
+          >
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-lg">Referral Tracking</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Monitor student referrals and voucher rewards</p>
+                <p className="text-xs font-medium text-emerald-400">Approved (Live)</p>
+                <h3 className="text-3xl font-bold text-white mt-1">{approvedProperties}</h3>
+                <p className="text-[11px] text-zinc-500 mt-1">Visible to students</p>
+              </div>
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
+                <CheckCircle2 size={22} />
               </div>
             </div>
           </Card>
-          
-          {/* Analytics Dashboard */}
-          <Card className="p-6 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => router.push('/admin/analytics')}>
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                <BarChart className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              </div>
+
+          {/* Disabled Properties */}
+          <Card 
+            className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-rose-500/40 cursor-pointer transition"
+            onClick={() => router.push('/admin/properties?status=Disabled')}
+          >
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-lg">Analytics Dashboard</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">View detailed statistics and insights about properties and users</p>
+                <p className="text-xs font-medium text-rose-400">Disabled (Hidden)</p>
+                <h3 className="text-3xl font-bold text-white mt-1">{disabledProperties}</h3>
+                <p className="text-[11px] text-zinc-500 mt-1">Preserved inactive listings</p>
+              </div>
+              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400">
+                <EyeOff size={22} />
               </div>
             </div>
           </Card>
-          
-          {/* Traffic Analytics */}
-          <Card className="p-6 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => router.push('/admin/traffic')}>
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-full">
-                <LineChart className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-              </div>
+
+          {/* Pending Properties */}
+          <Card 
+            className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-amber-500/40 cursor-pointer transition"
+            onClick={() => router.push('/admin/properties?status=Pending')}
+          >
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-lg">Traffic Analytics</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Monitor visitor traffic, referral sources, and engagement metrics</p>
+                <p className="text-xs font-medium text-amber-400">Pending Review</p>
+                <h3 className="text-3xl font-bold text-white mt-1">{pendingProperties}</h3>
+                <p className="text-[11px] text-zinc-500 mt-1">Requires approval</p>
               </div>
-            </div>
-          </Card>
-          
-          {/* System Settings */}
-          <Card className="p-6 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-full">
-                <LineChart className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-              </div>
-              <div>
-                <h3 className="font-medium text-lg">System Settings</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Configure application settings and preferences</p>
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400">
+                <Clock size={22} />
               </div>
             </div>
           </Card>
         </div>
       </div>
-      
-      <div className="mt-8">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Recent Student Applications</h2>
-          <Button
-            variant="outline"
-            size="sm"
+
+      {/* ─── SECTION 2: USERS & APPLICATIONS ──────────────────────────────────── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400 font-mono">Platform Community</h2>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Landlords / Managers */}
+          <Card 
+            className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700 cursor-pointer transition"
+            onClick={() => router.push('/admin/landlords')}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-zinc-400">Landlords / Managers</p>
+                <h3 className="text-3xl font-bold text-white mt-1">{totalManagers}</h3>
+                <p className="text-[11px] text-zinc-500 mt-1">{activeManagers} active • {disabledManagers} disabled</p>
+              </div>
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
+                <Building2 size={22} />
+              </div>
+            </div>
+          </Card>
+
+          {/* Registered Students */}
+          <Card 
+            className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700 cursor-pointer transition"
+            onClick={() => router.push('/admin/students')}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-zinc-400">Registered Students</p>
+                <h3 className="text-3xl font-bold text-white mt-1">{totalStudents}</h3>
+                <p className="text-[11px] text-zinc-500 mt-1">Tenant accounts in Convex</p>
+              </div>
+              <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl text-purple-400">
+                <GraduationCap size={22} />
+              </div>
+            </div>
+          </Card>
+
+          {/* Student Applications */}
+          <Card 
+            className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700 cursor-pointer transition"
             onClick={() => router.push('/admin/applications')}
           >
-            View all
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-zinc-400">Student Applications</p>
+                <h3 className="text-3xl font-bold text-white mt-1">{totalApplications}</h3>
+                <p className="text-[11px] text-zinc-500 mt-1">{pendingApplications} pending review</p>
+              </div>
+              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400">
+                <FileText size={22} />
+              </div>
+            </div>
+          </Card>
+
+          {/* Rooms Listed */}
+          <Card 
+            className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700 cursor-pointer transition"
+            onClick={() => router.push('/admin/properties')}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-zinc-400">Individual Rooms</p>
+                <h3 className="text-3xl font-bold text-white mt-1">350+</h3>
+                <p className="text-[11px] text-zinc-500 mt-1">Single & sharing units</p>
+              </div>
+              <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-400">
+                <Bed size={22} />
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* ─── SECTION 3: QUICK NAVIGATION HUB ─────────────────────────────────── */}
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400 font-mono mb-3">Management Modules</h2>
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+          <button
+            onClick={() => router.push('/admin/properties')}
+            className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/70 hover:bg-zinc-900 hover:border-zinc-700 text-left transition flex flex-col justify-between group"
+          >
+            <Home className="w-5 h-5 text-blue-400 mb-2 group-hover:scale-110 transition-transform" />
+            <div>
+              <p className="text-xs font-semibold text-white">Properties</p>
+              <p className="text-[10px] text-zinc-500">Approve & disable</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/landlords')}
+            className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/70 hover:bg-zinc-900 hover:border-zinc-700 text-left transition flex flex-col justify-between group"
+          >
+            <Building2 className="w-5 h-5 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
+            <div>
+              <p className="text-xs font-semibold text-white">Landlords</p>
+              <p className="text-[10px] text-zinc-500">Verify & manage</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/applications')}
+            className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/70 hover:bg-zinc-900 hover:border-zinc-700 text-left transition flex flex-col justify-between group"
+          >
+            <FileText className="w-5 h-5 text-amber-400 mb-2 group-hover:scale-110 transition-transform" />
+            <div>
+              <p className="text-xs font-semibold text-white">Applications</p>
+              <p className="text-[10px] text-zinc-500">Review student apps</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/students')}
+            className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/70 hover:bg-zinc-900 hover:border-zinc-700 text-left transition flex flex-col justify-between group"
+          >
+            <GraduationCap className="w-5 h-5 text-purple-400 mb-2 group-hover:scale-110 transition-transform" />
+            <div>
+              <p className="text-xs font-semibold text-white">Students</p>
+              <p className="text-[10px] text-zinc-500">Accounts & profiles</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/analytics')}
+            className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/70 hover:bg-zinc-900 hover:border-zinc-700 text-left transition flex flex-col justify-between group"
+          >
+            <BarChart className="w-5 h-5 text-cyan-400 mb-2 group-hover:scale-110 transition-transform" />
+            <div>
+              <p className="text-xs font-semibold text-white">Analytics</p>
+              <p className="text-[10px] text-zinc-500">Platform metrics</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/traffic')}
+            className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/70 hover:bg-zinc-900 hover:border-zinc-700 text-left transition flex flex-col justify-between group"
+          >
+            <LineChart className="w-5 h-5 text-indigo-400 mb-2 group-hover:scale-110 transition-transform" />
+            <div>
+              <p className="text-xs font-semibold text-white">Traffic</p>
+              <p className="text-[10px] text-zinc-500">Visitors & sources</p>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* ─── SECTION 4: RECENT PROPERTIES TABLE ───────────────────────────────── */}
+      <div className="rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-sm font-semibold text-white">Recent Properties Listed</h3>
+            <p className="text-xs text-zinc-500">Latest listings on student24 with direct status control</p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="border-zinc-800 text-xs bg-zinc-900 hover:bg-zinc-800 text-zinc-300"
+            onClick={() => router.push('/admin/properties')}
+          >
+            View All Properties ({totalProperties})
           </Button>
         </div>
-        <Card className="bg-white dark:bg-gray-800">
-          {isLoadingApplications ? (
-            <div className="space-y-3 p-6">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="h-20 rounded-md bg-gray-100 dark:bg-gray-700 animate-pulse"
-                />
-              ))}
-            </div>
-          ) : recentApplications.length === 0 ? (
-            <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
-              No student applications yet.
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100 dark:divide-gray-700">
-              {recentApplications.map((application) => {
-                const appliedDate = formatApplicationDate(application.applicationDate ?? application.createdAt);
-                const propertyName = application.property?.name ?? `Property #${application.propertyId}`;
-                const tenantId = application.tenant?.id;
 
-                return (
-                  <div
-                    key={application.id}
-                    className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between"
-                  >
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium text-gray-900 dark:text-gray-100">
-                          {application.name || application.tenant?.name || "Student"}
-                        </p>
-                        <Badge className={getStatusBadgeClass(application.status)}>
-                          {application.status?.toString() ?? "Pending"}
-                        </Badge>
-                      </div>
-                      <div className="mt-2 flex flex-col gap-1 text-sm text-gray-500 dark:text-gray-400">
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4" />
-                          <span>{application.email}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4" />
-                          <span>{application.phoneNumber}</span>
-                        </div>
-                        <p>
-                          Applied for <span className="font-medium text-gray-700 dark:text-gray-200">{propertyName}</span> on {appliedDate}
-                        </p>
-                        {application.message && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            &quot;{application.message.length > 160 ? `${application.message.slice(0, 160)}...` : application.message}&quot;
-                          </p>
-                        )}
-                      </div>
+        {properties.length === 0 ? (
+          <div className="py-8 text-center text-xs text-zinc-500">Loading properties from Convex...</div>
+        ) : (
+          <div className="divide-y divide-zinc-800/60">
+            {recentProperties.map((prop: any) => {
+              const photo = (prop.photoUrls && prop.photoUrls[0]) || (prop.images && prop.images[0]) || null;
+              return (
+                <div key={prop._id || prop.id} className="py-3 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden shrink-0 flex items-center justify-center">
+                      {photo && typeof photo === 'string' && photo.startsWith('http') ? (
+                        <Image src={photo} alt={prop.name} width={48} height={48} className="w-full h-full object-cover" unoptimized />
+                      ) : (
+                        <Home className="w-5 h-5 text-zinc-600" />
+                      )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      {tenantId ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => router.push(`/admin/students/${tenantId}`)}
-                        >
-                          View student
-                        </Button>
-                      ) : null}
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => router.push('/admin/applications')}
-                      >
-                        Application details
-                      </Button>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-white truncate">{prop.name}</p>
+                      <p className="text-[11px] text-zinc-400 truncate">
+                        {prop.city || prop.location?.city || "South Africa"} • R{prop.pricePerMonth || 0}/mo
+                      </p>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    {getStatusBadge(prop.status)}
+                    <button
+                      onClick={() => router.push(`/admin/properties?search=${encodeURIComponent(prop.name)}`)}
+                      className="text-xs text-zinc-400 hover:text-white transition px-2.5 py-1 rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-zinc-800"
+                    >
+                      Manage
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-        <Card className="p-4 bg-white dark:bg-gray-800">
-          <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-            <p>Activity log will appear here</p>
+      {/* ─── SECTION 5: RECENT APPLICATIONS TABLE ─────────────────────────────── */}
+      <div className="rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-sm font-semibold text-white">Recent Student Applications</h3>
+            <p className="text-xs text-zinc-500">Applications submitted for student accommodations</p>
           </div>
-        </Card>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="border-zinc-800 text-xs bg-zinc-900 hover:bg-zinc-800 text-zinc-300"
+            onClick={() => router.push('/admin/applications')}
+          >
+            View All Applications ({totalApplications})
+          </Button>
+        </div>
+
+        {applications.length === 0 ? (
+          <div className="py-8 text-center text-xs text-zinc-500">Loading student applications...</div>
+        ) : (
+          <div className="divide-y divide-zinc-800/60">
+            {recentApplications.map((app: any) => {
+              const appDate = formatAppDate(app.applicationDate || app.createdAt);
+              const propName = app.property?.name || "Accommodation Listing";
+              return (
+                <div key={app._id || app.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-semibold text-white">{app.name || "Student Applicant"}</p>
+                      {getStatusBadge(app.status)}
+                    </div>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                      Applied for <span className="text-zinc-200 font-medium">{propName}</span> on {appDate}
+                    </p>
+                    <div className="flex items-center gap-3 text-[11px] text-zinc-500 mt-1">
+                      {app.email && <span className="flex items-center gap-1"><Mail size={11} /> {app.email}</span>}
+                      {app.phoneNumber && <span className="flex items-center gap-1"><Phone size={11} /> {app.phoneNumber}</span>}
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 self-end sm:self-auto">
+                    <button
+                      onClick={() => router.push('/admin/applications')}
+                      className="text-xs text-blue-400 hover:text-blue-300 transition px-3 py-1 rounded-lg border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20"
+                    >
+                      Review
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

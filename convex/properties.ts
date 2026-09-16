@@ -587,6 +587,7 @@ export const createPropertyWithStatus = mutation({
     squareFeet: v.optional(v.number()),
     propertyType: v.string(),
     images: v.array(v.id("_storage")),
+    photoUrls: v.optional(v.array(v.string())),
     amenities: v.array(v.string()),
     highlights: v.array(v.string()),
     accreditedBy: v.optional(v.array(v.string())),

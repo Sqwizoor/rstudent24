@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
 
-const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
 
 const DEFAULT_MANAGERS = [
   { id: "mgr_southpoint_01", cognitoId: "mgr_southpoint_01", name: "Southpoint Accommodation", email: "info@staysouthpoint.co.za", phoneNumber: "+27 11 200 0000", status: "Active" },

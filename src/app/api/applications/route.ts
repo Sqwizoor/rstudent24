@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
 
     // Merge applications from Convex
     try {
-      const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+      const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
       const managerIdToQuery = isAdmin ? "admin" : (userId || authResult.userId || "admin");
       const res = await fetch(`${CONVEX_URL}/api/query`, {
         method: "POST",
