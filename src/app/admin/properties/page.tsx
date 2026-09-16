@@ -367,13 +367,13 @@ export default function AdminPropertiesPage() {
       </div>
       
       {/* Properties count */}
-      <div className="text-sm text-slate-500 dark:text-slate-400 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 flex items-center">
-        <Filter className="h-4 w-4 mr-2 text-blue-500" />
-        Showing <span className="font-semibold mx-1 text-blue-600 dark:text-blue-400">{sortedProperties.length}</span> of <span className="font-semibold mx-1 text-blue-600 dark:text-blue-400">{properties?.length || 0}</span> properties
+      <div className="text-xs text-zinc-400 bg-zinc-950/70 p-3 rounded-xl border border-zinc-800/80 flex items-center">
+        <Filter className="h-4 w-4 mr-2 text-blue-400" />
+        Showing <span className="font-semibold mx-1 text-blue-400">{sortedProperties.length}</span> of <span className="font-semibold mx-1 text-blue-400">{properties?.length || 0}</span> properties
       </div>
       
       {/* Properties - Responsive Layout */}
-      <Card className="border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
+      <Card className="border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl shadow-md overflow-hidden rounded-2xl">
         {/* Mobile Card Layout */}
         <div className="block lg:hidden">
           {paginatedProperties.length > 0 ? (
@@ -568,103 +568,107 @@ export default function AdminPropertiesPage() {
           )}
         </div>
 
-        {/* Desktop Table Layout */}
-        <div className="hidden lg:block">
-          <Table>
+        {/* Desktop Table Layout - No horizontal scroll */}
+        <div className="hidden lg:block overflow-hidden">
+          <Table containerClassName="overflow-hidden" className="w-full table-fixed border-collapse">
             <TableHeader>
-              <TableRow>
-                <TableHead>Property</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Landlord</TableHead>
-                <TableHead>Rooms</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+              <TableRow className="border-b border-zinc-800 bg-zinc-900/60 hover:bg-zinc-900/60">
+                <TableHead className="w-[28%] text-xs font-semibold text-zinc-400">Property</TableHead>
+                <TableHead className="w-[24%] text-xs font-semibold text-zinc-400">Location</TableHead>
+                <TableHead className="w-[16%] text-xs font-semibold text-zinc-400">Landlord</TableHead>
+                <TableHead className="w-[10%] text-xs font-semibold text-zinc-400">Rooms</TableHead>
+                <TableHead className="w-[10%] text-xs font-semibold text-zinc-400">Price</TableHead>
+                <TableHead className="w-[6%] text-xs font-semibold text-zinc-400">Status</TableHead>
+                <TableHead className="w-[6%] text-right text-xs font-semibold text-zinc-400">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedProperties.length > 0 ? (
                 paginatedProperties.map((property) => (
-                  <TableRow key={property.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="relative h-12 w-12 rounded-md overflow-hidden flex-shrink-0">
+                  <TableRow key={property.id} className="border-b border-zinc-800/60 hover:bg-zinc-900/40 transition-colors">
+                    <TableCell className="w-[28%] py-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="relative h-10 w-10 rounded-lg overflow-hidden flex-shrink-0 bg-zinc-900 border border-zinc-800">
                           {property.photoUrls && property.photoUrls.length > 0 ? (
                             <Image
                               src={property.photoUrls[0]}
                               alt={property.name}
                               fill
                               className="object-cover"
+                              unoptimized
                             />
                           ) : (
-                            <div className="bg-slate-200 dark:bg-slate-700 h-full w-full flex items-center justify-center">
-                              <Home className="h-6 w-6 text-slate-400" />
+                            <div className="h-full w-full flex items-center justify-center">
+                              <Home className="h-5 w-5 text-zinc-500" />
                             </div>
                           )}
                         </div>
-                        <div>
-                          <div className="font-medium">{property.name}</div>
-                          <div className="text-sm text-slate-500 dark:text-slate-400">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-xs text-white truncate" title={property.name}>{property.name}</div>
+                          <div className="text-[11px] text-zinc-400 truncate">
                             ID: {property.id}
                           </div>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-start gap-2">
-                        <MapPin className="h-4 w-4 text-slate-400 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <div className="text-sm">{property.location.address || 'No address available'}</div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400">
+                    <TableCell className="w-[24%] py-3">
+                      <div className="flex items-start gap-1.5 min-w-0">
+                        <MapPin className="h-3.5 w-3.5 text-zinc-400 mt-0.5 flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs text-zinc-200 truncate" title={property.location.address || 'No address available'}>
+                            {property.location.address || 'No address available'}
+                          </div>
+                          <div className="text-[11px] text-zinc-400 truncate">
                             {property.location.city || 'Unknown'}{property.location.state ? `, ${property.location.state}` : ''}
                           </div>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="w-[16%] py-3">
                       <div 
-                        className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors"
+                        className="flex items-center gap-1.5 min-w-0 cursor-pointer hover:text-blue-400 transition-colors"
                         onClick={() => router.push(`/admin/landlords/${property.manager.id}`)}
                       >
-                        <User className="h-4 w-4 text-slate-400" />
-                        <span>{property.manager.name || "Unknown"}</span>
+                        <User className="h-3.5 w-3.5 text-zinc-400 flex-shrink-0" />
+                        <span className="text-xs text-zinc-300 truncate" title={property.manager.name}>{property.manager.name || "Unknown"}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1">
-                          <BedDouble className="h-4 w-4 text-slate-400" />
-                          <span>{property.beds}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Bath className="h-4 w-4 text-slate-400" />
-                          <span>{property.baths}</span>
-                        </div>
+                    <TableCell className="w-[10%] py-3">
+                      <div className="flex items-center gap-2 text-xs text-zinc-300">
+                        <span className="flex items-center gap-1">
+                          <BedDouble className="h-3.5 w-3.5 text-zinc-400" />
+                          {property.beds}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Bath className="h-3.5 w-3.5 text-zinc-400" />
+                          {property.baths}
+                        </span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="font-medium">R{property.pricePerMonth.toLocaleString()}</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">per month</div>
+                    <TableCell className="w-[10%] py-3">
+                      <div className="font-semibold text-xs text-white">R{property.pricePerMonth.toLocaleString()}</div>
+                      <div className="text-[10px] text-zinc-400">/month</div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="w-[6%] py-3">
                       <Badge 
-                        variant={
+                        variant="outline"
+                        className={
                           property.status === "Approved"
-                            ? "default"
+                            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-[10px]"
                             : property.status === "Denied" || property.isDisabled
-                              ? "destructive"
-                              : "outline"
+                              ? "border-rose-500/30 bg-rose-500/10 text-rose-400 text-[10px]"
+                              : "border-amber-500/30 bg-amber-500/10 text-amber-400 text-[10px]"
                         }
                       >
                         {property.isDisabled ? "Blocked" : (property.status || "Pending")}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="w-[6%] py-3 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button size="sm" variant="outline">Actions</Button>
+                          <Button size="sm" variant="outline" className="h-7 px-2 border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-xs text-zinc-200">Actions</Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" className="border-zinc-800 bg-zinc-950 text-zinc-200">
                           <DropdownMenuItem onSelect={async () => { router.push(`/admin/properties/${property.id}`); }}>
                             View Details
                           </DropdownMenuItem>

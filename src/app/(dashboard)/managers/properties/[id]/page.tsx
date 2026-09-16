@@ -421,7 +421,7 @@ const PropertyDetails = () => {
               </div>
             </div>
             <div className="border border-[#333] rounded-xl overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow className="border-b border-[#333] hover:bg-[#111]">
