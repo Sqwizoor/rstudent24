@@ -637,6 +637,20 @@ export const updatePropertyPhotos = mutation({
   },
 });
 
+// 12. Update property Convex storage images
+export const updatePropertyStorageImages = mutation({
+  args: {
+    id: v.id("properties"),
+    images: v.array(v.id("_storage")),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, {
+      images: args.images,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 // 12. Admin update property status (e.g. "Approved", "Disabled", "Denied")
 export const updatePropertyStatus = mutation({
   args: {
