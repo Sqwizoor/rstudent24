@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface PaginationProps {
   currentPage: number;
@@ -8,6 +9,7 @@ interface PaginationProps {
   itemsPerPage: number;
   onPageChange: (page: number) => void;
   showItemCount?: boolean;
+  className?: string;
 }
 
 export function Pagination({
@@ -17,24 +19,38 @@ export function Pagination({
   itemsPerPage,
   onPageChange,
   showItemCount = true,
+  className,
 }: PaginationProps) {
   const startItem = Math.min((currentPage - 1) * itemsPerPage + 1, totalItems);
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+    <div className={cn("flex flex-col sm:flex-row items-center justify-between gap-4 w-full", className)}>
       {showItemCount && totalItems > 0 && (
         <div className="text-sm text-gray-500 dark:text-gray-400">
           Showing {startItem} to {endItem} of {totalItems} items
         </div>
       )}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-1 sm:space-x-2">
+        {totalPages > 5 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(1)}
+            disabled={currentPage === 1}
+            className="h-8 w-8 p-0"
+            title="First page"
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+        )}
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className="h-8 w-8 p-0"
+          title="Previous page"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -64,7 +80,7 @@ export function Pagination({
                 variant={currentPage === pageNum ? "default" : "outline"}
                 size="sm"
                 onClick={() => onPageChange(pageNum)}
-                className={`h-8 w-8 p-0 mx-1 ${currentPage === pageNum ? 'bg-blue-600 text-white' : ''}`}
+                className={`h-8 w-8 p-0 mx-0.5 sm:mx-1 ${currentPage === pageNum ? 'bg-white text-black font-semibold hover:bg-zinc-200' : 'text-zinc-300'}`}
               >
                 {pageNum}
               </Button>
@@ -78,9 +94,22 @@ export function Pagination({
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages || totalPages === 0}
           className="h-8 w-8 p-0"
+          title="Next page"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
+        {totalPages > 5 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(totalPages)}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className="h-8 w-8 p-0"
+            title="Last page"
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
   );

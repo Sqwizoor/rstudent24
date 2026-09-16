@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGetApplicationsQuery } from "@/state/api";
 import { Card } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import {
 import { ArrowLeft, Calendar, Download, Home, Mail, Phone } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
+import { Pagination } from "@/components/ui/pagination";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -49,10 +50,12 @@ export default function AdminApplicationsPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isExporting, setIsExporting] = useState(false);
 
   // ─── Realtime Convex Queries ──────────────────────────────────────────────
-  const convexApps = useQuery(api.applications.getAdminApplications, { limit: 500 });
+  const convexApps = useQuery(api.applications.getAdminApplications, { limit: 1000 });
   const applicationStats = useQuery(api.applications.getApplicationStats, {});
 
   // ─── RTK Queries (as fallback) ────────────────────────────────────────────
@@ -142,6 +145,25 @@ export default function AdminApplicationsPage() {
     });
   }, [applications, searchTerm, statusFilter]);
 
+  // Reset to page 1 when search, filter, or itemsPerPage changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, itemsPerPage]);
+
+  const totalPages = Math.max(1, Math.ceil((filteredApplications?.length || 0) / itemsPerPage));
+
+  // Guard against currentPage exceeding totalPages
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginatedApplications = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredApplications.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredApplications, currentPage, itemsPerPage]);
+
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 backdrop-blur-xl">
@@ -172,7 +194,7 @@ export default function AdminApplicationsPage() {
       </div>
 
       <Card className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Input
             placeholder="Search by name, email, or property..."
             value={searchTerm}
@@ -189,6 +211,17 @@ export default function AdminApplicationsPage() {
                   {option.label}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+          <Select value={itemsPerPage.toString()} onValueChange={(val) => setItemsPerPage(Number(val))}>
+            <SelectTrigger className="h-10 rounded-xl border-zinc-800 bg-zinc-900 text-xs text-zinc-200">
+              <SelectValue placeholder="Items per page" />
+            </SelectTrigger>
+            <SelectContent className="border-zinc-800 bg-zinc-950 text-zinc-200 rounded-xl">
+              <SelectItem value="10" className="text-xs">10 per page</SelectItem>
+              <SelectItem value="20" className="text-xs">20 per page</SelectItem>
+              <SelectItem value="50" className="text-xs">50 per page</SelectItem>
+              <SelectItem value="100" className="text-xs">100 per page</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -231,80 +264,98 @@ export default function AdminApplicationsPage() {
           No applications match the current filters.
         </Card>
       ) : (
-        <div className="grid gap-3">
-          {filteredApplications.map((application: any) => {
-            const propertyName = application.property?.name ?? (application.propertyId ? `Property #${application.propertyId}` : "Property");
-            const propertyLocation = application.property?.location;
-            const appliedDate = formatDate(application.applicationDate ?? application.createdAt ?? application._creationTime);
-            const tenantId = application.tenant?.id || application.tenantId;
+        <div className="space-y-4">
+          <div className="grid gap-3">
+            {paginatedApplications.map((application: any) => {
+              const propertyName = application.property?.name ?? (application.propertyId ? `Property #${application.propertyId}` : "Property");
+              const propertyLocation = application.property?.location;
+              const appliedDate = formatDate(application.applicationDate ?? application.createdAt ?? application._creationTime);
+              const tenantId = application.tenant?.id || application.tenantId;
 
-            return (
-              <Card key={application.id || application._id} className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all">
-                <div className="flex flex-col gap-4 md:flex-row md:justify-between">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-sm font-semibold text-white">
-                        {application.name || application.tenant?.name || "Student"}
-                      </h3>
-                      <Badge className={getStatusBadgeClass(application.status)}>
-                        {application.status?.toString() ?? "Pending"}
-                      </Badge>
+              return (
+                <Card key={application.id || application._id} className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all">
+                  <div className="flex flex-col gap-4 md:flex-row md:justify-between">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-sm font-semibold text-white">
+                          {application.name || application.tenant?.name || "Student"}
+                        </h3>
+                        <Badge className={getStatusBadgeClass(application.status)}>
+                          {application.status?.toString() ?? "Pending"}
+                        </Badge>
+                      </div>
+                      <p className="mt-1 flex items-center gap-2 text-xs text-zinc-400">
+                        <Calendar className="h-3.5 w-3.5 text-zinc-500" />
+                        Applied on {appliedDate}
+                      </p>
                     </div>
-                    <p className="mt-1 flex items-center gap-2 text-xs text-zinc-400">
-                      <Calendar className="h-3.5 w-3.5 text-zinc-500" />
-                      Applied on {appliedDate}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {tenantId ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/admin/students/${tenantId}`)}
+                          className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white text-xs h-8"
+                        >
+                          View student profile
+                        </Button>
+                      ) : null}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {tenantId ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/admin/students/${tenantId}`)}
-                        className="rounded-xl border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white text-xs h-8"
-                      >
-                        View student profile
-                      </Button>
+
+                  <div className="mt-4 grid gap-2.5 md:grid-cols-2">
+                    <div className="flex items-center gap-2 text-xs text-zinc-300">
+                      <Mail className="h-3.5 w-3.5 text-zinc-500" />
+                      <span>{application.email}</span>
+                    </div>
+                    {application.phoneNumber && (
+                      <div className="flex items-center gap-2 text-xs text-zinc-300">
+                        <Phone className="h-3.5 w-3.5 text-zinc-500" />
+                        <span className="font-mono">{application.phoneNumber}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-xs text-zinc-300">
+                      <Home className="h-3.5 w-3.5 text-zinc-500" />
+                      <span className="font-medium text-white">{propertyName}</span>
+                    </div>
+                    {propertyLocation ? (
+                      <div className="flex items-center gap-2 text-xs text-zinc-400">
+                        <span className="text-zinc-500">Location:</span>
+                        <span>
+                          {[propertyLocation.suburb, propertyLocation.city]
+                            .filter(Boolean)
+                            .join(", ") || propertyLocation.address}
+                        </span>
+                      </div>
                     ) : null}
                   </div>
-                </div>
 
-                <div className="mt-4 grid gap-2.5 md:grid-cols-2">
-                  <div className="flex items-center gap-2 text-xs text-zinc-300">
-                    <Mail className="h-3.5 w-3.5 text-zinc-500" />
-                    <span>{application.email}</span>
-                  </div>
-                  {application.phoneNumber && (
-                    <div className="flex items-center gap-2 text-xs text-zinc-300">
-                      <Phone className="h-3.5 w-3.5 text-zinc-500" />
-                      <span className="font-mono">{application.phoneNumber}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 text-xs text-zinc-300">
-                    <Home className="h-3.5 w-3.5 text-zinc-500" />
-                    <span className="font-medium text-white">{propertyName}</span>
-                  </div>
-                  {propertyLocation ? (
-                    <div className="flex items-center gap-2 text-xs text-zinc-400">
-                      <span className="text-zinc-500">Location:</span>
-                      <span>
-                        {[propertyLocation.suburb, propertyLocation.city]
-                          .filter(Boolean)
-                          .join(", ") || propertyLocation.address}
-                      </span>
+                  {application.message ? (
+                    <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3.5 text-xs text-zinc-300">
+                      <p className="font-semibold text-zinc-200">Student message</p>
+                      <p className="mt-1 whitespace-pre-line text-zinc-400">{application.message}</p>
                     </div>
                   ) : null}
-                </div>
+                </Card>
+              );
+            })}
+          </div>
 
-                {application.message ? (
-                  <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3.5 text-xs text-zinc-300">
-                    <p className="font-semibold text-zinc-200">Student message</p>
-                    <p className="mt-1 whitespace-pre-line text-zinc-400">{application.message}</p>
-                  </div>
-                ) : null}
-              </Card>
-            );
-          })}
+          {/* Pagination controls */}
+          {filteredApplications.length > itemsPerPage && (
+            <div className="p-4 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredApplications.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(page) => {
+                  setCurrentPage(page);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
