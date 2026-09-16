@@ -157,6 +157,8 @@ export interface Room {
   amenities?: string[];
   features?: string[];
   photoUrls?: string[];
+  images?: string[];
+  imageUrls?: string[];
   redirectType?: string | null;
   whatsappNumber?: string | null;
   customLink?: string | null;

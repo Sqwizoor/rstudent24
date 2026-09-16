@@ -205,12 +205,12 @@ const SingleListing = () => {
     if (!rooms || !Array.isArray(rooms)) return [];
     
     // Return processed rooms with guaranteed values
-    return rooms.map((room, index) => {
+    return (rooms as any[]).map((room: any, index: number) => {
       const explicitImages = [
         ...(Array.isArray(room.images) ? room.images : []),
         ...(Array.isArray(room.photoUrls) ? room.photoUrls : []),
         ...(Array.isArray(room.imageUrls) ? room.imageUrls : []),
-      ].filter(img => img && typeof img === 'string' && img.trim() !== '');
+      ].filter((img: any) => img && typeof img === 'string' && img.trim() !== '');
 
       // Fallback to property images if room doesn't have its own photos
       const fallbackImages = (processedProperty?.images && processedProperty.images.length > 0)
