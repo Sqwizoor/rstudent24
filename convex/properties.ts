@@ -200,14 +200,18 @@ export const getPropertyById = query({
       .collect();
 
     const roomsWithImages = await Promise.all(
-      rooms.map(async (room: any) => {
+      rooms.map(async (room: any, idx: number) => {
         const roomImages = await Promise.all(
           (room.images || []).map((id: any) => ctx.storage.getUrl(id))
         );
         const validRoomImgs = roomImages.filter(Boolean);
-        const finalRoomImgs = validRoomImgs.length > 0 ? validRoomImgs : (room.photoUrls || []);
+        const explicitRoomImgs = validRoomImgs.length > 0 ? validRoomImgs : (room.photoUrls || []);
+        const finalRoomImgs = explicitRoomImgs.length > 0 
+          ? explicitRoomImgs 
+          : (finalImages.length > 0 ? [finalImages[idx % finalImages.length]] : []);
         return { 
           ...room, 
+          images: finalRoomImgs,
           imageUrls: finalRoomImgs,
           photoUrls: finalRoomImgs,
         };
@@ -442,6 +446,7 @@ export const createRoom = mutation({
     baths: v.number(),
     squareFeet: v.optional(v.number()),
     images: v.array(v.id("_storage")),
+    photoUrls: v.optional(v.array(v.string())),
     isAvailable: v.boolean(),
     roomType: v.string(),
     capacity: v.number(),
@@ -651,7 +656,7 @@ export const updatePropertyStorageImages = mutation({
   },
 });
 
-// 12. Admin update property status (e.g. "Approved", "Disabled", "Denied")
+// 13. Admin update property status (e.g. "Approved", "Disabled", "Denied")
 export const updatePropertyStatus = mutation({
   args: {
     id: v.id("properties"),
@@ -664,4 +669,69 @@ export const updatePropertyStatus = mutation({
     });
   },
 });
+
+// 14. Update room storage images and photoUrls
+export const updateRoomImages = mutation({
+  args: {
+    id: v.id("rooms"),
+    images: v.optional(v.array(v.id("_storage"))),
+    photoUrls: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const patch: any = {};
+    if (args.images !== undefined) patch.images = args.images;
+    if (args.photoUrls !== undefined) patch.photoUrls = args.photoUrls;
+    await ctx.db.patch(args.id, patch);
+  },
+});
+
+// 15. Get rooms by property ID with resolved images and fallback
+export const getRoomsByProperty = query({
+  args: { propertyId: v.string() },
+  handler: async (ctx, args) => {
+    let prop: any = null;
+    try {
+      prop = await ctx.db.get(args.propertyId as any);
+    } catch {}
+    if (!prop) {
+      const all: any[] = await ctx.db.query("properties").collect();
+      prop = all.find(
+        (p: any) => p._id === args.propertyId || p.legacyId?.toString() === args.propertyId
+      );
+    }
+    if (!prop) return [];
+
+    const propStorageUrls = await Promise.all(
+      (prop.images || []).map((id: any) => ctx.storage.getUrl(id))
+    );
+    const validPropImgs = propStorageUrls.filter(Boolean);
+    const propImages = validPropImgs.length > 0 ? validPropImgs : (prop.photoUrls || []);
+
+    const rooms: any[] = await ctx.db
+      .query("rooms")
+      .withIndex("by_property", (q) => q.eq("propertyId", prop._id as any))
+      .collect();
+
+    return await Promise.all(
+      rooms.map(async (room: any, idx: number) => {
+        const roomImages = await Promise.all(
+          (room.images || []).map((id: any) => ctx.storage.getUrl(id))
+        );
+        const validRoomImgs = roomImages.filter(Boolean);
+        const explicitImgs = validRoomImgs.length > 0 ? validRoomImgs : (room.photoUrls || []);
+        const finalImgs = explicitImgs.length > 0 
+          ? explicitImgs 
+          : (propImages.length > 0 ? [propImages[idx % propImages.length]] : []);
+
+        return {
+          ...room,
+          images: finalImgs,
+          imageUrls: finalImgs,
+          photoUrls: finalImgs,
+        };
+      })
+    );
+  },
+});
+
 

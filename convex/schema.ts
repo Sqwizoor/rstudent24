@@ -73,6 +73,7 @@ export default defineSchema({
     baths: v.number(),
     squareFeet: v.optional(v.number()),
     images: v.array(v.id("_storage")),
+    photoUrls: v.optional(v.array(v.string())),
     isAvailable: v.boolean(),
     roomType: v.string(), // "PRIVATE", "SHARED", "ENTIRE_UNIT"
     capacity: v.number(),

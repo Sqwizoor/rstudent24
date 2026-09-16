@@ -205,22 +205,35 @@ const SingleListing = () => {
     if (!rooms || !Array.isArray(rooms)) return [];
     
     // Return processed rooms with guaranteed values
-    return rooms.map((room) => ({
-      ...room,
-      // Make sure price is properly set from pricePerMonth
-      price: typeof room.pricePerMonth === 'number' ? room.pricePerMonth : 
-             typeof room.pricePerMonth === 'string' ? parseFloat(room.pricePerMonth) : 
-             undefined,
-      // Convert availableFrom to string if it's a Date object
-      availableFrom: room.availableFrom instanceof Date ? 
-        room.availableFrom.toISOString() : 
-        (typeof room.availableFrom === 'string' ? room.availableFrom : undefined),
-      // Ensure photoUrls array is valid and use it for images
-      images: Array.isArray(room.photoUrls) && room.photoUrls.length > 0 ? 
-        room.photoUrls.filter(img => img && typeof img === 'string' && img.trim() !== '') : 
-        []
-    }));
-  }, [rooms]);
+    return rooms.map((room, index) => {
+      const explicitImages = [
+        ...(Array.isArray(room.images) ? room.images : []),
+        ...(Array.isArray(room.photoUrls) ? room.photoUrls : []),
+        ...(Array.isArray(room.imageUrls) ? room.imageUrls : []),
+      ].filter(img => img && typeof img === 'string' && img.trim() !== '');
+
+      // Fallback to property images if room doesn't have its own photos
+      const fallbackImages = (processedProperty?.images && processedProperty.images.length > 0)
+        ? [processedProperty.images[index % processedProperty.images.length]]
+        : [];
+
+      const resolvedImages = explicitImages.length > 0 ? explicitImages : fallbackImages;
+
+      return {
+        ...room,
+        // Make sure price is properly set from pricePerMonth
+        price: typeof room.pricePerMonth === 'number' ? room.pricePerMonth : 
+               typeof room.pricePerMonth === 'string' ? parseFloat(room.pricePerMonth) : 
+               undefined,
+        // Convert availableFrom to string if it's a Date object
+        availableFrom: room.availableFrom instanceof Date ? 
+          room.availableFrom.toISOString() : 
+          (typeof room.availableFrom === 'string' ? room.availableFrom : undefined),
+        images: resolvedImages,
+        photoUrls: resolvedImages,
+      };
+    });
+  }, [rooms, processedProperty]);
   
   // Use processed data
   const propertyRooms = processedRooms || [];
@@ -646,19 +659,29 @@ const SingleListing = () => {
           className="border rounded-2xl overflow-hidden hover:shadow-md transition-shadow">
                       {/* Room Image */}
                       <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
-                        <Image
-                          src={room.images && room.images.length > 0 ? 
-                               room.images[0] : "/placeholder.jpg"}
-                          alt={room.name || `Room ${index + 1}`}
-                          fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px"
-                          quality={IMAGE_QUALITY.card}
-                          loader={(props) => optimizedImageLoader({ ...props, quality: IMAGE_QUALITY.card })}
-                          className="object-cover"
-                          onError={() => setImgErrors(prev => ({...prev, [`room-${index}`]: true}))}
-                          unoptimized={false}
-                          loading="lazy"
-                        />
+                        {(() => {
+                          const fallbackUrl = (processedProperty?.images && processedProperty.images.length > 0)
+                            ? processedProperty.images[index % processedProperty.images.length]
+                            : "/placeholder.jpg";
+                          const displaySrc = imgErrors[`room-${index}`]
+                            ? fallbackUrl
+                            : (room.images && room.images.length > 0 ? room.images[0] : fallbackUrl);
+
+                          return (
+                            <Image
+                              src={displaySrc}
+                              alt={room.name || `Room ${index + 1}`}
+                              fill
+                              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px"
+                              quality={IMAGE_QUALITY.card}
+                              loader={(props) => optimizedImageLoader({ ...props, quality: IMAGE_QUALITY.card })}
+                              className="object-cover transition-transform duration-300 hover:scale-105"
+                              onError={() => setImgErrors(prev => ({...prev, [`room-${index}`]: true}))}
+                              unoptimized={false}
+                              loading="lazy"
+                            />
+                          );
+                        })()}
                         
                         {/* Availability badge */}
                         <div className="absolute top-3 left-3">

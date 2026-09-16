@@ -31,10 +31,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const convexData = await convexRes.json();
         const prop = convexData?.value;
         if (prop && Array.isArray(prop.rooms)) {
+          const propImages = Array.isArray(prop.photoUrls) && prop.photoUrls.length > 0
+            ? prop.photoUrls
+            : (Array.isArray(prop.imageUrls) && prop.imageUrls.length > 0 ? prop.imageUrls : []);
+
           rooms = prop.rooms.map((r: any, idx: number) => {
-            const rawImages = Array.isArray(r.imageUrls) && r.imageUrls.length > 0
-              ? r.imageUrls
-              : (Array.isArray(r.photoUrls) && r.photoUrls.length > 0 ? r.photoUrls : []);
+            const rawImages = [
+              ...(Array.isArray(r.images) ? r.images : []),
+              ...(Array.isArray(r.imageUrls) ? r.imageUrls : []),
+              ...(Array.isArray(r.photoUrls) ? r.photoUrls : []),
+            ].filter((img) => img && typeof img === 'string' && img.trim() !== '');
+
+            const fallbackImages = propImages.length > 0
+              ? [propImages[idx % propImages.length]]
+              : [];
+
+            const finalImages = rawImages.length > 0 ? rawImages : fallbackImages;
 
             return {
               id: r._id || r.id || idx + 1,
@@ -52,8 +64,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
               capacity: Number(r.capacity) || 1,
               features: Array.isArray(r.features) ? r.features : [],
               amenities: Array.isArray(r.features) ? r.features : [],
-              images: rawImages,
-              photoUrls: rawImages,
+              images: finalImages,
+              photoUrls: finalImages,
+              imageUrls: finalImages,
               isAvailable: r.isAvailable !== false,
               availableFrom: r.availableFrom || null,
               createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString(),
