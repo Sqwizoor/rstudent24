@@ -58,9 +58,9 @@ export default function AdminApplicationsPage() {
   // ─── RTK Queries (as fallback) ────────────────────────────────────────────
   const { data: rtkApplications, isLoading: rtkLoading, error: rtkError } = useGetApplicationsQuery({});
 
-  const applications = useMemo(() => {
-    if (convexApps && convexApps.length > 0) return convexApps;
-    if (rtkApplications && rtkApplications.length > 0) return rtkApplications;
+  const applications = useMemo<any[]>(() => {
+    if (convexApps && convexApps.length > 0) return convexApps as any[];
+    if (rtkApplications && rtkApplications.length > 0) return rtkApplications as any[];
     return [];
   }, [convexApps, rtkApplications]);
 
@@ -69,13 +69,13 @@ export default function AdminApplicationsPage() {
 
   const totalApplications = applicationStats?.total ?? (applications?.length ?? 0);
   const pendingCount = applicationStats?.pending ?? (applications
-    ? applications.filter((app) => (app.status ?? "").toString().toLowerCase() === "pending").length
+    ? applications.filter((app: any) => (app.status ?? "").toString().toLowerCase() === "pending").length
     : 0);
   const approvedCount = applicationStats?.approved ?? (applications
-    ? applications.filter((app) => (app.status ?? "").toString().toLowerCase() === "approved").length
+    ? applications.filter((app: any) => (app.status ?? "").toString().toLowerCase() === "approved").length
     : 0);
   const deniedCount = applicationStats?.denied ?? (applications
-    ? applications.filter((app) => (app.status ?? "").toString().toLowerCase() === "denied").length
+    ? applications.filter((app: any) => (app.status ?? "").toString().toLowerCase() === "denied").length
     : 0);
 
   const handleExportCSV = async () => {
@@ -232,14 +232,14 @@ export default function AdminApplicationsPage() {
         </Card>
       ) : (
         <div className="grid gap-3">
-          {filteredApplications.map((application) => {
-            const propertyName = application.property?.name ?? `Property #${application.propertyId}`;
+          {filteredApplications.map((application: any) => {
+            const propertyName = application.property?.name ?? (application.propertyId ? `Property #${application.propertyId}` : "Property");
             const propertyLocation = application.property?.location;
-            const appliedDate = formatDate(application.applicationDate ?? application.createdAt);
-            const tenantId = application.tenant?.id;
+            const appliedDate = formatDate(application.applicationDate ?? application.createdAt ?? application._creationTime);
+            const tenantId = application.tenant?.id || application.tenantId;
 
             return (
-              <Card key={application.id} className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all">
+              <Card key={application.id || application._id} className="p-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl hover:border-zinc-700/90 transition-all">
                 <div className="flex flex-col gap-4 md:flex-row md:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
