@@ -73,7 +73,8 @@ export default function AdminDashboard() {
   const convexProperties = useQuery(api.properties.getProperties, { status: "all" });
   const convexManagers = useQuery(api.users.getAllManagers, {});
   const convexTenants = useQuery(api.users.getAllTenants, {});
-  const convexApplications = useQuery(api.applications.getManagerApplications, { managerId: "admin" });
+  const convexApplications = useQuery(api.applications.getAdminApplications, { limit: 50 });
+  const applicationStats = useQuery(api.applications.getApplicationStats, {});
 
   // ─── RTK Queries (as fallback) ────────────────────────────────────────────
   const { data: rtkManagers } = useGetAllManagersQuery({ status: undefined, includeDemo: false });
@@ -125,8 +126,8 @@ export default function AdminDashboard() {
   const disabledManagers = managers.filter((m: any) => (m.status || "").toLowerCase() === "disabled").length;
 
   const totalStudents = tenants.length;
-  const totalApplications = applications.length;
-  const pendingApplications = applications.filter((a: any) => (a.status || "").toLowerCase() === "pending").length;
+  const totalApplications = applicationStats?.total ?? applications.length;
+  const pendingApplications = applicationStats?.pending ?? applications.filter((a: any) => (a.status || "").toLowerCase() === "pending").length;
 
   const recentProperties = properties.slice(0, 6);
   const recentApplications = applications.slice(0, 6);

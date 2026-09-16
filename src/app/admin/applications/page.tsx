@@ -15,6 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeft, Calendar, Download, Home, Mail, Phone } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -49,7 +51,32 @@ export default function AdminApplicationsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [isExporting, setIsExporting] = useState(false);
 
-  const { data: applications, isLoading, error } = useGetApplicationsQuery({});
+  // ─── Realtime Convex Queries ──────────────────────────────────────────────
+  const convexApps = useQuery(api.applications.getAdminApplications, { limit: 500 });
+  const applicationStats = useQuery(api.applications.getApplicationStats, {});
+
+  // ─── RTK Queries (as fallback) ────────────────────────────────────────────
+  const { data: rtkApplications, isLoading: rtkLoading, error: rtkError } = useGetApplicationsQuery({});
+
+  const applications = useMemo(() => {
+    if (convexApps && convexApps.length > 0) return convexApps;
+    if (rtkApplications && rtkApplications.length > 0) return rtkApplications;
+    return [];
+  }, [convexApps, rtkApplications]);
+
+  const isLoading = convexApps === undefined && rtkLoading;
+  const error = convexApps === undefined && rtkError ? rtkError : null;
+
+  const totalApplications = applicationStats?.total ?? (applications?.length ?? 0);
+  const pendingCount = applicationStats?.pending ?? (applications
+    ? applications.filter((app) => (app.status ?? "").toString().toLowerCase() === "pending").length
+    : 0);
+  const approvedCount = applicationStats?.approved ?? (applications
+    ? applications.filter((app) => (app.status ?? "").toString().toLowerCase() === "approved").length
+    : 0);
+  const deniedCount = applicationStats?.denied ?? (applications
+    ? applications.filter((app) => (app.status ?? "").toString().toLowerCase() === "denied").length
+    : 0);
 
   const handleExportCSV = async () => {
     try {
@@ -76,17 +103,6 @@ export default function AdminApplicationsPage() {
       setIsExporting(false);
     }
   };
-
-  const totalApplications = applications?.length ?? 0;
-  const pendingCount = applications
-    ? applications.filter((app) => app.status?.toString().toLowerCase() === "pending").length
-    : 0;
-  const approvedCount = applications
-    ? applications.filter((app) => app.status?.toString().toLowerCase() === "approved").length
-    : 0;
-  const deniedCount = applications
-    ? applications.filter((app) => app.status?.toString().toLowerCase() === "denied").length
-    : 0;
 
   const filteredApplications = useMemo(() => {
     if (!applications || applications.length === 0) {

@@ -73,12 +73,38 @@ export const getManagerApplications = query({
 
     if (args.managerId === "ALL" || args.managerId === "admin") {
       const allApps = await ctx.db.query("applications").order("desc").collect();
-      return await Promise.all(
-        allApps.map(async (app) => {
-          const property = await ctx.db.get(app.propertyId);
-          return { ...app, property };
+      // Cache properties in Map to avoid repeating ctx.db.get 3,000 times
+      const propMap = new Map();
+      const uniquePropIds = Array.from(new Set(allApps.map((a) => a.propertyId)));
+      await Promise.all(
+        uniquePropIds.map(async (pId) => {
+          try {
+            const p = await ctx.db.get(pId);
+            if (p) {
+              propMap.set(pId, {
+                _id: p._id,
+                name: p.name,
+                city: p.city,
+                address: p.address,
+                suburb: p.suburb,
+                pricePerMonth: p.pricePerMonth,
+                propertyType: p.propertyType,
+                location: {
+                  address: p.address || "",
+                  city: p.city || "",
+                  suburb: p.suburb || "",
+                },
+              });
+            }
+          } catch {}
         })
       );
+
+      return allApps.map((app) => ({
+        ...app,
+        id: app._id,
+        property: propMap.get(app.propertyId) || null,
+      }));
     }
 
     const searchIds = new Set<string>();
@@ -223,3 +249,71 @@ export const getPropertyApplications = query({
       .collect();
   },
 });
+
+// Admin fast queries with stats & limits
+export const getAdminApplications = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const allApps = await ctx.db.query("applications").order("desc").collect();
+    const slice = args.limit ? allApps.slice(0, args.limit) : allApps.slice(0, 300);
+
+    const propMap = new Map();
+    const uniquePropIds = Array.from(new Set(slice.map((a) => a.propertyId)));
+    await Promise.all(
+      uniquePropIds.map(async (pId) => {
+        try {
+          const p = await ctx.db.get(pId);
+          if (p) {
+            propMap.set(pId, {
+              _id: p._id,
+              name: p.name,
+              city: p.city,
+              address: p.address,
+              suburb: p.suburb,
+              pricePerMonth: p.pricePerMonth,
+              propertyType: p.propertyType,
+              location: {
+                address: p.address || "",
+                city: p.city || "",
+                suburb: p.suburb || "",
+              },
+            });
+          }
+        } catch {}
+      })
+    );
+
+    return slice.map((app) => ({
+      ...app,
+      id: app._id,
+      property: propMap.get(app.propertyId) || null,
+    }));
+  },
+});
+
+export const getApplicationStats = query({
+  args: {},
+  handler: async (ctx) => {
+    const allApps = await ctx.db.query("applications").collect();
+    let pending = 0;
+    let approved = 0;
+    let denied = 0;
+
+    for (const app of allApps) {
+      const s = (app.status || "").toLowerCase();
+      if (s === "approved") approved++;
+      else if (s === "denied") denied++;
+      else pending++;
+    }
+
+    return {
+      total: allApps.length,
+      pending,
+      approved,
+      denied,
+    };
+  },
+});
+
