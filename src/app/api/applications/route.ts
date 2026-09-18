@@ -64,7 +64,11 @@ export async function GET(request: NextRequest) {
         };
         
         // Managers can only see applications for their properties
-        if (authResult.userRole !== 'admin' && authResult.userId !== userId) {
+        if (
+          authResult.userRole !== 'admin' && 
+          authResult.userId !== userId && 
+          authResult.userEmail !== userId
+        ) {
           return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
         }
       }
@@ -118,41 +122,72 @@ export async function GET(request: NextRequest) {
     // Merge applications from Convex
     try {
       const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
-      const managerIdToQuery = isAdmin ? "admin" : (userId || authResult.userId || "admin");
-      const res = await fetch(`${CONVEX_URL}/api/query`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: "applications:getManagerApplications", args: { managerId: managerIdToQuery } }),
-      });
-      const data = await res.json();
-      if (Array.isArray(data?.value)) {
-        const existingIds = new Set(applications.map(a => String(a.id)));
-        for (const ca of data.value) {
-          if (!existingIds.has(String(ca._id))) {
-            existingIds.add(String(ca._id));
-            applications.push({
-              id: ca._id,
-              propertyId: ca.propertyId,
-              tenantCognitoId: ca.tenantId,
-              name: ca.name || "Student",
-              email: ca.email || "",
-              phoneNumber: ca.phoneNumber || "",
-              message: ca.message || "",
-              status: ca.status || "Pending",
-              applicationDate: ca.applicationDate || new Date(ca.createdAt || Date.now()).toISOString(),
-              createdAt: new Date(ca.createdAt || Date.now()),
-              property: ca.property ? {
-                id: ca.property._id,
-                name: ca.property.name,
-                description: ca.property.description,
-                pricePerMonth: ca.property.pricePerMonth,
-                location: {
-                  address: ca.property.address || "",
-                  city: ca.property.city || "",
-                }
-              } : null,
-            });
+      const candidateManagerIds = Array.from(new Set([
+        isAdmin ? "admin" : null,
+        userId,
+        authResult.userId,
+        authResult.userEmail
+      ].filter(Boolean) as string[]));
+
+      const existingIds = new Set(applications.map(a => String(a.id)));
+
+      for (const mId of candidateManagerIds) {
+        try {
+          const res = await fetch(`${CONVEX_URL}/api/query`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: "applications:getManagerApplications", args: { managerId: mId } }),
+          });
+          const data = await res.json();
+          if (Array.isArray(data?.value)) {
+            for (const ca of data.value) {
+              const caIdStr = String(ca._id || ca.id);
+              if (!existingIds.has(caIdStr)) {
+                existingIds.add(caIdStr);
+                const firstName = (ca.name || "Student").split(' ')[0] || "Student";
+                const lastName = (ca.name || "").split(' ').slice(1).join(' ') || "";
+
+                applications.push({
+                  id: ca._id || ca.id,
+                  propertyId: ca.propertyId,
+                  tenantCognitoId: ca.tenantId,
+                  name: ca.name || "Student",
+                  email: ca.email || "",
+                  phoneNumber: ca.phoneNumber || "",
+                  message: ca.message || "",
+                  status: ca.status || "Pending",
+                  applicationDate: ca.applicationDate || new Date(ca.createdAt || Date.now()).toISOString(),
+                  createdAt: new Date(ca.createdAt || Date.now()),
+                  property: ca.property ? {
+                    id: ca.property._id || ca.property.id,
+                    name: ca.property.name,
+                    description: ca.property.description,
+                    pricePerMonth: ca.property.pricePerMonth,
+                    address: ca.property.address || "",
+                    location: {
+                      address: ca.property.address || "",
+                      city: ca.property.city || "",
+                      suburb: ca.property.suburb || "",
+                    }
+                  } : null,
+                  tenant: {
+                    firstName,
+                    lastName,
+                    email: ca.email || "",
+                    phoneNumber: ca.phoneNumber || "",
+                  },
+                  user: {
+                    firstName,
+                    lastName,
+                    email: ca.email || "",
+                    phoneNumber: ca.phoneNumber || "",
+                  },
+                });
+              }
+            }
           }
+        } catch (callErr) {
+          console.warn(`Convex query failed for manager ID ${mId}:`, callErr);
         }
       }
     } catch (convexErr) {

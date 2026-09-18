@@ -144,18 +144,42 @@ export const getManagerApplications = query({
     }
 
     // Find all properties owned by this manager to catch applications targeting their properties
-    const managerPropertyIds = new Set<string>();
+    const managerProperties: any[] = [];
     for (const id of searchIds) {
       const props = await ctx.db
         .query("properties")
         .withIndex("by_manager", (q) => q.eq("managerId", id))
         .collect();
-      props.forEach((p) => managerPropertyIds.add(p._id));
+      managerProperties.push(...props);
+    }
+
+    const propMap = new Map();
+    const managerPropertyIds = new Set<string>();
+    for (const p of managerProperties) {
+      if (!managerPropertyIds.has(p._id)) {
+        managerPropertyIds.add(p._id);
+        propMap.set(p._id, {
+          _id: p._id,
+          id: p._id,
+          name: p.name,
+          city: p.city,
+          address: p.address,
+          suburb: p.suburb,
+          pricePerMonth: p.pricePerMonth,
+          propertyType: p.propertyType,
+          location: {
+            address: p.address || "",
+            city: p.city || "",
+            suburb: p.suburb || "",
+          },
+        });
+      }
     }
 
     const matchedApps: any[] = [];
     const seenAppIds = new Set<string>();
 
+    // 1. Applications directly matching manager IDs
     for (const id of searchIds) {
       const apps = await ctx.db
         .query("applications")
@@ -169,10 +193,11 @@ export const getManagerApplications = query({
       }
     }
 
+    // 2. Applications targeting properties owned by this manager (using fast index)
     for (const propId of managerPropertyIds) {
       const propApps = await ctx.db
         .query("applications")
-        .filter((q) => q.eq(q.field("propertyId"), propId))
+        .withIndex("by_property", (q) => q.eq("propertyId", propId as any))
         .collect();
       for (const a of propApps) {
         if (!seenAppIds.has(a._id)) {
@@ -182,20 +207,83 @@ export const getManagerApplications = query({
       }
     }
 
-    // CRITICAL: NEVER return all applications if none matched! Return empty array!
     if (matchedApps.length === 0) {
       return [];
     }
 
-    return await Promise.all(
-      matchedApps.map(async (app) => {
-        const property = await ctx.db.get(app.propertyId);
-        return {
-          ...app,
-          property,
-        };
+    // Fetch details for any property not yet in propMap
+    const missingPropIds = Array.from(new Set(matchedApps.map((a) => a.propertyId))).filter((pId) => !propMap.has(pId));
+    await Promise.all(
+      missingPropIds.map(async (pId) => {
+        try {
+          const p: any = await ctx.db.get(pId as any);
+          if (p) {
+            propMap.set(pId, {
+              _id: p._id,
+              id: p._id,
+              name: p.name,
+              city: p.city,
+              address: p.address,
+              suburb: p.suburb,
+              pricePerMonth: p.pricePerMonth,
+              propertyType: p.propertyType,
+              location: {
+                address: p.address || "",
+                city: p.city || "",
+                suburb: p.suburb || "",
+              },
+            });
+          }
+        } catch {}
       })
     );
+
+    // Sort descending by application date
+    matchedApps.sort((a, b) => {
+      const dateA = new Date(a.applicationDate || a.createdAt || a._creationTime).getTime();
+      const dateB = new Date(b.applicationDate || b.createdAt || b._creationTime).getTime();
+      return dateB - dateA;
+    });
+
+    return matchedApps.map((app) => ({
+      ...app,
+      id: app._id,
+      property: propMap.get(app.propertyId) || null,
+    }));
+  },
+});
+
+export const getApplicationById = query({
+  args: { id: v.string() },
+  handler: async (ctx, args) => {
+    try {
+      const app: any = await ctx.db.get(args.id as any);
+      if (!app) return null;
+      const property: any = await ctx.db.get(app.propertyId);
+      let room: any = null;
+      if (app.roomId) {
+        room = await ctx.db.get(app.roomId);
+      }
+      return {
+        ...app,
+        id: app._id,
+        property: property ? {
+          ...property,
+          id: property._id,
+          location: {
+            address: property.address || "",
+            city: property.city || "",
+            suburb: property.suburb || "",
+          }
+        } : null,
+        room: room ? {
+          ...room,
+          id: room._id,
+        } : null,
+      };
+    } catch {
+      return null;
+    }
   },
 });
 
@@ -232,11 +320,12 @@ export const submitApplication = mutation({
 
 export const updateApplicationStatus = mutation({
   args: {
-    applicationId: v.id("applications"),
-    status: v.string(), // "Approved", "Denied"
+    applicationId: v.string(),
+    status: v.string(), // "Approved", "Denied", "Pending"
   },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.applicationId, { status: args.status });
+    await ctx.db.patch(args.applicationId as any, { status: args.status });
+    return { success: true };
   },
 });
 
@@ -264,7 +353,7 @@ export const getAdminApplications = query({
     await Promise.all(
       uniquePropIds.map(async (pId) => {
         try {
-          const p = await ctx.db.get(pId);
+          const p: any = await ctx.db.get(pId);
           if (p) {
             propMap.set(pId, {
               _id: p._id,

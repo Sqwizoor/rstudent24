@@ -19,3 +19,190 @@
 .admin-auth-button {
   padding: 2.5rem !important; /* p-10 */
 }
+
+/* ==========================================================================
+   Admin White Mode (Light Theme) Overrides
+   ========================================================================== */
+
+html:not(.dark) .admin-portal,
+html.light .admin-portal {
+  --admin-card-bg: rgba(255, 255, 255, 0.94);
+  --admin-subtle-bg: #f8fafc;
+  --admin-card-hover: #ffffff;
+  --admin-border: rgba(226, 232, 240, 0.9);
+  --admin-border-hover: #cbd5e1;
+  --admin-text-primary: #0f172a;
+  --admin-text-secondary: #475569;
+  --admin-text-muted: #64748b;
+}
+
+/* Primary surface containers and cards */
+html:not(.dark) .admin-portal .bg-zinc-950,
+html:not(.dark) .admin-portal .bg-zinc-950\/60,
+html:not(.dark) .admin-portal .bg-zinc-950\/70,
+html:not(.dark) .admin-portal .bg-zinc-950\/80,
+html:not(.dark) .admin-portal .bg-zinc-950\/90,
+html:not(.dark) .admin-portal [class*="bg-zinc-950"] {
+  background-color: var(--admin-card-bg) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Secondary surfaces (search bar wrappers, inner panels, tabs backgrounds) */
+html:not(.dark) .admin-portal .bg-zinc-900,
+html:not(.dark) .admin-portal .bg-zinc-900\/60,
+html:not(.dark) .admin-portal .bg-zinc-900\/80,
+html:not(.dark) .admin-portal .bg-zinc-900\/90,
+html:not(.dark) .admin-portal [class*="bg-zinc-900"] {
+  background-color: var(--admin-subtle-bg) !important;
+}
+
+/* Active pills, tab triggers, active buttons */
+html:not(.dark) .admin-portal .bg-zinc-800,
+html:not(.dark) .admin-portal [data-state="active"].bg-zinc-800 {
+  background-color: #e2e8f0 !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Borders */
+html:not(.dark) .admin-portal .border-zinc-800,
+html:not(.dark) .admin-portal .border-zinc-800\/80,
+html:not(.dark) .admin-portal .border-zinc-700,
+html:not(.dark) .admin-portal .border-zinc-700\/60,
+html:not(.dark) .admin-portal .border-zinc-700\/90,
+html:not(.dark) .admin-portal [class*="border-zinc-800"],
+html:not(.dark) .admin-portal [class*="border-zinc-700"] {
+  border-color: var(--admin-border) !important;
+}
+
+html:not(.dark) .admin-portal .hover\:border-zinc-700:hover,
+html:not(.dark) .admin-portal .hover\:border-zinc-700\/90:hover {
+  border-color: var(--admin-border-hover) !important;
+}
+
+/* Hover backgrounds */
+html:not(.dark) .admin-portal .hover\:bg-zinc-900:hover,
+html:not(.dark) .admin-portal .hover\:bg-zinc-900\/80:hover,
+html:not(.dark) .admin-portal .hover\:bg-zinc-800:hover {
+  background-color: #f1f5f9 !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Headings and primary text */
+html:not(.dark) .admin-portal h1,
+html:not(.dark) .admin-portal h2,
+html:not(.dark) .admin-portal h3,
+html:not(.dark) .admin-portal h4,
+html:not(.dark) .admin-portal .text-zinc-100,
+html:not(.dark) .admin-portal .text-zinc-200 {
+  color: var(--admin-text-primary) !important;
+}
+
+/* Secondary & muted text */
+html:not(.dark) .admin-portal .text-zinc-300,
+html:not(.dark) .admin-portal .text-zinc-400 {
+  color: var(--admin-text-secondary) !important;
+}
+
+html:not(.dark) .admin-portal .text-zinc-500,
+html:not(.dark) .admin-portal .text-zinc-600 {
+  color: var(--admin-text-muted) !important;
+}
+
+/* Standalone text-white (e.g. metrics numbers, titles) should be dark in light mode,
+   UNLESS on colored elements, badges, gradients or submit buttons */
+html:not(.dark) .admin-portal .text-white:not(
+  [class*="bg-rose-"],
+  [class*="bg-red-"],
+  [class*="bg-emerald-"],
+  [class*="bg-green-"],
+  [class*="bg-blue-"],
+  [class*="bg-indigo-"],
+  [class*="bg-amber-"],
+  [class*="bg-purple-"],
+  [class*="bg-primary"],
+  [class*="from-"],
+  button[class*="bg-rose-"],
+  button[class*="bg-blue-"],
+  button[class*="bg-emerald-"],
+  button[class*="bg-red-"]
+) {
+  color: var(--admin-text-primary) !important;
+}
+
+/* Solid white buttons in dark mode invert to solid slate-900 buttons with white text in light mode */
+html:not(.dark) .admin-portal button.bg-white,
+html:not(.dark) .admin-portal button[class*="bg-white"][class*="text-black"],
+html:not(.dark) .admin-portal a[class*="bg-white"][class*="text-black"] {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+html:not(.dark) .admin-portal button.bg-white:hover,
+html:not(.dark) .admin-portal button[class*="bg-white"][class*="text-black"]:hover,
+html:not(.dark) .admin-portal a[class*="bg-white"][class*="text-black"]:hover {
+  background-color: #1e293b !important;
+}
+
+/* Form inputs, textareas, and select triggers */
+html:not(.dark) .admin-portal input,
+html:not(.dark) .admin-portal textarea,
+html:not(.dark) .admin-portal select,
+html:not(.dark) .admin-portal [data-slot="input"],
+html:not(.dark) .admin-portal button[role="combobox"] {
+  background-color: #ffffff !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+html:not(.dark) .admin-portal input::placeholder,
+html:not(.dark) .admin-portal textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Dialogs, Popovers, and Dropdowns (including portaled components) */
+html:not(.dark) [data-radix-popper-content-wrapper] [class*="bg-zinc-950"],
+html:not(.dark) [data-radix-popper-content-wrapper] [class*="bg-zinc-900"],
+html:not(.dark) [role="dialog"] [class*="bg-zinc-950"],
+html:not(.dark) [role="dialog"].bg-zinc-950,
+html:not(.dark) [role="dialog"] .bg-zinc-900,
+html:not(.dark) [role="dialog"] .bg-zinc-900\/60 {
+  background-color: #ffffff !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text-primary) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+html:not(.dark) [data-radix-popper-content-wrapper] .text-zinc-200,
+html:not(.dark) [data-radix-popper-content-wrapper] .text-zinc-300,
+html:not(.dark) [role="dialog"] .text-zinc-100,
+html:not(.dark) [role="dialog"] .text-zinc-200,
+html:not(.dark) [role="dialog"] .text-zinc-300 {
+  color: var(--admin-text-primary) !important;
+}
+
+html:not(.dark) [data-radix-popper-content-wrapper] .hover\:bg-zinc-900:hover,
+html:not(.dark) [data-radix-popper-content-wrapper] [data-highlighted],
+html:not(.dark) [role="dialog"] .hover\:bg-zinc-800:hover {
+  background-color: #f1f5f9 !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Neutral badges in light mode */
+html:not(.dark) .admin-portal .bg-zinc-900.text-zinc-300,
+html:not(.dark) .admin-portal .bg-zinc-900\/80.text-zinc-300,
+html:not(.dark) .admin-portal .border-zinc-800.bg-zinc-900 {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Table headers, rows & borders */
+html:not(.dark) .admin-portal th {
+  color: #475569 !important;
+}
+html:not(.dark) .admin-portal tr.border-b,
+html:not(.dark) .admin-portal .divide-zinc-800 > * {
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) .admin-portal tr:hover {
+  background-color: rgba(241, 245, 249, 0.6) !important;
+}

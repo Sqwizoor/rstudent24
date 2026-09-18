@@ -37,10 +37,6 @@ export default function AdminLayout({
   const activeUser = authUser || unifiedUser;
 
   useEffect(() => {
-    if (typeof window !== "undefined" && document) {
-      document.documentElement.classList.remove("light");
-      document.documentElement.classList.add("dark");
-    }
     localStorage.setItem('isAdminAuthenticated', 'true');
     if (!isLoading && activeUser) {
       const userRole = ((activeUser as any)?.role || (activeUser as any)?.userRole || "").toLowerCase();
@@ -60,9 +56,9 @@ export default function AdminLayout({
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-[#000000] text-zinc-100">
-        <div className="w-10 h-10 border-2 border-zinc-800 border-t-white rounded-full animate-spin"></div>
-        <p className="mt-3 text-xs font-mono tracking-widest text-zinc-500 uppercase">Loading Admin Console...</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-slate-50 dark:bg-[#000000] text-slate-800 dark:text-zinc-100 transition-colors">
+        <div className="w-10 h-10 border-2 border-slate-300 dark:border-zinc-800 border-t-slate-800 dark:border-t-white rounded-full animate-spin"></div>
+        <p className="mt-3 text-xs font-mono tracking-widest text-slate-500 dark:text-zinc-500 uppercase">Loading Admin Console...</p>
       </div>
     );
   }
@@ -79,22 +75,22 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="dark min-h-screen w-full bg-[#000000] text-zinc-100 selection:bg-zinc-800">
+    <div className="admin-portal min-h-screen w-full bg-slate-50 dark:bg-[#000000] text-slate-900 dark:text-zinc-100 selection:bg-blue-100 dark:selection:bg-zinc-800 transition-colors duration-300">
       <AdminNavbar />
       <div style={{ paddingTop: `${NAVBAR_HEIGHT}px` }}>
         <div className="flex">
-          {/* Vercel Dark Sidebar */}
+          {/* Dual-mode Sidebar */}
           <aside
-            className="w-64 h-[calc(100vh-var(--navbar-height))] sticky top-0 overflow-y-auto border-r border-zinc-800/80 bg-[#09090b]/95 backdrop-blur-xl p-3 flex flex-col justify-between"
+            className="w-64 h-[calc(100vh-var(--navbar-height))] sticky top-0 overflow-y-auto border-r border-slate-200/80 dark:border-zinc-800/80 bg-white/95 dark:bg-[#09090b]/95 backdrop-blur-xl p-3 flex flex-col justify-between transition-colors"
           >
             <div>
-              <div className="px-3 py-3 flex items-center gap-2 border-b border-zinc-800/80 mb-3">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+              <div className="px-3 py-3 flex items-center gap-2 border-b border-slate-200/80 dark:border-zinc-800/80 mb-3">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
                   <ShieldCheck className="h-4 w-4" />
                 </div>
                 <div>
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-200">Admin Control</h2>
-                  <span className="text-[10px] text-zinc-500 font-mono">System v2.4</span>
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">Admin Control</h2>
+                  <span className="text-[10px] text-slate-500 dark:text-zinc-500 font-mono">System v2.4</span>
                 </div>
               </div>
 
@@ -109,11 +105,11 @@ export default function AdminLayout({
                       className={cn(
                         "flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 gap-3",
                         isActive
-                          ? "bg-zinc-800 text-white border border-zinc-700/60 shadow-sm shadow-black/40"
-                          : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/80 border border-transparent"
+                          ? "bg-slate-900 text-white dark:bg-zinc-800 dark:text-white border border-slate-800 dark:border-zinc-700/60 shadow-sm"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-900/80 border border-transparent"
                       )}
                     >
-                      <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isActive ? "text-white" : "text-zinc-400")} />
+                      <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isActive ? "text-white" : "text-slate-500 dark:text-zinc-400")} />
                       <span className="text-[13px] tracking-wide">{item.label}</span>
                     </Link>
                   );
@@ -121,15 +117,15 @@ export default function AdminLayout({
               </nav>
             </div>
 
-            <div className="p-3 rounded-xl border border-zinc-800/80 bg-zinc-950/60 text-[11px] text-zinc-500">
-              <p className="font-semibold text-zinc-300">Admin Session</p>
+            <div className="p-3 rounded-xl border border-slate-200/80 dark:border-zinc-800/80 bg-slate-100/70 dark:bg-zinc-950/60 text-[11px] text-slate-500 dark:text-zinc-500 transition-colors">
+              <p className="font-semibold text-slate-700 dark:text-zinc-300">Admin Session</p>
               <p className="truncate mt-0.5">{authUser?.userInfo?.email || "admin@student24.co"}</p>
             </div>
           </aside>
           
           {/* Main content */}
           <main 
-            className="flex-1 p-6 sm:p-8 overflow-auto text-zinc-100"
+            className="flex-1 p-6 sm:p-8 overflow-auto text-slate-900 dark:text-zinc-100 transition-colors"
             style={{ height: `calc(100vh - ${NAVBAR_HEIGHT}px)` }}
           >
             {children}

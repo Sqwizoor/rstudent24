@@ -19,12 +19,6 @@ export async function PUT(
     const resolvedParams = await context.params;
     const { id: paramId } = resolvedParams;
     const id = parseInt(paramId);
-    if (isNaN(id)) {
-      return NextResponse.json(
-        { message: 'Invalid application ID' },
-        { status: 400 }
-      );
-    }
 
     // Parse request body using multiple methods to handle different scenarios
     let body: { status?: string } = {};
@@ -107,15 +101,96 @@ export async function PUT(
       );
     }
     
-    console.log('Normalized status value for Prisma:', normalizedStatus);
+    console.log('Normalized status value for Prisma/Convex:', normalizedStatus);
 
-    // Find the application
-    const application = await prisma.application.findUnique({
-      where: { id },
-      include: {
-        property: true
+    const isAdmin = authResult.userRole === 'admin' || 
+                    (authResult.userEmail && (
+                      authResult.userEmail.includes("sqwizoor") || 
+                      authResult.userEmail.includes("banele") || 
+                      authResult.userEmail.endsWith("@student24.co.za")
+                    ));
+
+    // Try finding the application in Prisma if numeric
+    let application: any = null;
+    if (!isNaN(id)) {
+      try {
+        application = await prisma.application.findUnique({
+          where: { id },
+          include: {
+            property: true
+          }
+        });
+      } catch (e) {
+        console.warn("Prisma application lookup warning:", e);
       }
-    });
+    }
+
+    // If not found in Prisma, try Convex
+    if (!application) {
+      try {
+        const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
+        const res = await fetch(`${CONVEX_URL}/api/query`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: "applications:getApplicationById", args: { id: paramId } }),
+        });
+        const d = await res.json();
+        if (d?.value) {
+          const ca = d.value;
+          // Authorization check for Convex application
+          if (!isAdmin) {
+            const managerId = ca.managerId || ca.property?.managerId || ca.property?.managerCognitoId;
+            const isManager = managerId === authResult.userId || managerId === authResult.userEmail;
+            if (!isManager) {
+              return NextResponse.json(
+                { message: 'Forbidden: You do not have permission to update this application' },
+                { status: 403 }
+              );
+            }
+          }
+
+          // Update in Convex
+          await fetch(`${CONVEX_URL}/api/mutation`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              path: "applications:updateApplicationStatus",
+              args: { applicationId: paramId, status: normalizedStatus }
+            }),
+          });
+
+          // PostHog tracking
+          try {
+            const posthog = getPostHogClient();
+            const distinctId = ca.tenantId || ca.email || 'anonymous';
+            posthog.capture({
+              distinctId,
+              event: 'application_status_updated',
+              properties: {
+                application_id: paramId,
+                property_id: ca.propertyId,
+                property_name: ca.property?.name,
+                new_status: normalizedStatus,
+                previous_status: ca.status,
+                updated_by: authResult.userId,
+                source: 'convex',
+              },
+            });
+            await posthog.shutdown();
+          } catch (phErr) {
+            console.warn("PostHog error:", phErr);
+          }
+
+          return NextResponse.json({
+            ...ca,
+            id: paramId,
+            status: normalizedStatus,
+          });
+        }
+      } catch (convexErr) {
+        console.error("Convex status update error:", convexErr);
+      }
+    }
 
     if (!application) {
       return NextResponse.json(
@@ -126,8 +201,9 @@ export async function PUT(
 
     // Authorization check - only allow managers who own the property or admins to update
     if (
-      authResult.userRole !== 'admin' && 
-      application.property.managerCognitoId !== authResult.userId
+      !isAdmin && 
+      application.property.managerCognitoId !== authResult.userId &&
+      application.property.managerCognitoId !== authResult.userEmail
     ) {
       return NextResponse.json(
         { message: 'Forbidden: You do not have permission to update this application' },

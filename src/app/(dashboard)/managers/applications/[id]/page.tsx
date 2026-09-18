@@ -32,18 +32,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 
 interface ApplicationDetail {
-  id: number;
+  id: number | string;
   status: "Approved" | "Denied" | "Pending";
   applicationDate: string;
   name: string;
   email: string;
   phoneNumber: string;
   message?: string;
-  propertyId: number;
-  roomId?: number;
+  propertyId: number | string;
+  roomId?: number | string;
   tenantCognitoId?: string;
   property: {
-    id: number;
+    id: number | string;
     name: string;
     address: string;
     pricePerMonth: number;
@@ -58,7 +58,7 @@ interface ApplicationDetail {
     };
   };
   room?: {
-    id: number;
+    id: number | string;
     name: string;
     pricePerMonth: number;
   };

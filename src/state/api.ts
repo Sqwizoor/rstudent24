@@ -1341,7 +1341,7 @@ export const api = createApi({
       },
     }),
 
-    updateApplicationStatus: build.mutation<Application & { lease?: Lease }, { id: number; status: string }>({
+    updateApplicationStatus: build.mutation<Application & { lease?: Lease }, { id: number | string; status: string }>({
       query: ({ id, status }) => {
         console.log('RTK Query sending request:', { id, status });
         

@@ -39,10 +39,10 @@ export enum ApplicationStatus {
 
 // Application model
 export interface Application {
-  id: number;
+  id: number | string;
   tenantCognitoId: string | null;
-  propertyId: number;
-  roomId?: number | null;
+  propertyId: number | string;
+  roomId?: number | string | null;
   leaseId?: number | null;
   applicationDate: string | Date;
   status: ApplicationStatus;
