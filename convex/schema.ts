@@ -122,7 +122,8 @@ export default defineSchema({
   })
     .index("by_tenant", ["tenantId"])
     .index("by_manager", ["managerId"])
-    .index("by_property", ["propertyId"]),
+    .index("by_property", ["propertyId"])
+    .index("by_email", ["email"]),
 
   // Reviews Table
   reviews: defineTable({

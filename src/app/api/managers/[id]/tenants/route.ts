@@ -71,46 +71,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const propertyIds = properties.map((p) => p.id);
     const tenantMap = new Map();
 
-    // 1. Fetch applications from Prisma if propertyIds exist
-    if (propertyIds.length > 0) {
-      try {
-        const applicationsQuery: any = {
-          where: { propertyId: { in: propertyIds } },
-          include: { tenant: true, property: { include: { location: true } } },
-        };
-        if (status && status !== 'all') {
-          applicationsQuery.where.status = status;
-        }
-
-        const applications = await prisma.application.findMany(applicationsQuery);
-        applications.forEach((app: any) => {
-          if (app.tenant) {
-            const tenant = app.tenant;
-            const property = app.property;
-            const location = property?.location;
-            
-            tenantMap.set(tenant.cognitoId || tenant.email, {
-              ...tenant,
-              propertyDetails: {
-                id: property?.id,
-                title: property?.title || property?.name || "Property",
-                address: property?.address || "",
-                city: location?.city || 'Unknown',
-                status: app.status
-              },
-              applicationStatus: app.status,
-              applicationId: app.id
-            });
-          }
-        });
-      } catch (appErr) {
-        console.warn("Prisma applications query warning:", appErr);
-      }
-    }
-
-    // 2. Fetch applications from Convex for this manager
+    // Fetch applications from Convex for this manager
     try {
-      const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
+      const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
       const res = await fetch(`${CONVEX_URL}/api/query`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,6 +82,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       const data = await res.json();
       if (Array.isArray(data?.value)) {
         for (const ca of data.value) {
+          if (status && status !== 'all' && (ca.status || '').toLowerCase() !== status.toLowerCase()) {
+            continue;
+          }
           const key = ca.tenantId || ca.email;
           if (!tenantMap.has(key)) {
             tenantMap.set(key, {
@@ -141,7 +107,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }
       }
     } catch (convexErr) {
-      console.warn("Convex manager tenants fetch warning:", convexErr);
+      console.warn("Convex manager tenants warning:", convexErr);
     }
     
     // Convert map to array

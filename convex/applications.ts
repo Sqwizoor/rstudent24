@@ -2,22 +2,69 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 export const getTenantApplications = query({
-  args: { tenantId: v.string() },
+  args: { 
+    tenantId: v.string(),
+    email: v.optional(v.string())
+  },
   handler: async (ctx, args) => {
-    const apps = await ctx.db
-      .query("applications")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
-      .collect();
+    const searchKeys = [args.tenantId, args.email].filter(Boolean) as string[];
+    const seen = new Set<string>();
+    const apps: any[] = [];
+
+    for (const key of searchKeys) {
+      const byTenant = await ctx.db
+        .query("applications")
+        .withIndex("by_tenant", (q) => q.eq("tenantId", key))
+        .collect();
+      for (const a of byTenant) {
+        if (!seen.has(a._id)) {
+          seen.add(a._id);
+          apps.push(a);
+        }
+      }
+    }
+
+    if (args.email) {
+      try {
+        const byEmail = await ctx.db
+          .query("applications")
+          .withIndex("by_email", (q) => q.eq("email", args.email!))
+          .collect();
+        for (const a of byEmail) {
+          if (!seen.has(a._id)) {
+            seen.add(a._id);
+            apps.push(a);
+          }
+        }
+      } catch {}
+    }
+
+    apps.sort((a, b) => {
+      const dateA = new Date(a.applicationDate || a.createdAt || a._creationTime || 0).getTime();
+      const dateB = new Date(b.applicationDate || b.createdAt || b._creationTime || 0).getTime();
+      return dateB - dateA;
+    });
 
     return await Promise.all(
       apps.map(async (app) => {
-        const property = await ctx.db.get(app.propertyId);
-        const imageUrls = property ? await Promise.all(
-          property.images.map((id) => ctx.storage.getUrl(id))
-        ) : [];
+        const property: any = await ctx.db.get(app.propertyId);
+        const imageUrls = property?.images ? await Promise.all(
+          property.images.map((id: string) => ctx.storage.getUrl(id as any))
+        ) : (property?.photoUrls || []);
         return {
           ...app,
-          property: property ? { ...property, imageUrls: imageUrls.filter(Boolean) } : null,
+          id: app._id,
+          property: property ? { 
+            ...property, 
+            id: property._id,
+            pricePerMonth: property.pricePerMonth,
+            imageUrls: imageUrls.filter(Boolean),
+            location: {
+              address: property.address || "",
+              city: property.city || "",
+              suburb: property.suburb || "",
+            }
+          } : null,
         };
       })
     );
@@ -325,6 +372,16 @@ export const updateApplicationStatus = mutation({
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.applicationId as any, { status: args.status });
+    return { success: true };
+  },
+});
+
+export const deleteApplication = mutation({
+  args: {
+    applicationId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.applicationId as any);
     return { success: true };
   },
 });

@@ -3,13 +3,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { anyApi } from "convex/server";
-import {
-  useGetApplicationsQuery,
-  useUpdateApplicationStatusMutation,
-  useGetPropertiesQuery
-} from "@/state/api";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { 
   CircleCheckBig, 
@@ -400,7 +395,7 @@ const Applications = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  // ── Convex Live Queries ──
+  // ── Convex Live Queries for Applications ──
   // @ts-ignore
   const convexAppsById = useQuery(
     anyApi.applications.getManagerApplications,
@@ -417,36 +412,47 @@ const Applications = () => {
     migratedId && migratedId !== managerId && migratedId !== managerEmail ? { managerId: migratedId } : "skip"
   );
 
-  // ── RTK Query Fallback ──
-  const {
-    data: rtkApplicationsList,
-    isLoading: rtkLoading,
-    isError: rtkIsError,
-  } = useGetApplicationsQuery(
-    {
-      userId: managerId,
-      userType: "manager",
-    },
-    {
-      skip: !managerId,
-    }
+  // ── Convex Live Queries for Properties ──
+  // @ts-ignore
+  const propertiesById = useQuery(
+    anyApi.properties.getManagerProperties,
+    managerId ? { managerId } : "skip"
   );
-  
-  const [updateApplicationStatus] = useUpdateApplicationStatusMutation();
-
-  // Fetch property details for applications
-  const { data: properties } = useGetPropertiesQuery(
-    {},
-    { skip: !managerId }
+  // @ts-ignore
+  const propertiesByEmail = useQuery(
+    anyApi.properties.getManagerProperties,
+    managerEmail && managerEmail !== managerId ? { managerId: managerEmail } : "skip"
+  );
+  // @ts-ignore
+  const propertiesByMigratedId = useQuery(
+    anyApi.properties.getManagerProperties,
+    migratedId && migratedId !== managerId ? { managerId: migratedId } : "skip"
   );
 
-  // Combine and deduplicate applications from Convex and RTK
+  const properties = useMemo(() => {
+    const list = [
+      ...(propertiesById ?? []),
+      ...(propertiesByEmail ?? []),
+      ...(propertiesByMigratedId ?? []),
+    ];
+    const seen = new Set<string>();
+    return list.filter((p: any) => {
+      const id = p?._id || p?.id;
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [propertiesById, propertiesByEmail, propertiesByMigratedId]);
+
+  // Direct Convex mutation for status update
+  const updateStatusMutation = useMutation(anyApi.applications.updateApplicationStatus);
+
+  // Combine and deduplicate applications from Convex
   const allApplications = useMemo(() => {
     const list = [
       ...(Array.isArray(convexAppsById) ? convexAppsById : []),
       ...(Array.isArray(convexAppsByEmail) ? convexAppsByEmail : []),
       ...(Array.isArray(convexAppsByMigratedId) ? convexAppsByMigratedId : []),
-      ...(Array.isArray(rtkApplicationsList) ? rtkApplicationsList : []),
     ];
 
     const seen = new Set<string>();
@@ -466,19 +472,19 @@ const Applications = () => {
     });
 
     return unique;
-  }, [convexAppsById, convexAppsByEmail, convexAppsByMigratedId, rtkApplicationsList]);
+  }, [convexAppsById, convexAppsByEmail, convexAppsByMigratedId]);
 
-  const isLoading = (convexAppsById === undefined && rtkLoading);
+  const isLoading = (convexAppsById === undefined && convexAppsByEmail === undefined);
 
   const handleStatusChange = async (id: number | string, status: 'Approved' | 'Denied' | 'Pending') => {
     try {
       const validStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-      console.log('Updating application status:', { id, status: validStatus });
+      console.log('Updating application status via Convex:', { id, status: validStatus });
       
-      await updateApplicationStatus({ 
-        id, 
-        status: validStatus as 'Approved' | 'Denied' | 'Pending'
-      }).unwrap();
+      await updateStatusMutation({ 
+        applicationId: String(id), 
+        status: validStatus
+      });
       
       toast.success(`Application ${validStatus.toLowerCase()}`);
     } catch (error) {
