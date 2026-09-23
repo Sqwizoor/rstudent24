@@ -3,6 +3,7 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { isExplicitAdminEmail } from "@/lib/constants";
 
 export const dynamic = 'force-dynamic';
 
@@ -130,31 +131,31 @@ const handler = NextAuth({
           // ignore
         }
 
-        // Check if email belongs to manager/admin in Prisma
-        let autoResolvedRole = targetRole || (user as any)?.role || "tenant";
+        // Check if email belongs to manager/admin with strict admin whitelist
+        let autoResolvedRole = "tenant";
         try {
-          if (email) {
+          if (email && isExplicitAdminEmail(email)) {
+            autoResolvedRole = "admin";
             const isAdminInDb = await prisma.admin.findFirst({ where: { email } });
-            if (isAdminInDb || targetRole === "admin" || (user as any)?.role === "admin" || email.includes("admin")) {
-              autoResolvedRole = "admin";
-              if (!isAdminInDb) {
-                await prisma.admin.create({
-                  data: {
-                    cognitoId: sub,
-                    name: user?.name || (profile as any)?.name || email.split("@")[0],
-                    email: email,
-                  }
-                }).catch(() => {});
-              }
+            if (!isAdminInDb) {
+              await prisma.admin.create({
+                data: {
+                  cognitoId: sub,
+                  name: user?.name || (profile as any)?.name || email.split("@")[0],
+                  email: email,
+                }
+              }).catch(() => {});
+            }
+          } else if (email) {
+            const isManagerInDb = await prisma.manager.findFirst({ where: { email } });
+            if (isManagerInDb || targetRole === "manager" || (user as any)?.role === "manager") {
+              autoResolvedRole = "manager";
             } else {
-              const isManager = await prisma.manager.findFirst({ where: { email } });
-              if (isManager) {
-                autoResolvedRole = "manager";
-              }
+              autoResolvedRole = targetRole === "admin" ? "tenant" : (targetRole || (user as any)?.role || "tenant");
             }
           }
         } catch (e) {
-          // fallback to targetRole
+          autoResolvedRole = targetRole === "admin" ? "tenant" : (targetRole || "tenant");
         }
 
         (token as any).role = autoResolvedRole;
@@ -175,7 +176,10 @@ const handler = NextAuth({
 
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).role = (token as any).role ?? "tenant";
+        const email = (session.user.email || token.email || "").toLowerCase().trim();
+        const role = (token as any).role ?? "tenant";
+        // Enforce whitelist: non-whitelisted emails can NEVER have admin role in session
+        (session.user as any).role = (role === "admin" && !isExplicitAdminEmail(email)) ? "tenant" : role;
         (session.user as any).provider = (token as any).provider ?? "google";
         (session.user as any).sub = (token as any).sub;
         (session.user as any).id = (token as any).id;

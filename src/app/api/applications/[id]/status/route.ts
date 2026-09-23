@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
+import { isExplicitAdminEmail } from '@/lib/constants';
 import { getPostHogClient } from '@/lib/posthog-server';
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
@@ -67,12 +68,7 @@ export async function PUT(
       );
     }
 
-    const isAdmin = authResult.userRole === 'admin' || 
-                    (authResult.userEmail && (
-                      authResult.userEmail.includes("sqwizoor") || 
-                      authResult.userEmail.includes("banele") || 
-                      authResult.userEmail.endsWith("@student24.co.za")
-                    ));
+    const isAdmin = isExplicitAdminEmail(authResult.userEmail);
 
     // Fetch the application from Convex
     const getRes = await fetch(`${CONVEX_URL}/api/query`, {

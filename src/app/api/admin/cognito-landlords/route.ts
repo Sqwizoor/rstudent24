@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/auth";
+import { isExplicitAdminEmail } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
@@ -7,14 +8,7 @@ const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543
 export async function GET(request: NextRequest) {
   try {
     const auth = await verifyAuth(request);
-    const isAdmin = auth.isAuthenticated && (
-      auth.userRole === "admin" || 
-      (auth.userEmail && (
-        auth.userEmail.includes("sqwizoor") || 
-        auth.userEmail.includes("banele") || 
-        auth.userEmail.endsWith("@student24.co.za")
-      ))
-    );
+    const isAdmin = auth.isAuthenticated && isExplicitAdminEmail(auth.userEmail);
 
     type ManagerRecord = {
       id: number | string;

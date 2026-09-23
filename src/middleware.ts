@@ -1,24 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+import { isExplicitAdminEmail } from '@/lib/constants';
 
-// Middleware for admin routes
-export function middleware(request: NextRequest) {
+// Professional Middleware for admin routes and admin APIs (NextAuth)
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith('/admin')) {
-    const adminAuthToken = request.cookies.get('admin_auth_token')?.value;
-    const nextAuthToken = request.cookies.get('next-auth.session-token')?.value || 
-                          request.cookies.get('__Secure-next-auth.session-token')?.value;
+  const isAdminPath = pathname === '/admin' || pathname.startsWith('/admin/');
+  const isAdminApiPath = pathname === '/api/admin' || pathname.startsWith('/api/admin/');
 
-    if (!adminAuthToken && !nextAuthToken) {
-      const url = new URL('/signin', request.url);
-      url.searchParams.set('callbackUrl', pathname);
-      return NextResponse.redirect(url);
+  if (isAdminPath || isAdminApiPath) {
+    let userEmail: string | null = null;
+    let isAuthenticated = false;
+
+    // Verify NextAuth JWT session
+    try {
+      const nextAuthToken = await getToken({ 
+        req: request, 
+        secret: process.env.NEXTAUTH_SECRET 
+      });
+      if (nextAuthToken?.email) {
+        userEmail = String(nextAuthToken.email).toLowerCase().trim();
+        isAuthenticated = true;
+      }
+    } catch (e) {
+      console.warn("[Middleware] NextAuth token verification failed:", e);
+    }
+
+    // Strict Authorization Check: Only explicit admin emails allowed
+    const isAuthorizedAdmin = isAuthenticated && isExplicitAdminEmail(userEmail);
+
+    if (!isAuthorizedAdmin) {
+      // For API requests, return JSON error with 401/403 status
+      if (isAdminApiPath) {
+        return NextResponse.json(
+          { 
+            error: isAuthenticated 
+              ? "Forbidden: This account is not authorized for administrator access" 
+              : "Unauthorized: Administrator sign in required",
+            code: isAuthenticated ? 403 : 401 
+          },
+          { status: isAuthenticated ? 403 : 401 }
+        );
+      }
+
+      // For Admin UI Page requests:
+      if (!isAuthenticated) {
+        const signInUrl = new URL('/signin', request.url);
+        signInUrl.searchParams.set('callbackUrl', pathname);
+        return NextResponse.redirect(signInUrl);
+      } else {
+        // Authenticated as student, tenant, landlord, or regular user: redirect away
+        return NextResponse.redirect(new URL('/', request.url));
+      }
     }
   }
-  
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/api/admin/:path*'],
 };

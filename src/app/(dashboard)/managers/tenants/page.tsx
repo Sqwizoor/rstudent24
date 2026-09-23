@@ -47,10 +47,46 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { useQuery } from "convex/react";
+import { anyApi } from "convex/server";
+
+const MIGRATED_LANDLORD_LOOKUP: Record<string, string> = {
+  "manager@example.com": "70cca9cc-b0c1-7064-d6d6-8f92e52d4790",
+  "banelesouthflow@gmail.com": "602ca91c-5001-70c7-a78a-e9b1e36ce93e",
+  "info@maginvest.co.za": "e0ccb98c-e091-702a-0944-0c6416c31a2b",
+  "alexsouthflow2@gmail.com": "708c39ec-60d1-70d6-bd79-286d43e5cf40",
+  "marelismit@hotmail.com": "a0bcb94c-9021-70ba-90de-a0a8b41d12dc",
+  "marketingadmin@mosaicgroup.co.za": "30bc291c-2021-70ee-bb87-d158fbaebee2",
+  "matthieusnaith@gmail.com": "f07c499c-5051-70a6-1948-e5b0bc72b25e",
+  "kian@conurban.co.za": "505ca9fc-c0c1-7068-94ff-fe61d5a3e8c0",
+  "lenhlendaba@gmail.com": "000c092c-d031-7024-5b34-27ee476b4abb",
+  "nicola.makuwa@icloud.com": "70bcd9cc-d0f1-70c0-4edc-6508f5254d5b",
+  "lefufisha@gmail.com": "e0fc796c-0091-7016-4f0d-67b8a56c4d9c",
+  "info@27cluver.co.za": "e00ce9ac-f031-70e5-2d3f-f88e95460f2b",
+  "sibandablessed724@gmail.com": "208c796c-00b1-7015-d53a-ad27f2b677ff",
+  "info@staysouthpoint.co.za": "50bc293c-c0c1-70b1-c593-4b2d2a4f1f40",
+  "gina.moonsamy@gmail.com": "800cc96c-b091-70c2-7102-c338f616081c",
+  "rosaliefloresfranco@gmail.com": "40ccb93c-60c1-70c0-bfe2-16551e4395a1",
+  "princetinendi@yahoo.com": "e0bc69bc-e031-7009-14c9-c0f65dfad6d3",
+  "lizen@cityprop.co.za": "40fc393c-a091-705e-7cab-c137b8a51f0d",
+  "allistairem@gmail.com": "405c093c-2051-702e-e86d-8a625d775b0e",
+  "infokiarashomestay@gmail.com": "d04cc9ac-1001-708d-2b4c-9d877fbdf21b",
+  "shaeekahisra@gmail.com": "60fc69fc-7071-702c-c927-f70b14e6d334",
+  "meevsuu@hotmail.com": "f04cb9ac-6041-7060-a1da-90eacad6fb62",
+  "magitshimaanisa2@gmail.com": "e0ec19cc-c051-70ee-144b-01240730cf3f",
+  "tsp.mjadu@gmail.com": "e0dc292c-d011-7071-e0de-4a65f863ebd7",
+  "clip-plod-lesser@duck.com": "a0dc393c-a001-7078-2d0f-c1281d72a110",
+  "wayne@centraladvisory.co.za": "407c79dc-c0f1-702e-e58e-1bcef352493d",
+  "parklanejohn@hotmail.com": "e0fce95c-d081-7011-3934-5fe8e083a64d",
+  "kmeyiswa021@student.wethinkcode.co.za": "80fc493c-50b1-70d9-15eb-ddf0684334dd",
+  "unathindlovu28@gmail.com": "d04c697c-f061-7015-5342-9f4fd8909467",
+  "angiep@louwcoetzee.co.za": "b00cb9ac-70f1-7079-8921-25cd4d45eabc",
+  "zwelakhe.samuel@gmail.com": "101c293c-5081-7043-8179-30abb82807dc"
+};
 
 // Define interfaces for type safety
 interface Location {
-  id: number;
+  id: number | string;
   address: string;
   city: string;
   state: string;
@@ -59,30 +95,30 @@ interface Location {
 }
 
 interface Property {
-  id: number;
+  id: number | string;
   title: string;
   address: string;
   location: Location;
 }
 
 interface Tenant {
-  id: number;
+  id: number | string;
   cognitoId: string;
   name: string;
   email: string;
   phoneNumber: string;
   propertyDetails?: {
-    id: number;
+    id: number | string;
     title: string;
     address: string;
     city: string;
     status: string;
   };
   applicationStatus: string;
-  applicationId: number;
+  applicationId: number | string;
 }
 
-// Custom hook to fetch tenants for a manager
+// Custom hook to fetch tenants for a manager via API
 const useGetManagerTenants = (managerId: string, skip: boolean) => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -96,26 +132,7 @@ const useGetManagerTenants = (managerId: string, skip: boolean) => {
       setError(null);
       
       try {
-        let authHeaders = {};
-        try {
-          const { fetchAuthSession } = await import('aws-amplify/auth');
-          const session = await fetchAuthSession();
-          const idToken = session.tokens?.idToken?.toString();
-          
-          if (idToken) {
-            authHeaders = {
-              Authorization: `Bearer ${idToken}`
-            };
-          }
-        } catch {
-          // Continue with standard headers
-        }
-        
-        const response = await fetch(`/api/managers/${managerId}/tenants`, {
-          headers: {
-            ...authHeaders
-          }
-        });
+        const response = await fetch(`/api/managers/${managerId}/tenants`);
         
         if (response.ok) {
           const data = await response.json();
@@ -142,18 +159,90 @@ function ManagerTenantsPage() {
   // Get authenticated unified user (Google, NextAuth, or Cognito)
   const { user, isAuthenticated, isLoading: authLoading } = useUnifiedAuth();
   const managerId = (user as any)?.id || (user as any)?.sub || "";
+  const managerEmail = (user?.email || "").toLowerCase();
+  const migratedId = managerEmail ? MIGRATED_LANDLORD_LOOKUP[managerEmail] : "";
   const userRole = user?.role?.toLowerCase() || (user as any)?.userRole?.toLowerCase() || "manager";
   
-  // Get tenants for this manager
+  // REST API query for tenants
   const { 
-    data: tenants, 
-    isLoading: tenantsLoading, 
-    error: tenantsError 
+    data: apiTenants, 
+    isLoading: apiTenantsLoading 
   } = useGetManagerTenants(
-    managerId, 
-    !managerId
+    managerId || managerEmail || migratedId, 
+    !managerId && !managerEmail
   );
+
+  // Convex live queries for applications
+  // @ts-ignore
+  const convexAppsById = useQuery(
+    anyApi.applications.getManagerApplications,
+    managerId ? { managerId } : "skip"
+  );
+  // @ts-ignore
+  const convexAppsByEmail = useQuery(
+    anyApi.applications.getManagerApplications,
+    managerEmail && managerEmail !== managerId ? { managerId: managerEmail } : "skip"
+  );
+  // @ts-ignore
+  const convexAppsByMigratedId = useQuery(
+    anyApi.applications.getManagerApplications,
+    migratedId && migratedId !== managerId && migratedId !== managerEmail ? { managerId: migratedId } : "skip"
+  );
+
+  // Merge and deduplicate tenants from API and Convex live applications
+  const tenants = React.useMemo(() => {
+    const map = new Map<string, Tenant>();
+
+    // 1. Add REST tenants
+    if (Array.isArray(apiTenants)) {
+      apiTenants.forEach((t) => {
+        const k = t.cognitoId || t.email || String(t.id);
+        map.set(k, t);
+      });
+    }
+
+    // 2. Add Convex applications
+    const convexApps = [
+      ...(Array.isArray(convexAppsById) ? convexAppsById : []),
+      ...(Array.isArray(convexAppsByEmail) ? convexAppsByEmail : []),
+      ...(Array.isArray(convexAppsByMigratedId) ? convexAppsByMigratedId : []),
+    ];
+
+    convexApps.forEach((ca: any) => {
+      const studentName = ca.name || 
+        (ca.tenant ? `${ca.tenant.firstName || ''} ${ca.tenant.lastName || ''}`.trim() : '') ||
+        (ca.user ? `${ca.user.firstName || ''} ${ca.user.lastName || ''}`.trim() : '') ||
+        "Student Tenant";
+      const email = ca.email || ca.tenant?.email || "";
+      const key = ca.tenantId || email || String(ca._id);
+
+      const existing = map.get(key);
+      const isApproved = (ca.status || '').toLowerCase() === 'approved';
+      if (!existing || isApproved) {
+        map.set(key, {
+          id: ca._id,
+          cognitoId: ca.tenantId || ca.userId || ca._id,
+          name: studentName,
+          email: email,
+          phoneNumber: ca.phoneNumber || ca.tenant?.phoneNumber || "Not provided",
+          propertyDetails: {
+            id: ca.propertyId || ca.property?._id || "prop",
+            title: ca.property?.name || ca.property?.title || "Student Accommodation",
+            address: ca.property?.address || "",
+            city: ca.property?.city || "South Africa",
+            status: ca.status || "Pending",
+          },
+          applicationStatus: (ca.status || "Pending").toLowerCase(),
+          applicationId: ca._id,
+        });
+      }
+    });
+
+    return Array.from(map.values());
+  }, [apiTenants, convexAppsById, convexAppsByEmail, convexAppsByMigratedId]);
   
+  const tenantsLoading = apiTenantsLoading && convexAppsById === undefined && convexAppsByEmail === undefined;
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -163,10 +252,11 @@ function ManagerTenantsPage() {
   const uniqueProperties = React.useMemo(() => {
     const properties = new Map();
     
-    tenants?.forEach(tenant => {
+    tenants.forEach(tenant => {
       if (tenant.propertyDetails) {
-        properties.set(tenant.propertyDetails.id, {
-          id: tenant.propertyDetails.id,
+        const propId = String(tenant.propertyDetails.id);
+        properties.set(propId, {
+          id: propId,
           title: tenant.propertyDetails.title,
         });
       }

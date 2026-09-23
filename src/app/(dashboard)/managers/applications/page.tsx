@@ -203,7 +203,7 @@ const ApplicationItem = ({ application, handleStatusChange }: ApplicationItemPro
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm dark:text-gray-400 text-gray-500">
                 <span className="flex items-center">
                   <Building className="w-3.5 h-3.5 mr-1 text-blue-500" />
-                  {application.property.name}
+                  {application.property?.name || "Student Accommodation"}
                 </span>
                 <span className="flex items-center">
                   <Calendar className="w-3.5 h-3.5 mr-1" />
@@ -275,28 +275,28 @@ const ApplicationItem = ({ application, handleStatusChange }: ApplicationItemPro
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                     <div>
                       <span className="dark:text-gray-400 text-gray-500">Property: </span>
-                      <span className="dark:text-white text-gray-900 font-medium">{application.property.name}</span>
+                      <span className="dark:text-white text-gray-900 font-medium">{application.property?.name || "Student Accommodation"}</span>
                     </div>
                     {application.room ? (
                       <div>
                         <span className="dark:text-gray-400 text-gray-500">Room: </span>
-                        <span className="dark:text-white text-gray-900">{application.room.name}</span>
+                        <span className="dark:text-white text-gray-900">{application.room.name || "Room"}</span>
                       </div>
                     ) : (
                       <div>
                         <span className="dark:text-gray-400 text-gray-500">Unit: </span>
-                        <span className="dark:text-white text-gray-900">{application.property.unit || "N/A"}</span>
+                        <span className="dark:text-white text-gray-900">{application.property?.unit || "N/A"}</span>
                       </div>
                     )}
                     <div>
                       <span className="dark:text-gray-400 text-gray-500">Monthly Rent: </span>
                       <span className="dark:text-white text-gray-900 font-semibold">
-                        R{application.room?.pricePerMonth?.toLocaleString('en-ZA') || application.property.pricePerMonth?.toLocaleString('en-ZA')}
+                        R{(Number(application.room?.pricePerMonth) || Number(application.property?.pricePerMonth) || 0).toLocaleString('en-ZA')}
                       </span>
                     </div>
                     <div>
                       <span className="dark:text-gray-400 text-gray-500">Address: </span>
-                      <span className="dark:text-white text-gray-900">{application.property.address}</span>
+                      <span className="dark:text-white text-gray-900">{application.property?.address || "Address unavailable"}</span>
                     </div>
                   </div>
                 </div>
@@ -315,7 +315,13 @@ const ApplicationItem = ({ application, handleStatusChange }: ApplicationItemPro
                     <div>
                       <span className="dark:text-gray-400 text-gray-500">Submitted: </span>
                       <span className="dark:text-white text-gray-900">
-                        {application.applicationDate ? new Date(application.applicationDate).toLocaleDateString() : 'N/A'}
+                        {(() => {
+                          try {
+                            return application.applicationDate ? new Date(application.applicationDate).toLocaleDateString() : 'N/A';
+                          } catch {
+                            return 'N/A';
+                          }
+                        })()}
                       </span>
                     </div>
                   </div>
@@ -333,15 +339,17 @@ const ApplicationItem = ({ application, handleStatusChange }: ApplicationItemPro
                     View Details
                   </Link>
 
-                  <Link
-                    href={`/managers/properties/${application.property.id}`}
-                    className="dark:bg-gray-800 bg-gray-100 dark:border-gray-700 border-gray-200 dark:text-gray-200 text-gray-700 py-2 px-4 
-                      rounded-md flex items-center justify-center dark:hover:bg-gray-700 hover:bg-gray-200 transition-colors text-sm"
-                    scroll={false}
-                  >
-                    <Building className="w-4 h-4 mr-2" />
-                    View Property
-                  </Link>
+                  {application.property?.id && (
+                    <Link
+                      href={`/managers/properties/${application.property.id}`}
+                      className="dark:bg-gray-800 bg-gray-100 dark:border-gray-700 border-gray-200 dark:text-gray-200 text-gray-700 py-2 px-4 
+                        rounded-md flex items-center justify-center dark:hover:bg-gray-700 hover:bg-gray-200 transition-colors text-sm"
+                      scroll={false}
+                    >
+                      <Building className="w-4 h-4 mr-2" />
+                      View Property
+                    </Link>
+                  )}
                   
                   {application.status === "Pending" && (
                     <div className="flex gap-2">
@@ -381,6 +389,36 @@ const ApplicationItem = ({ application, handleStatusChange }: ApplicationItemPro
     </motion.div>
   );
 };
+
+// Error boundary wrapper for application item
+class SafeApplicationItem extends React.Component<{
+  application: any;
+  handleStatusChange: (id: number | string, status: 'Approved' | 'Denied' | 'Pending') => Promise<void>;
+}, { hasError: boolean }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any) {
+    console.error("Error rendering application card:", error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 rounded-lg border border-red-500/30 bg-red-950/20 text-red-200 text-sm">
+          Failed to display application record.
+        </div>
+      );
+    }
+    return <ApplicationItem {...this.props} />;
+  }
+}
 
 // Applications Page Component
 const Applications = () => {
@@ -566,8 +604,8 @@ const Applications = () => {
           address: propertyAddress,
         },
         room: application.room ? {
-          name: application.room.name || '',
-          pricePerMonth: application.room.pricePerMonth || 0,
+          name: typeof application.room === 'string' ? application.room : (application.room.name || 'Room'),
+          pricePerMonth: typeof application.room === 'object' ? (Number(application.room.pricePerMonth) || 0) : 0,
         } : undefined,
       };
     });
@@ -734,7 +772,7 @@ const Applications = () => {
                   <>
                     <AnimatePresence>
                       {paginatedApplications.map((application) => (
-                        <ApplicationItem
+                        <SafeApplicationItem
                           key={String(application.id)}
                           application={application}
                           handleStatusChange={handleStatusChange}

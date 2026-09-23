@@ -16,7 +16,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { fetchAuthSession } from "aws-amplify/auth";
 import posthog from 'posthog-js';
 
 // Extend Window interface for Facebook Pixel

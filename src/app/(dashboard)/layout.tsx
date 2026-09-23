@@ -3,7 +3,7 @@
 import DashboardNavbar from "@/components/DashboardNavbar";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import Sidebar from "@/components/AppSidebar";
-import { NAVBAR_HEIGHT } from "@/lib/constants";
+import { NAVBAR_HEIGHT, isExplicitAdminEmail } from "@/lib/constants";
 import React, { useEffect, useState, Suspense } from "react";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { usePathname, useRouter } from "next/navigation";
@@ -35,9 +35,13 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
     if (user) {
       const userRole = user.role?.toLowerCase();
       
-      // Handle admin users
+      // Handle admin users with strict whitelist validation
       if (userRole === "admin") {
-        localStorage.setItem('isAdminAuthenticated', 'true');
+        if (isExplicitAdminEmail(user.email)) {
+          localStorage.setItem('isAdminAuthenticated', 'true');
+        } else {
+          localStorage.removeItem('isAdminAuthenticated');
+        }
         setIsLoading(false);
         return;
       }

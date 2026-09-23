@@ -7,7 +7,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { useGetAuthUserQuery } from "@/state/api"
 import { usePathname, useRouter } from "next/navigation"
-import { signOut } from "aws-amplify/auth"
+import { signOut } from "next-auth/react"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { useTheme } from "next-themes"
 import {
@@ -54,8 +54,7 @@ const AdminNavbar = () => {
 
   const handleSignOut = async () => {
     setIsLoading(true)
-    await signOut().catch(() => {})
-    window.location.href = "/signin"
+    await signOut({ callbackUrl: "/signin" })
   }
 
   return (

@@ -463,3 +463,17 @@ export const getCampusLabelsByIds = (campusIds: (string | number)[]): string[] =
   return campusIds.map(id => getCampusLabelById(id));
 };
 
+// Strict platform administrator whitelist
+export const ADMIN_WHITELIST: readonly string[] = [
+  'admin@student24.co.za',
+  'superadmin@student24.co.za',
+  'info@student24.co.za',
+  'banelesqwizooor@gmail.com',
+  'sqwizoor@gmail.com',
+];
+
+export function isExplicitAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  return ADMIN_WHITELIST.includes(email.trim().toLowerCase());
+}
+

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import { fetchAuthSession } from "aws-amplify/auth";
 import {
   useGetAuthUserQuery,
   useUpdateApplicationStatusMutation,
@@ -256,10 +255,17 @@ const ApplicationDetailPage = () => {
 
   if (!application) return null;
 
-  const formattedDate = formatDistanceToNow(
-    new Date(application.applicationDate),
-    { addSuffix: true }
-  );
+  let formattedDate = "Recently";
+  try {
+    if (application.applicationDate) {
+      formattedDate = formatDistanceToNow(
+        new Date(application.applicationDate),
+        { addSuffix: true }
+      );
+    }
+  } catch {
+    formattedDate = "Recently";
+  }
 
   return (
     <div className="min-h-screen dark:bg-slate-950 dark:text-white bg-white text-gray-900">
@@ -352,7 +358,7 @@ const ApplicationDetailPage = () => {
                     <div>
                       <p className="text-sm dark:text-gray-400 text-gray-600">Name</p>
                       <p className="dark:text-white text-gray-900 font-medium">
-                        {application.property.name}
+                        {application.property?.name || "Student Accommodation"}
                       </p>
                     </div>
                     <div>
@@ -360,7 +366,7 @@ const ApplicationDetailPage = () => {
                       <div className="flex items-start gap-2">
                         <MapPin className="w-4 h-4 dark:text-gray-400 text-gray-500 mt-1 flex-shrink-0" />
                         <p className="dark:text-white text-gray-900 font-medium">
-                          {application.property.location?.address || application.property.address}
+                          {application.property?.location?.address || application.property?.address || "Address unavailable"}
                         </p>
                       </div>
                     </div>
@@ -371,7 +377,7 @@ const ApplicationDetailPage = () => {
                       <div className="flex items-center gap-2">
                         <DollarSign className="w-4 h-4 dark:text-green-400 text-green-600" />
                         <p className="dark:text-white text-gray-900 font-medium">
-                          R{application.property.pricePerMonth.toLocaleString(
+                          R{(Number(application.property?.pricePerMonth) || 0).toLocaleString(
                             "en-ZA"
                           )}
                         </p>
@@ -392,7 +398,7 @@ const ApplicationDetailPage = () => {
                           Room Name
                         </p>
                         <p className="dark:text-white text-gray-900 font-medium">
-                          {application.room.name}
+                          {application.room?.name || "Room"}
                         </p>
                       </div>
                       <div>
@@ -402,7 +408,7 @@ const ApplicationDetailPage = () => {
                         <div className="flex items-center gap-2">
                           <DollarSign className="w-4 h-4 dark:text-green-400 text-green-600" />
                           <p className="dark:text-white text-gray-900 font-medium">
-                            R{application.room.pricePerMonth.toLocaleString(
+                            R{(Number(application.room?.pricePerMonth) || 0).toLocaleString(
                               "en-ZA"
                             )}
                           </p>
@@ -429,16 +435,22 @@ const ApplicationDetailPage = () => {
                       Application Submitted
                     </p>
                     <p className="text-sm dark:text-gray-400 text-gray-600">
-                      {new Date(application.applicationDate).toLocaleDateString(
-                        "en-ZA",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
+                      {(() => {
+                        try {
+                          return new Date(application.applicationDate).toLocaleDateString(
+                            "en-ZA",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          );
+                        } catch {
+                          return "Unknown date";
                         }
-                      )}
+                      })()}
                     </p>
                     <p className="text-xs dark:text-gray-500 text-gray-500 mt-1">
                       {formattedDate}

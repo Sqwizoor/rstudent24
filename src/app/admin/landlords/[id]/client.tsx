@@ -199,6 +199,44 @@ export default function LandlordClientComponent() {
               </Card>
             );
           })}
+          {landlordData.properties.length === 0 && (
+            <Card className="p-8 text-center bg-zinc-950/70 border border-zinc-800 text-zinc-400">
+              No properties found for this landlord.
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="tenants" className="mt-4 space-y-4">
+          {landlordData.tenants.map((tenant: any) => (
+            <Card key={tenant.id} className="p-4 bg-zinc-950/70 border border-zinc-800 text-zinc-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-base">{tenant.name}</h3>
+                <p className="text-sm text-zinc-400">{tenant.email}</p>
+                {tenant.phoneNumber && (
+                  <p className="text-xs text-zinc-500 mt-0.5">{tenant.phoneNumber}</p>
+                )}
+                {tenant.propertyName && (
+                  <p className="text-xs text-blue-400 mt-1 flex items-center">
+                    <Home className="h-3 w-3 mr-1" /> {tenant.propertyName}
+                  </p>
+                )}
+              </div>
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="bg-zinc-900 border-zinc-800 text-zinc-200 hover:bg-zinc-800"
+                onClick={() => router.push(`/admin/students/${tenant.id}`)}
+              >
+                <Eye className="h-3.5 w-3.5 mr-1" /> View Student
+              </Button>
+            </Card>
+          ))}
+
+          {landlordData.tenants.length === 0 && (
+            <Card className="p-8 text-center bg-zinc-950/70 border border-zinc-800 text-zinc-400">
+              No tenants currently assigned to this landlord.
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 

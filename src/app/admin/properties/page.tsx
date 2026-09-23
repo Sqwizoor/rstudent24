@@ -3,8 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGetAuthUserQuery, useGetAdminPropertiesQuery } from "@/state/api";
-import { configureAdminAuth } from "../adminAuth";
-import { fetchAuthSession } from "aws-amplify/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,12 +47,7 @@ export default function AdminPropertiesPage() {
     const initAuth = async () => {
       try {
         configureAdminAuth();
-        const isFlaggedAdmin = typeof window !== 'undefined' && localStorage.getItem('isAdminAuthenticated') === 'true';
-        if (isFlaggedAdmin) {
-          setAuthInitialized(true);
-          return;
-        }
-        const session = await fetchAuthSession().catch(() => null);
+        await fetchAuthSession().catch(() => null);
         setAuthInitialized(true);
       } catch (error) {
         console.error("Error initializing admin auth:", error);

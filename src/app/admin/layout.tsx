@@ -5,7 +5,7 @@ import "./theme.css";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
-import { NAVBAR_HEIGHT } from "@/lib/constants";
+import { NAVBAR_HEIGHT, isExplicitAdminEmail } from "@/lib/constants";
 import AdminNavbar from "@/components/AdminNavbar";
 import { cn } from "@/lib/utils";
 import { 
@@ -33,32 +33,32 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  const isLoading = rtkLoading && unifiedLoading;
+  const isLoading = rtkLoading || unifiedLoading;
   const activeUser = authUser || unifiedUser;
 
-  useEffect(() => {
-    localStorage.setItem('isAdminAuthenticated', 'true');
-    if (!isLoading && activeUser) {
-      const userRole = ((activeUser as any)?.role || (activeUser as any)?.userRole || "").toLowerCase();
-      const email = ((activeUser as any)?.email || (activeUser as any)?.userInfo?.email || "").toLowerCase();
-      const isAdmin = userRole === "admin" || 
-                      email.includes("admin") || 
-                      email.includes("sqwizoor") || 
-                      email.includes("banele") || 
-                      email.endsWith("@student24.co.za");
-      if (!isAdmin) {
-        router.replace("/");
-      }
-    } else if (!isLoading && !activeUser) {
-      router.replace("/signin?callbackUrl=/admin");
-    }
-  }, [activeUser, isLoading, router]);
+  const email = (
+    (activeUser as any)?.email || 
+    (activeUser as any)?.userInfo?.email || 
+    ""
+  ).toLowerCase().trim();
+  const isAdmin = isExplicitAdminEmail(email);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isLoading) {
+      if (!activeUser || !isAdmin) {
+        localStorage.removeItem('isAdminAuthenticated');
+        router.replace(activeUser ? "/" : "/signin?callbackUrl=/admin");
+      } else {
+        localStorage.setItem('isAdminAuthenticated', 'true');
+      }
+    }
+  }, [activeUser, isLoading, isAdmin, router]);
+
+  if (isLoading || !isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-slate-50 dark:bg-[#000000] text-slate-800 dark:text-zinc-100 transition-colors">
         <div className="w-10 h-10 border-2 border-slate-300 dark:border-zinc-800 border-t-slate-800 dark:border-t-white rounded-full animate-spin"></div>
-        <p className="mt-3 text-xs font-mono tracking-widest text-slate-500 dark:text-zinc-500 uppercase">Loading Admin Console...</p>
+        <p className="mt-3 text-xs font-mono tracking-widest text-slate-500 dark:text-zinc-500 uppercase">Verifying Admin Access...</p>
       </div>
     );
   }

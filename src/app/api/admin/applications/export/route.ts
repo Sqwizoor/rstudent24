@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
+import { isExplicitAdminEmail } from '@/lib/constants';
 
 // GET handler for exporting all applications as CSV
 export async function GET(request: NextRequest) {
@@ -10,14 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const isAdmin = authResult.isAuthenticated && (
-      authResult.userRole === 'admin' || 
-      (authResult.userEmail && (
-        authResult.userEmail.includes("sqwizoor") || 
-        authResult.userEmail.includes("banele") || 
-        authResult.userEmail.endsWith("@student24.co.za")
-      ))
-    );
+    const isAdmin = authResult.isAuthenticated && isExplicitAdminEmail(authResult.userEmail);
 
     if (!isAdmin) {
       return NextResponse.json({ message: 'Forbidden. Only admins can export applications.' }, { status: 403 });

@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import { fetchAuthSession } from "aws-amplify/auth";
 import type { ExtendedAuthUser } from "@/types/cognito";
 
 export interface CognitoLandlord {
@@ -21,15 +20,6 @@ export function useCognitoLandlords() {
     setIsLoading(true);
     setError(null);
     try {
-      let headers: HeadersInit = {};
-      try {
-        const session = await fetchAuthSession();
-        const idToken = session.tokens?.idToken?.toString();
-        if (idToken) {
-          headers = { ...headers, Authorization: `Bearer ${idToken}` };
-        }
-      } catch {}
-
       const res = await fetch("/api/admin/managers");
       if (!res.ok) {
         setLandlords([]);

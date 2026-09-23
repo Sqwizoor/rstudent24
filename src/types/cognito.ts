@@ -1,19 +1,13 @@
-import type { AuthUser } from 'aws-amplify/auth';
-
-// Instead of extending the AuthUser type, create a completely new type
-// This avoids compatibility issues with AWS Amplify v6
+// Standalone authentication user interface (no AWS dependency)
 export interface ExtendedAuthUser {
-    // Include the core AuthUser properties that are actually used in your app
-    username?: string;
-    userId?: string;
-    email?: string;
-    
-    // Add our custom properties
-    signInDetails?: {
-        authFlowType?: string;
-        attributes?: {
-            'custom:role'?: string;
-            [key: string]: string | undefined;
-        };
+  username?: string;
+  userId?: string;
+  email?: string;
+  signInDetails?: {
+    authFlowType?: string;
+    attributes?: {
+      'custom:role'?: string;
+      [key: string]: string | undefined;
     };
+  };
 }

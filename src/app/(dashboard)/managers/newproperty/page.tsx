@@ -9,7 +9,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { toast, Toaster } from "sonner";
 import Image from "next/image";
-import { fetchAuthSession } from "aws-amplify/auth";
 // Components
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";

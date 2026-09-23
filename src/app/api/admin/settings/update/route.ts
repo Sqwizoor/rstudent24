@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchAuthSession, updateUserAttributes } from "aws-amplify/auth";
+import { verifyAuth } from "@/lib/auth";
 
 /**
  * API endpoint to update admin user settings
@@ -7,23 +7,9 @@ import { fetchAuthSession, updateUserAttributes } from "aws-amplify/auth";
  */
 export async function POST(req: NextRequest) {
   try {
-    // Verify admin authentication
-    const session = await fetchAuthSession();
-    if (!session.tokens?.idToken) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    // Verify admin role
-    const userRole = session.tokens.idToken.payload?.["custom:role"] as string;
-    const userEmail = session.tokens.idToken.payload?.email as string;
-    
-    const isAdmin = userRole === "admin" || 
-                   (userEmail && userEmail.toLowerCase() === "admin@student24.co.za");
-    
-    if (!isAdmin) {
+    // Verify admin authentication strictly with verifyAuth
+    const authResult = await verifyAuth(req, ['admin']);
+    if (!authResult.isAuthenticated || authResult.userRole !== 'admin') {
       return NextResponse.json(
         { success: false, message: "Unauthorized - Admin access required" },
         { status: 403 }
@@ -49,10 +35,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Update user attributes in Cognito
-    await updateUserAttributes({
-      userAttributes: attributes
-    });
+    // Update admin details in database
+    if (authResult.userEmail) {
+      const { prisma } = await import('@/lib/prisma');
+      await prisma.admin.updateMany({
+        where: { email: authResult.userEmail },
+        data: {
+          name: name || undefined,
+        }
+      }).catch((dbErr) => {
+        console.warn("Could not update admin in prisma:", dbErr);
+      });
+    }
 
     return NextResponse.json({
       success: true,

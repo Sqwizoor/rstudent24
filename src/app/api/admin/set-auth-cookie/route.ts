@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { verifyAuth } from '@/lib/auth';
 
 // API endpoint to securely set the admin authentication cookie
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await verifyAuth(request, ['admin']);
+    if (!authResult.isAuthenticated || authResult.userRole !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized: Admin access required' }, { status: 403 });
+    }
+
     // Parse the request to get the token
     const { token } = await request.json();
     

@@ -29,7 +29,6 @@ import {
   ExternalLink
 } from "lucide-react";
 import { toast } from "sonner";
-import TestAdminAuth from "./test-admin-auth";
 import Image from "next/image";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
@@ -37,7 +36,6 @@ import { api } from "../../../convex/_generated/api";
 export default function AdminDashboard() {
   const [adminUser, setAdminUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [debug, setDebug] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -47,11 +45,9 @@ export default function AdminDashboard() {
         const { isAuthenticated, adminData } = await checkAdminAuth();
         if (isAuthenticated && adminData) {
           setAdminUser(adminData);
-        } else {
-          setAdminUser({ name: 'Admin User', role: 'admin', email: 'admin@student24.co.za' });
         }
       } catch (error) {
-        setAdminUser({ name: 'Admin User', role: 'admin', email: 'admin@student24.co.za' });
+        console.error("Admin verification error:", error);
       } finally {
         setIsLoading(false);
       }
@@ -170,12 +166,6 @@ export default function AdminDashboard() {
 
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => setDebug(!debug)}
-              className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 rounded-lg text-xs hover:text-white hover:bg-zinc-800 transition"
-            >
-              {debug ? 'Hide Debug' : 'Debug Auth'}
-            </button>
-            <button 
               onClick={handleLogout}
               className="px-3.5 py-1.5 bg-rose-600/80 hover:bg-rose-600 text-white rounded-lg text-xs font-semibold transition"
             >
@@ -183,8 +173,6 @@ export default function AdminDashboard() {
             </button>
           </div>
         </div>
-
-        {debug && <div className="mt-4 pt-4 border-t border-zinc-800"><TestAdminAuth /></div>}
       </section>
 
       {/* ─── SECTION 1: PROPERTIES OVERVIEW ────────────────────────────────────── */}

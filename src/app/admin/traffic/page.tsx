@@ -14,7 +14,6 @@ import {
   ArrowLeft, RefreshCw, ExternalLink, Loader2
 } from "lucide-react";
 import { configureAdminAuth, checkAdminAuth } from "../adminAuth";
-import { fetchAuthSession } from "aws-amplify/auth";
 import { AnalyticsSkeleton } from "./AnalyticsSkeleton";
 
 // Chart colors

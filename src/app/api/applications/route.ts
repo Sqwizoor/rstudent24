@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
+import { isExplicitAdminEmail } from '@/lib/constants';
 import { getPostHogClient } from '@/lib/posthog-server';
 
 export const dynamic = 'force-dynamic';
@@ -22,12 +23,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const propertyId = searchParams.get('propertyId');
     
-    const isAdmin = authResult.userRole === 'admin' || 
-                    (authResult.userEmail && (
-                      authResult.userEmail.includes("sqwizoor") || 
-                      authResult.userEmail.includes("banele") || 
-                      authResult.userEmail.endsWith("@student24.co.za")
-                    ));
+    const isAdmin = isExplicitAdminEmail(authResult.userEmail);
 
     // Authorization checks
     if (userType === 'tenant' && !isAdmin && authResult.userId !== userId && authResult.userEmail !== userId) {

@@ -4,9 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, LogOut, Search, Building2, ChevronDown, Plus, Sun, Moon } from "lucide-react";
-import { signOut as cognitoSignOut } from "aws-amplify/auth";
-import { signOut as nextAuthSignOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
 
 import { NAVBAR_HEIGHT } from "@/lib/constants";
@@ -95,17 +93,7 @@ const DashboardNavbar = () => {
 
   const handleSignOut = async () => {
     try {
-      if (provider === "google") {
-        await nextAuthSignOut({ redirect: false });
-        router.push("/");
-        return;
-      }
-      if (provider === "cognito") {
-        await cognitoSignOut();
-        router.push("/");
-        return;
-      }
-      router.push("/signin");
+      await signOut({ callbackUrl: "/" });
     } catch (error) {
       console.error("Sign out error:", error);
       router.push("/");

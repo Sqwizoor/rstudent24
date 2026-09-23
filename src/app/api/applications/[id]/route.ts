@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
+import { isExplicitAdminEmail } from '@/lib/constants';
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
 
@@ -42,22 +43,22 @@ export async function GET(
           applicationDate: ca.applicationDate || new Date(ca.createdAt || Date.now()).toISOString(),
           createdAt: new Date(ca.createdAt || Date.now()),
           managerId: ca.managerId,
-          property: ca.property ? {
-            id: ca.property._id || ca.property.id,
-            name: ca.property.name || "Student Accommodation",
-            description: ca.property.description || "",
-            pricePerMonth: ca.property.pricePerMonth || 0,
-            address: ca.property.address || "",
+          property: {
+            id: ca.property?._id || ca.property?.id || ca.propertyId || "",
+            name: ca.property?.name || "Student Accommodation",
+            description: ca.property?.description || "",
+            pricePerMonth: Number(ca.property?.pricePerMonth) || 0,
+            address: ca.property?.address || "",
             location: {
-              address: ca.property.address || "",
-              city: ca.property.city || "",
-              suburb: ca.property.suburb || "",
+              address: ca.property?.address || "",
+              city: ca.property?.city || "",
+              suburb: ca.property?.suburb || "",
             }
-          } : null,
+          },
           room: ca.room ? {
-            id: ca.room._id || ca.room.id,
-            name: ca.room.name,
-            pricePerMonth: ca.room.pricePerMonth,
+            id: ca.room._id || ca.room.id || ca.roomId,
+            name: ca.room.name || "Room",
+            pricePerMonth: Number(ca.room.pricePerMonth) || 0,
           } : null,
           tenant: {
             firstName,
@@ -85,12 +86,7 @@ export async function GET(
     }
 
     // Check authorization - user must be either the manager of the property, the tenant, or an admin
-    const isAdmin = authResult.userRole === 'admin' || 
-                    (authResult.userEmail && (
-                      authResult.userEmail.includes("sqwizoor") || 
-                      authResult.userEmail.includes("banele") || 
-                      authResult.userEmail.endsWith("@student24.co.za")
-                    ));
+    const isAdmin = isExplicitAdminEmail(authResult.userEmail);
 
     if (!isAdmin) {
       const managerId = application.managerId || application.property?.managerId || application.property?.managerCognitoId;
@@ -151,12 +147,7 @@ export async function DELETE(
       );
     }
 
-    const isAdmin = authResult.userRole === 'admin' || 
-                    (authResult.userEmail && (
-                      authResult.userEmail.includes("sqwizoor") || 
-                      authResult.userEmail.includes("banele") || 
-                      authResult.userEmail.endsWith("@student24.co.za")
-                    ));
+    const isAdmin = isExplicitAdminEmail(authResult.userEmail);
 
     if (!isAdmin) {
       const managerId = application.managerId || application.property?.managerId || application.property?.managerCognitoId;

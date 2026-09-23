@@ -1,65 +1,42 @@
 import { cleanParams, createNewUserInDatabase, withToast } from "@/lib/utils"
+import { isExplicitAdminEmail } from "@/lib/constants"
 // Ensure prismaTypes correctly defines these or import directly from @prisma/client if preferred
 // Assuming Tenant and Manager are the correct types for user details from DB
 import type { Application, Lease, Manager, Payment, Property, Room, Tenant } from "@/types/prismaTypes"
-// Import the Cognito User type if available, or define a minimal structure
 import type { ExtendedAuthUser as CognitoAuthUser } from '@/types/cognito';
-import { fetchAuthSession } from "aws-amplify/auth";
 // Import RTK Query types
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import type { TagDescription } from '@reduxjs/toolkit/query';
 import { toast } from 'sonner';
 
-import { FiltersState } from "./index";  // FiltersState is defined in index.ts, not in slices folder
-
+import { FiltersState } from "./index";
 
 // Use relative paths for Next.js API routes
 const API_BASE_URL = '/api';
-// No need to check for environment variables since we're using relative paths
 
-// --- Define a specific type for the authenticated user state ---
-// Define Admin type to match the structure needed for admin users
 export interface Admin {
   id: number;
   cognitoId: string;
   name: string;
   email: string;
-  phoneNumber?: string; // Add phoneNumber field to match usage in the code
+  phoneNumber?: string;
 }
 
 export interface AppUser {
-  cognitoInfo: CognitoAuthUser; // Use the type from aws-amplify/auth
-  userInfo: Tenant | Manager | Admin;   // The user details from your database (Tenant, Manager, or Admin)
+  cognitoInfo: CognitoAuthUser;
+  userInfo: Tenant | Manager | Admin;
   userRole: "tenant" | "manager" | "admin";
 }
-// --- End AppUser Definition ---
 
-// Define the valid tag types used throughout the API slice
 type CacheTagType = "Applications" | "Managers" | "Tenants" | "Properties" | "PropertyDetails" | "Leases" | "Payments" | "Rooms" | "Admins";
-
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
-    timeout: 60000, // Increase timeout to 60 seconds
-    prepareHeaders: async (headers, { getState, endpoint }) => {
-      try {
-        const { fetchAuthSession } = await import("aws-amplify/auth");
-        const session = await fetchAuthSession();
-        const idToken = session.tokens?.idToken?.toString();
-        if (idToken) {
-          headers.set("Authorization", `Bearer ${idToken}`);
-        }
-      } catch (error) {
-        // Silently handle auth errors - this allows non-authenticated users to access public endpoints
-        // User not authenticated, continuing as guest
-      }
-      
-      // Important: Don't set Content-Type for FormData requests
-      // The browser needs to set the correct boundary for multipart/form-data
-      // RTK Query will automatically detect FormData and avoid setting Content-Type
-      
+    timeout: 60000,
+    prepareHeaders: async (headers) => {
+      // In Next.js, session cookies are sent automatically with same-origin requests
       return headers;
     },
     // Add response handling to properly handle non-JSON responses
@@ -203,328 +180,119 @@ export const api = createApi({
     // --- Use the new AppUser type ---
     getAuthUser: build.query<AppUser, void>({
       queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
-        // Define userDetailsResponse at the highest scope so it's accessible throughout the function
-        let userDetailsResponse: any = { error: { status: 500, error: "Initialization error" } };
-        
         try {
-          const { fetchAuthSession, getCurrentUser } = await import("aws-amplify/auth");
-          let cognitoUser: CognitoAuthUser | undefined;
-          let userEmail = "";
-          
-          const session = await fetchAuthSession();
-          // Auth session fetched
-          
-          if (!session?.tokens?.idToken) {
-            try {
-              const res = await fetch('/api/auth/session');
-              if (res.ok) {
-                const nextAuthSession = await res.json();
-                if (nextAuthSession?.user?.email) {
-                  const email = nextAuthSession.user.email.toLowerCase();
-                  const name = nextAuthSession.user.name || email.split('@')[0];
-                  const rawRole = (nextAuthSession.user.role || 'tenant').toLowerCase();
-
-                  const ADMIN_EMAILS = [
-                    'banelesqwizooor@gmail.com',
-                    'sqwizoor@gmail.com',
-                    'admin@student24.co.za',
-                    'info@student24.co.za',
-                    'superadmin@student24.co.za'
-                  ];
-
-                  const isExplicitAdmin = ADMIN_EMAILS.includes(email) || 
-                                          email.includes("sqwizoor") || 
-                                          email.includes("banele") || 
-                                          email.endsWith("@student24.co.za");
-
-                  const userRole = (isExplicitAdmin || rawRole === "admin") ? "admin" : 
-                                   (rawRole === "manager" ? "manager" : "tenant");
-
-                  const mockUser = {
-                    userId: nextAuthSession.user.id || email,
-                    email: email,
-                    name: name
-                  };
-
-                  return {
-                    data: {
-                      cognitoInfo: mockUser as any,
-                      userInfo: {
-                        id: 1,
-                        cognitoId: email,
-                        name: name,
-                        email: email,
-                        phoneNumber: ""
-                      } as any,
-                      userRole: userRole as "tenant" | "manager" | "admin"
-                    }
-                  } as const;
-                }
+          const res = await fetch('/api/auth/session');
+          if (!res.ok) {
+            return {
+              error: {
+                status: 401,
+                error: "No authenticated user found",
+                data: "User not authenticated"
               }
-            } catch (naErr) {
-              console.warn("NextAuth session check warning in getAuthUser:", naErr);
-            }
+            } as const;
+          }
 
-            return { 
-              error: { 
-                status: 401, 
+          const session = await res.json();
+          if (!session?.user?.email) {
+            return {
+              error: {
+                status: 401,
                 error: "No valid session found",
                 data: "User not authenticated"
-              } 
+              }
             } as const;
           }
-          
-          const idToken = session.tokens.idToken;
-          
-          try {
-            const authUser = await getCurrentUser();
-            // Convert standard AuthUser to ExtendedAuthUser
-            cognitoUser = {
-              ...authUser,
-              signInDetails: authUser.signInDetails ? {
-                ...authUser.signInDetails,
-                attributes: {
-                  'custom:role': idToken.payload["custom:role"] as string
-                }
-              } : undefined
-            } as CognitoAuthUser;
-            // Cognito user fetched
-            
-            const rawUserRole = idToken.payload["custom:role"] as string;
-            // Get email from idToken payload instead of non-existent username property
-            userEmail = typeof idToken.payload.email === 'string' ? 
-              idToken.payload.email.toLowerCase() : '';
 
+          const email = session.user.email.toLowerCase();
+          const name = session.user.name || email.split('@')[0];
+          const rawRole = (session.user.role || 'tenant').toLowerCase();
 
-            if (cognitoUser) {
-              cognitoUser.email = userEmail || cognitoUser.email;
-            }
+          const isExplicitAdmin = isExplicitAdminEmail(email);
+          const userRole: "tenant" | "manager" | "admin" = isExplicitAdmin ? "admin" : 
+                           (rawRole === "manager" ? "manager" : "tenant");
 
-
-            if (!cognitoUser) {
-
-              // Instead of returning null, return a proper error object
-              // This ensures type compatibility with RTK Query
-              return { 
-                error: { 
-                  status: 401, 
-                  error: "No authenticated user found",
-                  data: "User not authenticated"
-                } 
-              } as const;
-            }
-
-            const ADMIN_EMAILS = [
-              'banelesqwizooor@gmail.com',
-              'sqwizoor@gmail.com',
-              'admin@student24.co.za',
-              'info@student24.co.za',
-              'superadmin@student24.co.za'
-            ];
-
-            const isExplicitAdmin = ADMIN_EMAILS.includes(userEmail) || 
-                                    userEmail.includes("sqwizoor") || 
-                                    userEmail.includes("banele") || 
-                                    userEmail.endsWith("@student24.co.za");
-
-            const isAdmin = rawUserRole === "admin" || isExplicitAdmin;
-            
-            // Determine user role with proper admin handling
-            const userRole = isAdmin ? "admin" : 
-                           (rawUserRole === "manager" ? "manager" : "tenant") as "tenant" | "manager" | "admin";
-            
-
-            
-            // Determine the endpoint based on user role, but don't set endpoint for admin users
-            // as we'll handle them separately without an API call
-            let endpoint = "";
-            if (userRole === "manager") {
-              endpoint = `/managers/${cognitoUser.userId}`;
-            } else if (userRole === "tenant") {
-              endpoint = `/tenants/${cognitoUser.userId}`;
-            }
-          
-            // For admin users, construct admin info directly without API call
-            if (userRole === "admin") {
-               
-              // Extract a better name from the email or user attributes
-              let adminName = "";
-               
-              // Try to get name from user attributes if available
-              // Use the name from ID token if available
-              if (idToken.payload.name) {
-                adminName = idToken.payload.name as string;
-              } 
-              // If email is available, use part before @ as name
-              else if (userEmail && userEmail !== "admin@student24.co.za") {
-                const emailName = userEmail.split('@')[0];
-                // Convert email name to proper case (e.g., john.doe -> John Doe)
-                adminName = emailName
-                  .replace(/\./g, ' ')
-                  .replace(/\b\w/g, c => c.toUpperCase());
+          const authUser: CognitoAuthUser = {
+            userId: session.user.id || email,
+            username: email,
+            email: email,
+            name: name,
+            signInDetails: {
+              loginId: email,
+              attributes: {
+                'custom:role': userRole
               }
-               
-              // If we still don't have a name, use a generic one
-              if (!adminName) {
-                adminName = "Admin User";
-              }
-              
-              const adminInfo: Admin = {
-                id: 0, // Use appropriate ID or generate one
-                cognitoId: cognitoUser.userId || "",
-                name: adminName,
-                email: userEmail || ""
-              };
-              
-              // Return admin user directly
-              const appUserData: AppUser = {
-                cognitoInfo: cognitoUser,
+            }
+          };
+
+          if (userRole === "admin") {
+            const adminInfo: Admin = {
+              id: 0,
+              cognitoId: authUser.userId,
+              name: name,
+              email: email
+            };
+            return {
+              data: {
+                cognitoInfo: authUser,
                 userInfo: adminInfo,
-                userRole: "admin",
-              };
-
-
-              return { data: appUserData } as const;
-            }
-            
-
-            
-            // Only attempt to fetch user details if we have a valid endpoint
-            if (endpoint) {
-              try {
-                userDetailsResponse = await fetchWithBQ(endpoint);
-                
-                // User details response
-              } catch (error) {
-                return { 
-                  error: { 
-                    status: 401, 
-                    error: "Error fetching user details",
-                    data: error instanceof Error ? error.message : "Unknown error"
-                  } 
-                } as const;
+                userRole: "admin"
               }
-            } else {
-
-              // Return early with appropriate error for missing endpoint
-              return {
-                error: {
-                  status: 400,
-                  error: "Invalid user role or missing endpoint",
-                  data: "Could not determine appropriate API endpoint for user role"
-                }
-              } as const;
-            }
-          } catch (error) {
-            return { 
-              error: { 
-                status: 401, 
-                error: "Authentication error",
-                data: error instanceof Error ? error.message : "Unknown error"
-              } 
             } as const;
           }
 
-          // Determine user role based on custom attributes
-          let determinedUserRole: "tenant" | "manager" | "admin";
-          const userRole = cognitoUser?.signInDetails?.attributes?.['custom:role'];
-          
-          if (userRole === 'admin') {
-            determinedUserRole = 'admin';
-          } else if (userRole === 'manager') {
-            determinedUserRole = 'manager';
-          } else {
-            determinedUserRole = 'tenant';
-          }
+          const endpoint = userRole === "manager" ? `/managers/${authUser.userId}` : `/tenants/${authUser.userId}`;
+          let userDetailsResponse = await fetchWithBQ(endpoint);
 
-          // if user doesn't exist or there's a timeout, create new user
           if (userDetailsResponse.error && 
               ((userDetailsResponse.error as any).status === 404 || 
                (userDetailsResponse.error as any).status === 504)) {
-
-            if (!cognitoUser) {
-              return {
-                error: {
-                  status: 401,
-                  error: "No Cognito user found",
-                  data: "Unable to retrieve Cognito user information"
-                }
-              } as const;
+            const fallbackToken = { payload: { email } };
+            try {
+              userDetailsResponse = await createNewUserInDatabase(authUser, fallbackToken, userRole, fetchWithBQ);
+            } catch (err) {
+              console.warn("Failed to create user in DB, using fallback", err);
             }
-            
-            userDetailsResponse = await createNewUserInDatabase(cognitoUser, idToken, determinedUserRole, fetchWithBQ);
-            // New user creation response
           }
 
-          if(userDetailsResponse.error){
-            
-            // Check if this is a database connection error
-            if (userDetailsResponse.error.status === 500 && 
-                (typeof userDetailsResponse.error.data === 'string' && (
-                 userDetailsResponse.error.data.includes('prisma') || 
-                 userDetailsResponse.error.data.includes('database')))) {
-              return { 
-                error: { 
-                  status: 500, 
-                  error: "Database connection error",
-                  data: "Please check your database connection"
-                } 
-              } as const;
-            }
-            
-            // For 403 errors (role-based access issues)
-            if (userDetailsResponse.error.status === 403) {
-              return { 
-                error: { 
-                  status: 403, 
-                  error: "Permission denied",
-                  data: "Your role doesn't have access to this resource"
-                } 
-              } as const;
-            }
-            
-            throw userDetailsResponse.error;
+          if (userDetailsResponse.error) {
+            const fallbackUserInfo = {
+              id: 1,
+              cognitoId: authUser.userId,
+              name: name,
+              email: email,
+              phoneNumber: ""
+            };
+            return {
+              data: {
+                cognitoInfo: authUser,
+                userInfo: fallbackUserInfo as any,
+                userRole: userRole
+              }
+            } as const;
           }
 
-          // --- Construct the AppUser object ---
-          const dbUser = userDetailsResponse.data as Tenant | Manager | Admin;
+          const dbUser = userDetailsResponse.data as Tenant | Manager;
           const mergedUserInfo = {
             ...dbUser,
-            email: userEmail || dbUser.email,
-          } as Tenant | Manager | Admin;
+            email: email || dbUser.email,
+          } as Tenant | Manager;
 
-          const appUserData: AppUser = {
-            cognitoInfo: cognitoUser,
-            userInfo: mergedUserInfo,
-            userRole: determinedUserRole,
-          };
-
-
-          return { data: appUserData } as const;
-        } catch (error: any) {
-            
-            // More detailed error message construction
-            const errorMessage = error?.message || 
-                               error?.data?.message || 
-                               (error?.status === 401 ? "Authentication failed" : 
-                                error?.status === 404 ? "User not found" :
-                                error?.status === 504 ? "Server timeout - please try again" :
-                                "Could not fetch user data");
-                               
-            // If this is a timeout error, we can return a fallback user state
-            if (error?.status === 504) {
-
-              // You could return a cached user here if available
-              // For now, we'll just return the error
+          return {
+            data: {
+              cognitoInfo: authUser,
+              userInfo: mergedUserInfo,
+              userRole: userRole
             }
-            
-            return { 
-                error: { 
-                    status: error?.status || 'CUSTOM_ERROR', 
-                    error: errorMessage,
-                    details: error
-                } 
-            } as const;
+          } as const;
+        } catch (error: any) {
+          const errorMessage = error?.message || error?.data?.message || "Could not fetch user data";
+          return {
+            error: {
+              status: error?.status || 'CUSTOM_ERROR',
+              error: errorMessage,
+              details: error
+            }
+          } as const;
         }
       },
       providesTags: (result) => result?.userInfo
