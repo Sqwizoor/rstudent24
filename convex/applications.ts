@@ -133,7 +133,7 @@ export const getManagerApplications = query({
                 name: p.name,
                 city: p.city,
                 address: p.address,
-                suburb: p.suburb,
+                suburb: p.suburb || "",
                 pricePerMonth: p.pricePerMonth,
                 propertyType: p.propertyType,
                 location: {
