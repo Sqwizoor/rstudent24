@@ -582,6 +582,17 @@ const Applications = () => {
         (application.user ? `${application.user.firstName || ''} ${application.user.lastName || ''}`.trim() : '') ||
         "Student";
 
+      let safeAppDate = new Date().toISOString();
+      try {
+        const rawDate = application.applicationDate || application.createdAt || application._creationTime;
+        if (rawDate) {
+          const parsed = new Date(rawDate);
+          if (!isNaN(parsed.getTime())) {
+            safeAppDate = parsed.toISOString();
+          }
+        }
+      } catch {}
+
       return {
         ...application,
         id: application._id || application.id,
@@ -589,9 +600,7 @@ const Applications = () => {
         email: application.email || application.tenant?.email || "",
         phoneNumber: application.phoneNumber || application.tenant?.phoneNumber || "",
         message: application.message || "",
-        applicationDate: application.applicationDate instanceof Date
-          ? application.applicationDate.toISOString()
-          : (application.applicationDate || new Date(application.createdAt || application._creationTime || Date.now()).toISOString()),
+        applicationDate: safeAppDate,
         user: {
           firstName: applicantName.split(' ')[0] || "Student",
           lastName: applicantName.split(' ').slice(1).join(' ') || "",

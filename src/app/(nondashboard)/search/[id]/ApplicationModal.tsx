@@ -214,18 +214,6 @@ const ApplicationModal = ({
         "Content-Type": "application/json"
       };
       
-      if (authUser.provider === "cognito") {
-        try {
-          const session = await fetchAuthSession();
-          const token = session.tokens?.idToken?.toString() || "";
-          if (token) {
-            headers["Authorization"] = "Bearer " + token;
-          }
-        } catch (authError) {
-          console.error("Failed to get Cognito token:", authError);
-        }
-      }
-      
       const currentDate = new Date().toISOString();
       const finalFormattedData = {
         name: data.name,

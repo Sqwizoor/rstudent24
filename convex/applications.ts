@@ -211,7 +211,7 @@ export const getManagerApplications = query({
           name: p.name,
           city: p.city,
           address: p.address,
-          suburb: p.suburb,
+          suburb: p.suburb || "",
           pricePerMonth: p.pricePerMonth,
           propertyType: p.propertyType,
           location: {
@@ -240,16 +240,30 @@ export const getManagerApplications = query({
       }
     }
 
-    // 2. Applications targeting properties owned by this manager (using fast index)
-    for (const propId of managerPropertyIds) {
-      const propApps = await ctx.db
-        .query("applications")
-        .withIndex("by_property", (q) => q.eq("propertyId", propId as any))
-        .collect();
-      for (const a of propApps) {
-        if (!seenAppIds.has(a._id)) {
-          seenAppIds.add(a._id);
-          matchedApps.push(a);
+    // 2. Applications targeting properties owned by this manager
+    if (managerPropertyIds.size > 0) {
+      if (managerPropertyIds.size <= 5) {
+        // Query index per property for managers with few properties
+        for (const propId of managerPropertyIds) {
+          const propApps = await ctx.db
+            .query("applications")
+            .withIndex("by_property", (q) => q.eq("propertyId", propId as any))
+            .collect();
+          for (const a of propApps) {
+            if (!seenAppIds.has(a._id)) {
+              seenAppIds.add(a._id);
+              matchedApps.push(a);
+            }
+          }
+        }
+      } else {
+        // When manager has many properties, fetch all applications once to prevent exceeding Convex subquery limits
+        const allApps = await ctx.db.query("applications").collect();
+        for (const a of allApps) {
+          if (managerPropertyIds.has(a.propertyId) && !seenAppIds.has(a._id)) {
+            seenAppIds.add(a._id);
+            matchedApps.push(a);
+          }
         }
       }
     }
@@ -271,7 +285,7 @@ export const getManagerApplications = query({
               name: p.name,
               city: p.city,
               address: p.address,
-              suburb: p.suburb,
+              suburb: p.suburb || "",
               pricePerMonth: p.pricePerMonth,
               propertyType: p.propertyType,
               location: {

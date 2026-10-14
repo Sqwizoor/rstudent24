@@ -3,7 +3,9 @@ export interface ExtendedAuthUser {
   username?: string;
   userId?: string;
   email?: string;
+  name?: string;
   signInDetails?: {
+    loginId?: string;
     authFlowType?: string;
     attributes?: {
       'custom:role'?: string;

@@ -100,23 +100,9 @@ const ApplicationDetailPage = () => {
       try {
         setLoading(true);
 
-        // Get authentication token (for Cognito users)
-        let authHeaders: HeadersInit = {
+        const authHeaders: HeadersInit = {
           "Content-Type": "application/json",
         };
-
-        try {
-          const session = await fetchAuthSession();
-          const token = session.tokens?.idToken?.toString();
-          if (token) {
-            authHeaders = {
-              ...authHeaders,
-              "Authorization": `Bearer ${token}`,
-            };
-          }
-        } catch (err) {
-          console.log("No Cognito session, using NextAuth cookies");
-        }
 
         const response = await fetch(
           `/api/applications/${applicationId}`,

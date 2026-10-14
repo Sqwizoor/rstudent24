@@ -227,7 +227,7 @@ export const api = createApi({
           if (userRole === "admin") {
             const adminInfo: Admin = {
               id: 0,
-              cognitoId: authUser.userId,
+              cognitoId: authUser.userId || email,
               name: name,
               email: email
             };
@@ -469,23 +469,11 @@ export const api = createApi({
             console.log('- FormData entries:', Object.fromEntries(body.entries()));
             
             try {
-                // Get auth token manually
-                let authToken = '';
-                try {
-                    const session = await fetchAuthSession();
-                    authToken = session.tokens?.idToken?.toString() || '';
-                } catch (authError) {
-                    console.warn('Could not get auth token:', authError);
-                }
-                
                 // Use direct fetch to completely bypass RTK Query's request handling
                 const response = await fetch(`${API_BASE_URL}/properties/${id}`, {
                     method: 'PUT',
                     body: body, // Send FormData directly
-                    headers: {
-                        // Only include Authorization header, let browser set Content-Type for FormData
-                        ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
-                    },
+                    credentials: 'include',
                 });
                 
                 console.log('Direct fetch response status:', response.status);
@@ -801,24 +789,11 @@ export const api = createApi({
       // Using a custom queryFn to handle both room creation and photo uploads in one step
       async queryFn({ propertyId, body }, _queryApi, _extraOptions, fetchWithBQ) {
         try {
-          // Get auth token for API requests
-          let token;
-          try {
-            const session = await fetchAuthSession();
-            token = session.tokens?.idToken?.toString();
-          } catch (e) {
-            // Not authenticated
-            throw new Error('Authentication required');
-          }
-          
           // Send the entire FormData with both room data and photos in a single request
           // The server will handle extracting room data and processing photos
           const createRoomResponse = await fetch(`${API_BASE_URL}/properties/${propertyId}/create-room`, {
             method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`
-              // Don't set Content-Type, let the browser set it correctly for FormData
-            },
+            credentials: 'include',
             body: body // Send the entire FormData object with both room data and photos
           });
           
@@ -931,22 +906,12 @@ export const api = createApi({
             }
           }
           
-          // Get auth token manually since we're bypassing RTK Query's baseQuery
-          const session = await fetchAuthSession();
-          const idToken = session.tokens?.idToken?.toString();
-          
-          const headers: HeadersInit = {};
-          if (idToken) {
-            headers["Authorization"] = `Bearer ${idToken}`;
-          }
-          
-          console.log('- Auth token present:', !!idToken);
           console.log('- Fetch URL:', `${API_BASE_URL}/rooms/${roomId}`);
           
           // Use direct fetch to avoid RTK Query's fetchBaseQuery interference
           const response = await fetch(`${API_BASE_URL}/rooms/${roomId}`, {
             method: 'PUT',
-            headers,
+            credentials: 'include',
             body: data, // FormData - don't set Content-Type, let browser handle it
           });
           

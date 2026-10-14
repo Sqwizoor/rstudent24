@@ -64,22 +64,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const status = searchParams.get('status');
     const propertyId = searchParams.get('propertyId');
     
-    // Find properties for this manager in Prisma if any
-    let properties: any[] = [];
-    try {
-      properties = await prisma.property.findMany({
-        where: { 
-          OR: [
-            { managerCognitoId: id },
-            ...(userEmail ? [{ managerCognitoId: userEmail }] : [])
-          ]
-        },
-        select: { id: true, title: true, address: true, location: true },
-      });
-    } catch (dbErr) {
-      console.warn("Prisma manager property query warning:", dbErr);
-    }
-    
     const tenantMap = new Map();
     const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
 

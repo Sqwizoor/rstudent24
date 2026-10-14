@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         data: {
           name: name || undefined,
         }
-      }).catch((dbErr) => {
+      }).catch((dbErr: any) => {
         console.warn("Could not update admin in prisma:", dbErr);
       });
     }

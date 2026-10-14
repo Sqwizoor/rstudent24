@@ -44,18 +44,7 @@ export default function AdminPropertiesPage() {
   
   // Initialize authentication for admin section
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        configureAdminAuth();
-        await fetchAuthSession().catch(() => null);
-        setAuthInitialized(true);
-      } catch (error) {
-        console.error("Error initializing admin auth:", error);
-        setAuthInitialized(true);
-      }
-    };
-    
-    initAuth();
+    setAuthInitialized(true);
   }, [router]);
   
   // Only fetch data after auth is initialized
