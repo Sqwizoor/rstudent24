@@ -3,7 +3,7 @@
 import React, { ReactNode } from "react";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL || "https://befitting-stingray-964.convex.cloud";
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL || "https://hardy-bird-543.convex.cloud";
 
 export function ConvexClientProvider({ children }: { children: ReactNode }) {
   const [convexClient] = React.useState(() => {

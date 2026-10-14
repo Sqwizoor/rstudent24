@@ -65,7 +65,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const propertyId = searchParams.get('propertyId');
     
     const tenantMap = new Map();
-    const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
+    const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
 
     // MIGRATED_LANDLORD_LOOKUP for legacy/migrated IDs
     const MIGRATED_LANDLORD_LOOKUP: Record<string, string> = {

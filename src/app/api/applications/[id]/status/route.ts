@@ -3,7 +3,7 @@ import { verifyAuth } from '@/lib/auth';
 import { isExplicitAdminEmail } from '@/lib/constants';
 import { getPostHogClient } from '@/lib/posthog-server';
 
-const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://befitting-stingray-964.convex.cloud';
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://hardy-bird-543.convex.cloud';
 
 // PUT handler for updating application status exclusively in Convex
 export async function PUT(

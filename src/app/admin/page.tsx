@@ -158,7 +158,7 @@ export default function AdminDashboard() {
               <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                 LIVE PRODUCTION
               </span>
-              <span className="text-xs text-zinc-500 font-mono">befitting-stingray-964</span>
+              <span className="text-xs text-zinc-500 font-mono">hardy-bird-543</span>
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-white">Administrator Command Center</h1>
             <p className="text-xs text-zinc-400 mt-0.5">Platform overview, listings control, and student activity</p>
