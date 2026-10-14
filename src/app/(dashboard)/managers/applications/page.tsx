@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { useQuery, useMutation } from "convex/react";
 import { anyApi } from "convex/server";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { isExplicitAdminEmail } from "@/lib/constants";
 import { 
   CircleCheckBig, 
   Download, 
@@ -423,9 +424,10 @@ class SafeApplicationItem extends React.Component<{
 // Applications Page Component
 const Applications = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useUnifiedAuth();
-  const managerId = (user as any)?.id || (user as any)?.sub || "";
   const managerEmail = user?.email || "";
-  const migratedId = managerEmail ? MIGRATED_LANDLORD_LOOKUP[managerEmail.toLowerCase()] : undefined;
+  const isAdmin = user?.role === 'admin' || isExplicitAdminEmail(managerEmail);
+  const managerId = isAdmin ? "admin" : ((user as any)?.id || (user as any)?.sub || "");
+  const migratedId = (!isAdmin && managerEmail) ? MIGRATED_LANDLORD_LOOKUP[managerEmail.toLowerCase()] : undefined;
 
   const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -442,12 +444,12 @@ const Applications = () => {
   // @ts-ignore
   const convexAppsByEmail = useQuery(
     anyApi.applications.getManagerApplications,
-    managerEmail && managerEmail !== managerId ? { managerId: managerEmail } : "skip"
+    !isAdmin && managerEmail && managerEmail !== managerId ? { managerId: managerEmail } : "skip"
   );
   // @ts-ignore
   const convexAppsByMigratedId = useQuery(
     anyApi.applications.getManagerApplications,
-    migratedId && migratedId !== managerId && migratedId !== managerEmail ? { managerId: migratedId } : "skip"
+    !isAdmin && migratedId && migratedId !== managerId && migratedId !== managerEmail ? { managerId: migratedId } : "skip"
   );
 
   // ── Convex Live Queries for Properties ──
@@ -459,12 +461,12 @@ const Applications = () => {
   // @ts-ignore
   const propertiesByEmail = useQuery(
     anyApi.properties.getManagerProperties,
-    managerEmail && managerEmail !== managerId ? { managerId: managerEmail } : "skip"
+    !isAdmin && managerEmail && managerEmail !== managerId ? { managerId: managerEmail } : "skip"
   );
   // @ts-ignore
   const propertiesByMigratedId = useQuery(
     anyApi.properties.getManagerProperties,
-    migratedId && migratedId !== managerId ? { managerId: migratedId } : "skip"
+    !isAdmin && migratedId && migratedId !== managerId ? { managerId: migratedId } : "skip"
   );
 
   const properties = useMemo(() => {
@@ -835,4 +837,62 @@ const Applications = () => {
   );
 };
 
-export default Applications;
+class ApplicationsPageErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: any }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: any, info: any) {
+    console.error("Applications page error boundary caught:", error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-950 p-6 flex items-center justify-center">
+          <div className="max-w-md w-full bg-white dark:bg-gray-900 border border-red-500/30 rounded-xl p-6 text-center space-y-4 shadow-lg">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
+            <h2 className="text-xl font-bold dark:text-white text-gray-900">
+              Applications Temporarily Unavailable
+            </h2>
+            <p className="text-sm dark:text-gray-400 text-gray-600">
+              We encountered an issue loading application records. Please try again.
+            </p>
+            <div className="flex justify-center gap-3 pt-2">
+              <Button
+                onClick={() => this.setState({ hasError: false, error: null })}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Retry
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="dark:border-gray-700"
+              >
+                Reload Page
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function ApplicationsPage() {
+  return (
+    <ApplicationsPageErrorBoundary>
+      <Applications />
+    </ApplicationsPageErrorBoundary>
+  );
+}
